@@ -3,6 +3,7 @@ import {
   useClasses,
   useCreateClass,
   useUpdateClass,
+  useDeleteClass,
 } from "../classes/hooks/useClasses";
 import { useStudents } from "../students/hooks/useStudents";
 import {
@@ -13,7 +14,7 @@ import {
   eachDayOfInterval,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X, Trash2 } from "lucide-react";
 import type { ClassStatus } from "@tutorfy/types";
 
 const statusConfig: Record<string, { bg: string; label: string }> = {
@@ -45,6 +46,7 @@ export function SchedulePage() {
   const { data: students } = useStudents();
   const createClass = useCreateClass();
   const updateClass = useUpdateClass();
+  const deleteClass = useDeleteClass();
 
   const classesByDay = useMemo(() => {
     const map: Record<string, typeof classes> = {};
@@ -235,22 +237,36 @@ export function SchedulePage() {
                       {(cls as any).student?.name}
                     </p>
                     <p className="text-muted-foreground">{cls.startTime}</p>
-                    <select
-                      value={cls.status}
-                      onChange={(e) =>
-                        handleStatusChange(
-                          cls.id,
-                          e.target.value as ClassStatus,
-                        )
-                      }
-                      className="mt-1 w-full rounded text-xs bg-transparent border-0 p-0 focus:ring-0"
-                    >
-                      {Object.entries(statusConfig).map(([k, v]) => (
-                        <option key={k} value={k}>
-                          {v.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex items-center gap-2 mt-2">
+                      <select
+                        value={cls.status}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            cls.id,
+                            e.target.value as ClassStatus,
+                          )
+                        }
+                        className="w-full rounded text-xs bg-transparent border-0 p-0 focus:ring-0"
+                        title="Status da aula"
+                      >
+                        {Object.entries(statusConfig).map(([k, v]) => (
+                          <option key={k} value={k}>
+                            {v.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => {
+                          if (window.confirm("Remover esta aula da agenda?")) {
+                            deleteClass.mutate(cls.id);
+                          }
+                        }}
+                        className="p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded transition-colors"
+                        title="Remover aula"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

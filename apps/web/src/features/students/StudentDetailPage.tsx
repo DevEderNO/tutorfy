@@ -1,6 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useStudent } from "./hooks/useStudents";
-import { ArrowLeft, Pencil, CalendarDays, DollarSign } from "lucide-react";
+import { useDeleteClass } from "../classes/hooks/useClasses";
+import {
+  ArrowLeft,
+  Pencil,
+  CalendarDays,
+  DollarSign,
+  Trash2,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -22,6 +29,7 @@ export function StudentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: student, isLoading } = useStudent(id);
+  const deleteClass = useDeleteClass();
 
   if (isLoading) {
     return (
@@ -121,11 +129,26 @@ export function StudentDetailPage() {
                     {cls.content && ` • ${cls.content}`}
                   </p>
                 </div>
-                <span
-                  className={`rounded-full border px-3 py-1 text-xs font-medium ${statusColors[cls.status]}`}
-                >
-                  {statusLabels[cls.status]}
-                </span>
+                <div className="flex items-center">
+                  <span
+                    className={`rounded-full border px-3 py-1 text-xs font-medium ${statusColors[cls.status]}`}
+                  >
+                    {statusLabels[cls.status]}
+                  </span>
+                  <button
+                    onClick={() => {
+                      if (
+                        window.confirm("Certeza que deseja remover esta aula?")
+                      ) {
+                        deleteClass.mutate(cls.id);
+                      }
+                    }}
+                    className="ml-4 p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors"
+                    title="Remover aula"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
