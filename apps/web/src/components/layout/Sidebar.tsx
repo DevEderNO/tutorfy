@@ -7,6 +7,7 @@ import {
   DollarSign,
   LogOut,
   GraduationCap,
+  Settings,
 } from "lucide-react";
 
 const navItems = [
@@ -14,6 +15,7 @@ const navItems = [
   { to: "/students", icon: Users, label: "Alunos" },
   { to: "/schedule", icon: CalendarDays, label: "Agenda" },
   { to: "/financial", icon: DollarSign, label: "Financeiro" },
+  { to: "/settings", icon: Settings, label: "Configurações" },
 ];
 
 export function Sidebar() {

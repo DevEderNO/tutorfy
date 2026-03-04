@@ -6,8 +6,8 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: tutorfy
-      POSTGRES_PASSWORD: tutorfy123
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: tutorfy
     volumes:
       - tutorfy_pgdata:/var/lib/postgresql/data

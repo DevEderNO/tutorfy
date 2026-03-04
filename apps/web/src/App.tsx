@@ -11,6 +11,7 @@ import { StudentFormPage } from "@/features/students/StudentFormPage";
 import { StudentDetailPage } from "@/features/students/StudentDetailPage";
 import { SchedulePage } from "@/features/schedule/SchedulePage";
 import { FinancialPage } from "@/features/financial/FinancialPage";
+import { SettingsPage } from "@/features/settings/SettingsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +63,7 @@ export default function App() {
               <Route path="/students/:id" element={<StudentDetailPage />} />
               <Route path="/schedule" element={<SchedulePage />} />
               <Route path="/financial" element={<FinancialPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Routes>
         </AuthProvider>
