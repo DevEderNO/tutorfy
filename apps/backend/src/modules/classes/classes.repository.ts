@@ -11,8 +11,8 @@ export class ClassesRepository {
 
     if (filters?.startDate || filters?.endDate) {
       where.date = {};
-      if (filters.startDate) where.date.gte = new Date(filters.startDate);
-      if (filters.endDate) where.date.lte = new Date(filters.endDate);
+      if (filters.startDate) where.date.gte = new Date(`${filters.startDate}T00:00:00Z`);
+      if (filters.endDate) where.date.lte = new Date(`${filters.endDate}T23:59:59Z`);
     }
 
     return prisma.classSession.findMany({
@@ -34,7 +34,7 @@ export class ClassesRepository {
       data: {
         ...data,
         userId,
-        date: new Date(data.date),
+        date: new Date(`${data.date}T12:00:00Z`),
       },
       include: { student: { select: { id: true, name: true } } },
     });
@@ -42,7 +42,7 @@ export class ClassesRepository {
 
   async update(id: string, data: UpdateClassInput) {
     const updateData: any = { ...data };
-    if (data.date) updateData.date = new Date(data.date);
+    if (data.date) updateData.date = new Date(`${data.date}T12:00:00Z`);
 
     return prisma.classSession.update({
       where: { id },
