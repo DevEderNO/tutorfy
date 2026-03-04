@@ -1,0 +1,17 @@
+{
+  "name": "tutorfy",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "db:generate": "pnpm --filter @tutorfy/backend exec prisma generate",
+    "db:push": "pnpm --filter @tutorfy/backend exec prisma db push",
+    "db:migrate": "pnpm --filter @tutorfy/backend exec prisma migrate dev",
+    "db:studio": "pnpm --filter @tutorfy/backend exec prisma studio"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}

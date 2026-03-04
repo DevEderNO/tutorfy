@@ -1,0 +1,10 @@
+{
+  "name": "@tutorfy/config",
+  "version": "0.0.1",
+  "private": true,
+  "files": ["tsconfig"],
+  "scripts": {
+    "build": "echo 'config package - no build needed'",
+    "lint": "echo 'no lint configured'"
+  }
+}

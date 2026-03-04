@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: tutorfy-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: tutorfy
+      POSTGRES_PASSWORD: tutorfy123
+      POSTGRES_DB: tutorfy
+    volumes:
+      - tutorfy_pgdata:/var/lib/postgresql/data
+
+volumes:
+  tutorfy_pgdata:
