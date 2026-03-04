@@ -26,6 +26,7 @@ export function useCreateClass() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
 }
@@ -40,6 +41,7 @@ export function useUpdateClass() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
 }
@@ -53,6 +55,7 @@ export function useDeleteClass() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
 }
