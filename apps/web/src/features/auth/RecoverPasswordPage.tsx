@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "@/lib/api";
 import {
   GraduationCap,
   ArrowLeft,
@@ -15,22 +16,29 @@ type PageState = "form" | "success";
 export function RecoverPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [pageState, setPageState] = useState<PageState>("form");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
 
-    // TODO: Integrar com API de recuperação de senha
-    // Simula requisição por 1.5s
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    setLoading(false);
-    setPageState("success");
+    try {
+      await api.post("/auth/request-reset", { email });
+      setPageState("success");
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message || "Erro ao enviar link de recuperação"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTryAgain = () => {
     setEmail("");
+    setError("");
     setPageState("form");
   };
 
@@ -65,6 +73,13 @@ export function RecoverPasswordPage() {
               Insira seu e-mail para receber as instruções
             </p>
           </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-6 rounded-lg bg-destructive/10 p-3 text-sm text-destructive border border-destructive/20">
+              {error}
+            </div>
+          )}
 
           {/* Form */}
           {pageState === "form" && (
@@ -102,7 +117,7 @@ export function RecoverPasswordPage() {
 
           {/* Success State */}
           {pageState === "success" && (
-            <div className="text-center p-8 bg-success/5 border border-success/20 rounded-2xl animate-in">
+            <div className="text-center p-8 bg-success/5 border border-success/20 rounded-2xl">
               <div className="h-16 w-16 bg-success/10 rounded-full flex items-center justify-center text-success mx-auto mb-4">
                 <CheckCircle className="h-8 w-8" />
               </div>

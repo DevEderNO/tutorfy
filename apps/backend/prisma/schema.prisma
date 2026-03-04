@@ -20,6 +20,7 @@ model User {
   students     Student[]
   classSessions ClassSession[]
   payments     Payment[]
+  passwordResetTokens PasswordResetToken[]
 
   @@map("users")
 }
@@ -100,4 +101,19 @@ model Payment {
   @@index([userId])
   @@index([studentId])
   @@map("payments")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([token])
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
