@@ -64,4 +64,9 @@
   .gradient-info {
     background: linear-gradient(135deg, #3b82f6, #2563eb);
   }
+
+  .login-gradient-bg {
+    background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.15), transparent),
+                radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.1), transparent);
+  }
 }

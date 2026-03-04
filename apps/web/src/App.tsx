@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { LoginPage } from "@/features/auth/LoginPage";
+import { RecoverPasswordPage } from "@/features/auth/RecoverPasswordPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { StudentsListPage } from "@/features/students/StudentsListPage";
 import { StudentFormPage } from "@/features/students/StudentFormPage";
@@ -44,6 +45,7 @@ export default function App() {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/recover-password" element={<RecoverPasswordPage />} />
             <Route
               element={
                 <ProtectedRoute>
