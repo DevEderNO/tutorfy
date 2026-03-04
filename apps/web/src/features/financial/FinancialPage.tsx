@@ -3,18 +3,31 @@ import {
   usePayments,
   useGeneratePayments,
   useMarkPaid,
+  useCreatePayment,
+  useDeletePayment,
 } from "../payments/hooks/usePayments";
-import { DollarSign, Plus, Check, X as XIcon } from "lucide-react";
+import { useStudents } from "../students/hooks/useStudents";
+import { DollarSign, Plus, Check, X as XIcon, Trash2 } from "lucide-react";
 
 export function FinancialPage() {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
   const [showGenerate, setShowGenerate] = useState(false);
+  const [showManual, setShowManual] = useState(false);
+  const [manualForm, setManualForm] = useState({
+    studentId: "",
+    billingType: "MONTHLY" as "MONTHLY" | "HOURLY",
+    amount: 0,
+    classHours: 0,
+  });
 
   const { data: payments, isLoading } = usePayments({ month, year });
+  const { data: students } = useStudents();
   const markPaid = useMarkPaid();
   const generatePayments = useGeneratePayments();
+  const createPayment = useCreatePayment();
+  const deletePayment = useDeletePayment();
 
   const handleTogglePaid = (id: string, currentPaid: boolean) => {
     markPaid.mutate({ id, paid: !currentPaid });
@@ -23,6 +36,37 @@ export function FinancialPage() {
   const handleGeneratePayments = async () => {
     await generatePayments.mutateAsync({ month, year });
     setShowGenerate(false);
+  };
+
+  const handleManualSubmit = async () => {
+    if (!manualForm.studentId) return;
+
+    let finalAmount = manualForm.amount;
+    let finalClassHours = undefined;
+
+    if (manualForm.billingType === "HOURLY") {
+      const student = students?.find((s) => s.id === manualForm.studentId);
+      const rate = student?.hourlyRate || 0;
+      finalAmount = manualForm.classHours * rate;
+      finalClassHours = manualForm.classHours;
+    }
+
+    await createPayment.mutateAsync({
+      studentId: manualForm.studentId,
+      month,
+      year,
+      amount: finalAmount,
+      billingType: manualForm.billingType,
+      classHours: finalClassHours,
+    });
+
+    setShowManual(false);
+    setManualForm({
+      studentId: "",
+      billingType: "MONTHLY",
+      amount: 0,
+      classHours: 0,
+    });
   };
 
   const months = [
@@ -54,14 +98,128 @@ export function FinancialPage() {
           <h1 className="text-2xl font-bold text-foreground">Financeiro</h1>
           <p className="text-muted-foreground">Controle de mensalidades</p>
         </div>
-        <button
-          onClick={() => setShowGenerate(!showGenerate)}
-          className="flex items-center gap-2 rounded-lg gradient-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25"
-        >
-          <Plus className="h-4 w-4" />
-          Gerar Mensalidades
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowManual(!showManual)}
+            className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Lançamento Avulso
+          </button>
+          <button
+            onClick={() => setShowGenerate(!showGenerate)}
+            className="flex items-center gap-2 rounded-lg gradient-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25"
+          >
+            <Plus className="h-4 w-4" />
+            Gerar Mensalidades
+          </button>
+        </div>
       </div>
+
+      {/* Manual Payment Form */}
+      {showManual && (
+        <div className="glass rounded-2xl p-6">
+          <h3 className="mb-4 font-semibold text-foreground">
+            Novo Lançamento Avulso ({months[month - 1]}/{year})
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-end">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                Aluno
+              </label>
+              <select
+                value={manualForm.studentId}
+                onChange={(e) =>
+                  setManualForm({ ...manualForm, studentId: e.target.value })
+                }
+                className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground"
+              >
+                <option value="">Selecione...</option>
+                {students
+                  ?.filter((s) => s.active)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                Tipo de Cobrança
+              </label>
+              <select
+                value={manualForm.billingType}
+                onChange={(e) =>
+                  setManualForm({
+                    ...manualForm,
+                    billingType: e.target.value as any,
+                  })
+                }
+                className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground"
+              >
+                <option value="MONTHLY">Mensalidade Fixa</option>
+                <option value="HOURLY">Por Hora-Aula</option>
+              </select>
+            </div>
+
+            {manualForm.billingType === "HOURLY" ? (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                  Quantidade de Horas
+                </label>
+                <input
+                  type="number"
+                  step="0.5"
+                  value={manualForm.classHours || ""}
+                  onChange={(e) =>
+                    setManualForm({
+                      ...manualForm,
+                      classHours: Number(e.target.value),
+                    })
+                  }
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground"
+                  placeholder="Ex: 10"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                  Valor (R$)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={manualForm.amount || ""}
+                  onChange={(e) =>
+                    setManualForm({
+                      ...manualForm,
+                      amount: Number(e.target.value),
+                    })
+                  }
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground"
+                  placeholder="Ex: 500.00"
+                />
+              </div>
+            )}
+
+            <button
+              onClick={handleManualSubmit}
+              className="rounded-lg gradient-primary px-4 py-2.5 text-sm font-semibold text-white"
+            >
+              Lançar
+            </button>
+
+            <button
+              onClick={() => setShowManual(false)}
+              className="rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Generate Confirmation */}
       {showGenerate && (
@@ -226,16 +384,35 @@ export function FinancialPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => handleTogglePaid(payment.id, payment.paid)}
-                      className={`rounded-lg px-4 py-2 text-xs font-medium transition-colors ${
-                        payment.paid
-                          ? "border border-border bg-secondary text-foreground hover:bg-accent"
-                          : "gradient-success text-white shadow-lg shadow-success/25"
-                      }`}
-                    >
-                      {payment.paid ? "Desfazer" : "Marcar Pago"}
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() =>
+                          handleTogglePaid(payment.id, payment.paid)
+                        }
+                        className={`rounded-lg px-4 py-2 text-xs font-medium transition-colors ${
+                          payment.paid
+                            ? "border border-border bg-secondary text-foreground hover:bg-accent"
+                            : "gradient-success text-white shadow-lg shadow-success/25"
+                        }`}
+                      >
+                        {payment.paid ? "Desfazer" : "Marcar Pago"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              "Tem certeza que deseja apagar este lançamento?",
+                            )
+                          ) {
+                            deletePayment.mutate(payment.id);
+                          }
+                        }}
+                        className="p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors"
+                        title="Apagar Lançamento"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
