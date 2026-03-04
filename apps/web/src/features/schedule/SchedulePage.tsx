@@ -30,6 +30,7 @@ import {
   GripVertical
 } from "lucide-react";
 import type { ClassStatus } from "@tutorfy/types";
+import { getInitials } from "@/lib/utils";
 
 const statusConfig: Record<string, { bg: string; border: string; text: string; label: string; dot: string }> = {
   SCHEDULED: { bg: "bg-blue-500/10 dark:bg-blue-500/20", border: "border-blue-500", text: "text-blue-600 dark:text-blue-400", label: "Agendada", dot: "bg-blue-500" },
@@ -81,6 +82,15 @@ export function SchedulePage() {
     return map;
   }, [classes, daysOfCalendar]);
 
+  // Derived metrics
+  const activeStudents = students?.filter(s => s.active) || [];
+  const scheduledStudentIds = new Set(classes?.map(c => c.studentId) || []);
+  const studentsWithoutClasses = activeStudents.filter(s => !scheduledStudentIds.has(s.id));
+
+  const totalClassesPeriod = classes?.length || 0;
+  const completedClassesPeriod = classes?.filter(c => c.status === "COMPLETED").length || 0;
+  const goalProgressPercentage = totalClassesPeriod > 0 ? Math.round((completedClassesPeriod / totalClassesPeriod) * 100) : 0;
+
   const handleCreateClass = async () => {
     if (
       !newClass.studentId ||
@@ -117,7 +127,6 @@ export function SchedulePage() {
   };
 
   const currentMonthName = format(currentDate, "MMMM yyyy", { locale: ptBR });
-  // Capitalize first letter properly
   const formattedMonthName = currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1);
 
   return (
@@ -157,54 +166,34 @@ export function SchedulePage() {
           
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center justify-between">
-              Alunos sem Agendamento
-              <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px]">2</span>
+              Alunos sem {viewMode === "month" ? "Agenda" : "Agenda"}
+              <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px]">{studentsWithoutClasses.length}</span>
             </h3>
             <div className="space-y-2">
-              <div className="group flex items-center justify-between p-2 rounded-lg border border-border hover:border-primary/50 cursor-move bg-background transition-colors">
-                <div className="flex items-center gap-2">
-                  <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-foreground">JS</div>
-                  <span className="text-xs font-medium text-foreground">Jane Smith</span>
-                </div>
-                <GripVertical className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-              <div className="group flex items-center justify-between p-2 rounded-lg border border-border hover:border-primary/50 cursor-move bg-background transition-colors">
-                <div className="flex items-center gap-2">
-                  <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-foreground">MR</div>
-                  <span className="text-xs font-medium text-foreground">Mike Ross</span>
-                </div>
-                <GripVertical className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Tarefas Pendentes</h3>
-            <div className="space-y-3">
-              <label className="flex gap-2 cursor-pointer group">
-                <input type="checkbox" className="rounded border-input text-primary focus:ring-primary mt-0.5" />
-                <div className="flex flex-col">
-                  <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">Preparar quiz de Cálculo</span>
-                  <span className="text-[10px] text-muted-foreground italic">Para amanhã</span>
-                </div>
-              </label>
-              <label className="flex gap-2 cursor-pointer group">
-                <input type="checkbox" className="rounded border-input text-primary focus:ring-primary mt-0.5" />
-                <div className="flex flex-col">
-                  <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">Corrigir prova de Física</span>
-                  <span className="text-[10px] text-destructive italic">Atrasado</span>
-                </div>
-              </label>
+              {studentsWithoutClasses.length > 0 ? (
+                studentsWithoutClasses.map(student => (
+                  <div key={student.id} className="group flex items-center justify-between p-2 rounded-lg border border-border hover:border-primary/50 bg-background transition-colors">
+                    <div className="flex items-center gap-2">
+                      <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-foreground">
+                        {getInitials(student.name)}
+                      </div>
+                      <span className="text-xs font-medium text-foreground truncate max-w-[120px]">{student.name}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground italic">Todos alunos receberam aulas.</p>
+              )}
             </div>
           </div>
         </div>
         
         <div className="p-4 border-t border-border">
           <div className="rounded-xl gradient-primary p-4 text-white shadow-lg shadow-primary/25">
-            <p className="text-xs font-bold mb-1">Meta Semanal</p>
-            <p className="text-[10px] opacity-90 mb-2">18/25 aulas concluídas</p>
+            <p className="text-xs font-bold mb-1">Progresso {viewMode === "month" ? "no Mês" : "da Semana"}</p>
+            <p className="text-[10px] opacity-90 mb-2">{completedClassesPeriod}/{totalClassesPeriod} aulas concluídas</p>
             <div className="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
-              <div className="h-full bg-white w-[72%] transition-all duration-1000 ease-in-out"></div>
+              <div className="h-full bg-white transition-all duration-1000 ease-in-out" style={{ width: `${goalProgressPercentage}%`}}></div>
             </div>
           </div>
         </div>
@@ -248,50 +237,91 @@ export function SchedulePage() {
 
         {/* New Class Form Overlay */}
         {showNewClass && (
-          <div className="absolute top-14 left-0 right-0 z-10 bg-card border-b border-border p-4 shadow-lg animate-in slide-in-from-top-2 fade-in duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-foreground">Agendar Nova Aula</h3>
-              <button onClick={() => setShowNewClass(false)} className="text-muted-foreground hover:text-destructive transition-colors">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+            <div className="bg-card rounded-2xl p-6 w-full max-w-lg border border-border shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+              <button 
+                onClick={() => setShowNewClass(false)}
+                className="absolute top-4 right-4 p-2 text-muted-foreground hover:bg-secondary rounded-full transition-colors"
+                title="Fechar"
+              >
                 <X className="h-5 w-5" />
               </button>
-            </div>
-            <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              <select
-                value={newClass.studentId}
-                onChange={(e) =>
-                  setNewClass({ ...newClass, studentId: e.target.value })
-                }
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors hover:border-border/80"
-              >
-                <option value="">Selecione o aluno</option>
-                {students?.filter((s) => s.active).map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-              <input
-                type="date"
-                value={newClass.date}
-                onChange={(e) => setNewClass({ ...newClass, date: e.target.value })}
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors hover:border-border/80"
-              />
-              <input
-                type="time"
-                value={newClass.startTime}
-                onChange={(e) => setNewClass({ ...newClass, startTime: e.target.value })}
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors hover:border-border/80"
-              />
-              <input
-                type="time"
-                value={newClass.endTime}
-                onChange={(e) => setNewClass({ ...newClass, endTime: e.target.value })}
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors hover:border-border/80"
-              />
-              <button
-                onClick={handleCreateClass}
-                className="w-full rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-white shadow-md shadow-primary/25 hover:opacity-90 active:scale-[0.98] transition-all"
-              >
-                Agendar
-              </button>
+              
+              <div className="flex items-center gap-3 mb-6">
+                <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  <Plus className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-foreground">Agendar Nova Aula</h3>
+                  <p className="text-sm text-muted-foreground">Preencha os dados para marcar uma aula.</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-foreground">Aluno *</label>
+                  <select
+                    value={newClass.studentId}
+                    onChange={(e) =>
+                      setNewClass({ ...newClass, studentId: e.target.value })
+                    }
+                    className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                  >
+                    <option value="">Selecione o aluno</option>
+                    {students?.filter((s) => s.active).map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-semibold text-foreground">Data *</label>
+                    <input
+                      type="date"
+                      value={newClass.date}
+                      onChange={(e) => setNewClass({ ...newClass, date: e.target.value })}
+                      className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="mb-1.5 block text-sm font-semibold text-foreground">Início *</label>
+                      <input
+                        type="time"
+                        value={newClass.startTime}
+                        onChange={(e) => setNewClass({ ...newClass, startTime: e.target.value })}
+                        className="w-full rounded-lg border border-input bg-background px-3 py-3 text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-semibold text-foreground">Fim *</label>
+                      <input
+                        type="time"
+                        value={newClass.endTime}
+                        onChange={(e) => setNewClass({ ...newClass, endTime: e.target.value })}
+                        className="w-full rounded-lg border border-input bg-background px-3 py-3 text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4 mt-2 border-t border-border">
+                  <button
+                    onClick={handleCreateClass}
+                    disabled={!newClass.studentId || !newClass.date || !newClass.startTime || !newClass.endTime}
+                    className="flex-1 rounded-xl gradient-primary px-4 py-3 text-sm font-bold text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                  >
+                    Agendar Aula
+                  </button>
+                  <button
+                    onClick={() => setShowNewClass(false)}
+                    className="flex-1 rounded-xl border border-border bg-secondary px-4 py-3 text-sm font-bold text-foreground hover:bg-accent transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

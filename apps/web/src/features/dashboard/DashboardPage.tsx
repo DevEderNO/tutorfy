@@ -1,10 +1,8 @@
 import { useDashboard } from "./hooks/useDashboard";
-import { format, startOfWeek, addDays } from "date-fns";
+import { usePayments } from "../payments/hooks/usePayments";
+import { format, startOfWeek, addDays, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
-  Users, 
-  CalendarDays, 
-  DollarSign, 
   Search, 
   Bell, 
   Plus, 
@@ -13,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { getInitials } from "@/lib/utils";
 
 const statusConfig: Record<string, { bg: string; dot: string; text: string; label: string; activeClass: string }> = {
   SCHEDULED: { bg: "bg-blue-500/10 dark:bg-blue-500/20", dot: "bg-blue-500", text: "text-blue-600 dark:text-blue-400", label: "Agendada", activeClass: "bg-background text-foreground shadow-sm" },
@@ -22,9 +21,15 @@ const statusConfig: Record<string, { bg: string; dot: string; text: string; labe
 };
 
 export function DashboardPage() {
-  const { data, isLoading } = useDashboard();
+  const { data, isLoading: isDashboardLoading } = useDashboard();
   const [activeFilter, setActiveFilter] = useState("SCHEDULED");
   
+  // Real active data
+  const now = new Date();
+  const { data: payments, isLoading: isPaymentsLoading } = usePayments({ month: now.getMonth() + 1, year: now.getFullYear() });
+
+  const isLoading = isDashboardLoading || isPaymentsLoading;
+
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -39,6 +44,19 @@ export function DashboardPage() {
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
   const filteredClasses = data?.weekClasses?.filter(c => c.status === activeFilter) || [];
+
+  // Computed Financial Metrics
+  const paidCount = payments?.filter((p) => p.paid).length ?? 0;
+  const pendingCount = payments?.filter((p) => !p.paid).length ?? 0;
+  const totalCount = (payments?.length || 0);
+
+  const totalReceived = payments?.filter((p) => p.paid).reduce((sum, p) => sum + p.amount, 0) ?? 0;
+  
+  const inadimplenciaRate = totalCount > 0 
+    ? Math.round((pendingCount / totalCount) * 100) 
+    : 0;
+
+  const recentPayments = payments?.filter(p => p.paid).slice(0, 4) || [];
 
   return (
     <div className="flex-1 flex flex-col -m-6 max-h-[calc(100vh-3rem)] overflow-y-auto bg-background">
@@ -73,13 +91,15 @@ export function DashboardPage() {
           <div className="bg-card p-6 rounded-xl border border-border shadow-sm group hover:border-primary/30 transition-all">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Receita Total</p>
-                <h3 className="text-2xl font-bold text-foreground mt-1">R$ {(data?.activeStudents || 0) * 150},00</h3>
+                <p className="text-sm font-medium text-muted-foreground">Receita Recebida</p>
+                <h3 className="text-2xl font-bold text-foreground mt-1">R$ {totalReceived.toFixed(2)}</h3>
               </div>
-              <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded text-xs font-bold">+12.5%</div>
+              <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded text-xs font-bold w-fit">
+                {totalCount > 0 ? "Real" : "Pendente"}
+              </div>
             </div>
             <div className="mt-4 h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 w-[75%]"></div>
+              <div className="h-full bg-emerald-500 transition-all" style={{ width: `${totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0}%`}}></div>
             </div>
           </div>
           
@@ -89,10 +109,10 @@ export function DashboardPage() {
                 <p className="text-sm font-medium text-muted-foreground">Total de Alunos</p>
                 <h3 className="text-2xl font-bold text-foreground mt-1">{data?.activeStudents || 0}</h3>
               </div>
-              <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-bold">+5.2%</div>
+              <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-bold">Ativos</div>
             </div>
             <div className="mt-4 h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-primary w-[60%]"></div>
+              <div className="h-full bg-primary w-full"></div>
             </div>
           </div>
           
@@ -100,12 +120,14 @@ export function DashboardPage() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Taxa de Inadimplência</p>
-                <h3 className="text-2xl font-bold text-foreground mt-1">3.2%</h3>
+                <h3 className="text-2xl font-bold text-foreground mt-1">{inadimplenciaRate}%</h3>
               </div>
-              <div className="bg-destructive/10 text-destructive px-2 py-1 rounded text-xs font-bold">-1.5%</div>
+              <div className="bg-destructive/10 text-destructive px-2 py-1 rounded text-xs font-bold w-fit">
+                Pendente
+              </div>
             </div>
             <div className="mt-4 h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-destructive w-[15%]"></div>
+              <div className="h-full bg-destructive transition-all" style={{ width: `${inadimplenciaRate}%` }}></div>
             </div>
           </div>
         </div>
@@ -185,31 +207,29 @@ export function DashboardPage() {
               <Link to="/financial" className="text-xs font-bold text-primary hover:opacity-80 transition-colors uppercase">Ver Todos</Link>
             </div>
             <div className="space-y-4">
-              {/* Dummy data to match mockups exactly */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center text-primary">
-                    <Wallet className="h-5 w-5" />
+              {recentPayments.length > 0 ? recentPayments.map((payment, index) => {
+                 const stName = (payment as any).student?.name || "Desconhecido";
+                 const stInitial = getInitials(stName);
+
+                 return (
+                  <div key={payment.id} className={`flex items-center justify-between ${index > 0 ? "border-t border-border mt-4 pt-4" : ""}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                        {stInitial}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">{stName}</p>
+                        <p className="text-xs text-muted-foreground">recentemente</p>
+                      </div>
+                    </div>
+                    <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">+R$ {payment.amount.toFixed(2)}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-foreground">Alexander Wright</p>
-                    <p className="text-xs text-muted-foreground">há 2 horas</p>
-                  </div>
+                 )
+              }) : (
+                <div className="text-sm text-center py-4 text-muted-foreground">
+                  Nenhum pagamento liquidado no mês até o momento.
                 </div>
-                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">+R$ 120,00</p>
-              </div>
-              <div className="flex items-center justify-between border-t border-border pt-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center text-primary">
-                    <Wallet className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-foreground">Elena Rossi</p>
-                    <p className="text-xs text-muted-foreground">há 5 horas</p>
-                  </div>
-                </div>
-                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">+R$ 85,00</p>
-              </div>
+              )}
             </div>
           </div>
 
