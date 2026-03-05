@@ -9,6 +9,7 @@ import {
 import { useStudents } from "../students/hooks/useStudents";
 import { DollarSign, Plus, Check, X as XIcon, Trash2, CalendarDays, Filter, TrendingUp, Sparkles } from "lucide-react";
 import { getInitials } from "@/lib/utils";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 export function FinancialPage() {
   const now = new Date();
@@ -26,6 +27,7 @@ export function FinancialPage() {
     amount: 0,
     classHours: 0,
   });
+  const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null);
 
   const { data: payments, isLoading } = usePayments({ month, year });
   const { data: students } = useStudents();
@@ -326,9 +328,7 @@ export function FinancialPage() {
                             </button>
                             <button
                               onClick={() => {
-                                if (window.confirm("Tem certeza que deseja apagar este lançamento?")) {
-                                  deletePayment.mutate(payment.id);
-                                }
+                                setDeletingPaymentId(payment.id);
                               }}
                               className="p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors shrink-0"
                               title="Apagar"
@@ -520,8 +520,26 @@ export function FinancialPage() {
                </button>
              </div>
            </div>
-        </div>
+         </div>
       )}
+
+      {/* Confirmation Modals */}
+      <ConfirmModal
+        isOpen={!!deletingPaymentId}
+        onClose={() => setDeletingPaymentId(null)}
+        onConfirm={() => {
+          if (deletingPaymentId) {
+            deletePayment.mutate(deletingPaymentId);
+            setDeletingPaymentId(null);
+          }
+        }}
+        title="Remover Lançamento"
+        description="Tem certeza que deseja apagar este lançamento financeiro? Esta ação não pode ser desfeita."
+        confirmLabel="Sim, Remover"
+        cancelLabel="Agora não"
+        variant="danger"
+        icon={Trash2}
+      />
     </div>
   );
 }
