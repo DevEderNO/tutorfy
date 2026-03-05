@@ -65,8 +65,12 @@ export function Sidebar() {
         {/* User / Logout */}
         <div className="border-t border-border px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-primary text-sm font-bold">
-              {user?.name?.charAt(0).toUpperCase()}
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-primary text-sm font-bold overflow-hidden shrink-0">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user?.name || "User"} className="h-full w-full object-cover" />
+              ) : (
+                user?.name?.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">

@@ -26,6 +26,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  avatarUrl?: string | null;
   createdAt: string;
 }
 
@@ -33,6 +34,7 @@ export interface Student {
   id: string;
   userId: string;
   name: string;
+  avatarUrl: string | null;
   grade: string;
   school: string;
   responsibleName: string;
@@ -41,6 +43,16 @@ export interface Student {
   monthlyFee: number;
   hourlyRate: number | null;
   active: boolean;
+  createdAt: string;
+  schedulePreferences?: StudentSchedulePreference[];
+}
+
+export interface StudentSchedulePreference {
+  id: string;
+  studentId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
   createdAt: string;
 }
 
@@ -107,6 +119,7 @@ export interface AuthResponse {
 
 export interface CreateStudentDTO {
   name: string;
+  avatarUrl?: string;
   grade: string;
   school: string;
   responsibleName: string;
@@ -114,6 +127,13 @@ export interface CreateStudentDTO {
   billingType: BillingType;
   monthlyFee?: number;
   hourlyRate?: number;
+  schedulePreferences?: CreateSchedulePreferenceDTO[];
+}
+
+export interface CreateSchedulePreferenceDTO {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
 }
 
 export interface UpdateStudentDTO extends Partial<CreateStudentDTO> {

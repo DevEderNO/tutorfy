@@ -1,12 +1,15 @@
 import { useAuth } from "@/lib/auth";
-import { Pencil, ShieldCheck, CreditCard, Wallet, BookOpen, Clock } from "lucide-react";
+import { api } from "@/lib/api";
+import { Pencil, ShieldCheck, CreditCard, Wallet, BookOpen, Clock, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 export function SettingsPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   
-  // Dummy local states to keep inputs interactive
+  // Local states
   const [name, setName] = useState(user?.name || "Dr. Ricardo Silva");
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
   const [email, setEmail] = useState(user?.email || "ricardo.silva@universidade.edu");
   const [specialties, setSpecialties] = useState("Matemática Avançada, Física Quântica");
   const [bio, setBio] = useState("Professor com mais de 15 anos de experiência acadêmica. Especialista em preparar alunos para competições internacionais e vestibulares de alta complexidade.");
@@ -17,6 +20,81 @@ export function SettingsPage() {
     whatsapp: true,
     reports: false
   });
+  
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    variant: "primary" | "danger" | "success";
+    icon: any;
+  } | null>(null);
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await api.post<{ url: string }>("/upload/avatar", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data.url) {
+        setAvatarUrl(response.data.url);
+        // Force the URL locally correctly proxying the port since it comes back as absolute path usually relative to domain
+      }
+    } catch (error) {
+      console.error("Erro ao enviar imagem:", error);
+      setModalConfig({
+        isOpen: true,
+        title: "Erro no Upload",
+        description: "Não foi possível carregar a foto do perfil. Tente novamente ou use outro arquivo.",
+        variant: "danger",
+        icon: AlertCircle
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      setIsSaving(true);
+      const res = await api.put<{ data: any }>("/users/profile", {
+        name,
+        avatarUrl: avatarUrl || null
+      });
+      
+      if (res.data.data) {
+        updateUser(res.data.data);
+        setModalConfig({
+          isOpen: true,
+          title: "Configurações Salvas",
+          description: "Suas informações foram atualizadas com sucesso em nosso sistema.",
+          variant: "success",
+          icon: CheckCircle2
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      setModalConfig({
+        isOpen: true,
+        title: "Falha ao Salvar",
+        description: "Ocorreu um erro ao tentar salvar suas alterações. Por favor, verifique sua conexão.",
+        variant: "danger",
+        icon: AlertCircle
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const getInitials = (nameInput: string) => {
     if (!nameInput) return "U";
@@ -44,12 +122,28 @@ export function SettingsPage() {
         <div className="p-8 space-y-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
             <div className="relative group shrink-0">
-              <div className="size-32 rounded-full border-4 border-primary/20 bg-primary/5 flex items-center justify-center shadow-lg">
-                <span className="text-4xl font-black text-primary">{getInitials(name)}</span>
-              </div>
-              <button className="absolute bottom-0 right-0 bg-primary text-white p-2.5 rounded-full shadow-lg hover:scale-105 active:scale-95 transition-transform" title="Alterar foto">
-                <Pencil className="h-4 w-4" />
-              </button>
+              <label htmlFor="avatar-upload" className="cursor-pointer block relative">
+                <div className="size-32 rounded-full border-4 border-primary/20 bg-primary/5 flex items-center justify-center shadow-lg overflow-hidden relative">
+                  {isUploading ? (
+                     <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  ) : avatarUrl ? (
+                     <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+                  ) : (
+                     <span className="text-4xl font-black text-primary">{getInitials(name)}</span>
+                  )}
+                </div>
+                <div className="absolute bottom-0 right-0 bg-primary text-white p-2.5 rounded-full shadow-lg hover:scale-105 active:scale-95 transition-transform" title="Alterar foto">
+                  <Pencil className="h-4 w-4" />
+                </div>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                  disabled={isUploading}
+                />
+              </label>
             </div>
             
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
@@ -322,10 +416,26 @@ export function SettingsPage() {
         <button className="px-6 py-2.5 rounded-lg border border-border font-bold hover:bg-secondary transition-colors text-sm text-foreground">
           Descartar
         </button>
-        <button className="px-6 py-2.5 rounded-lg gradient-primary text-white font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm">
-          Salvar Alterações
+        <button 
+          onClick={handleSaveSettings}
+          disabled={isSaving}
+          className="px-6 py-2.5 rounded-lg gradient-primary text-white font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm disabled:opacity-50"
+        >
+          {isSaving ? "Salvando..." : "Salvar Alterações"}
         </button>
       </div>
+
+      <ConfirmModal
+        isOpen={!!modalConfig?.isOpen}
+        onClose={() => setModalConfig(null)}
+        onConfirm={() => setModalConfig(null)}
+        title={modalConfig?.title || ""}
+        description={modalConfig?.description || ""}
+        variant={modalConfig?.variant || "primary"}
+        icon={modalConfig?.icon}
+        confirmLabel="Fechar"
+        showCancel={false}
+      />
     </div>
   );
 }

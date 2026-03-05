@@ -2,11 +2,16 @@ import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
+import multipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
+import path from 'node:path';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { studentsRoutes } from './modules/students/students.routes.js';
 import { classesRoutes } from './modules/classes/classes.routes.js';
 import { paymentsRoutes } from './modules/payments/payments.routes.js';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes.js';
+import { uploadRoutes } from './modules/upload/upload.routes.js';
+import { usersRoutes } from './modules/users/users.routes.js';
 
 const app = Fastify({ logger: true });
 
@@ -21,12 +26,25 @@ await app.register(jwt, {
   sign: { expiresIn: '7d' },
 });
 
+await app.register(multipart, {
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max
+  }
+});
+
+await app.register(fastifyStatic, {
+  root: path.join(process.cwd(), 'uploads'),
+  prefix: '/uploads/',
+});
+
 // Routes
 await app.register(authRoutes, { prefix: '/auth' });
 await app.register(studentsRoutes, { prefix: '/students' });
 await app.register(classesRoutes, { prefix: '/classes' });
 await app.register(paymentsRoutes, { prefix: '/payments' });
 await app.register(dashboardRoutes, { prefix: '/dashboard' });
+await app.register(uploadRoutes, { prefix: '/upload' });
+await app.register(usersRoutes, { prefix: '/users' });
 
 // Health check
 app.get('/health', async () => ({ status: 'ok' }));

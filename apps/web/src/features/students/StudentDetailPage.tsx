@@ -21,6 +21,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 const statusColors: Record<string, string> = {
   SCHEDULED: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
@@ -42,6 +43,7 @@ export function StudentDetailPage() {
   const { data: student, isLoading } = useStudent(id);
   const deleteClass = useDeleteClass();
   const [activeTab, setActiveTab] = useState<"billing" | "classes">("billing");
+  const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -83,8 +85,12 @@ export function StudentDetailPage() {
       <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
           <div className="flex items-center gap-6">
-            <div className="bg-primary/5 aspect-square rounded-2xl size-28 shadow-sm border border-border flex items-center justify-center text-primary text-4xl font-black">
-              {getInitials(student.name)}
+            <div className="bg-primary/5 aspect-square rounded-2xl size-28 shadow-sm border border-border flex items-center justify-center text-primary text-4xl font-black overflow-hidden relative">
+              {student.avatarUrl ? (
+                <img src={student.avatarUrl} alt={student.name} className="h-full w-full object-cover" />
+              ) : (
+                getInitials(student.name)
+              )}
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-3">
@@ -291,9 +297,7 @@ export function StudentDetailPage() {
                           <td className="py-4 px-2 text-right">
                             <button
                               onClick={() => {
-                                if (window.confirm("Certeza que deseja remover esta aula?")) {
-                                  deleteClass.mutate(cls.id);
-                                }
+                                setDeletingClassId(cls.id);
                               }}
                               className="text-muted-foreground hover:text-destructive transition-colors ml-auto p-1"
                               title="Remover aula"
@@ -332,6 +336,24 @@ export function StudentDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modals */}
+      <ConfirmModal
+        isOpen={!!deletingClassId}
+        onClose={() => setDeletingClassId(null)}
+        onConfirm={() => {
+          if (deletingClassId) {
+            deleteClass.mutate(deletingClassId);
+            setDeletingClassId(null);
+          }
+        }}
+        title="Remover Aula do Histórico"
+        description="Tem certeza que deseja remover esta aula permanentemente? Esta ação não pode ser desfeita."
+        confirmLabel="Sim, Remover"
+        cancelLabel="Agora não"
+        variant="danger"
+        icon={Trash2}
+      />
     </div>
   );
 }

@@ -14,17 +14,17 @@ import {
   ChevronRight
 } from "lucide-react";
 import { useState } from "react";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 export function StudentsListPage() {
   const { data: students, isLoading } = useStudents();
   const deleteStudent = useDeleteStudent();
   const [searchTerm, setSearchTerm] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState("10");
+  const [deletingStudent, setDeletingStudent] = useState<{ id: string; name: string } | null>(null);
 
   const handleDelete = (id: string, name: string) => {
-    if (window.confirm(`Deseja realmente excluir o aluno "${name}"?`)) {
-      deleteStudent.mutate(id);
-    }
+    setDeletingStudent({ id, name });
   };
 
   const getInitials = (name: string) => {
@@ -140,8 +140,12 @@ export function StudentsListPage() {
                   >
                     <td className="px-4 sm:px-6 py-4 sm:py-5">
                       <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase shrink-0">
-                          {getInitials(student.name)}
+                        <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase shrink-0 overflow-hidden">
+                          {student.avatarUrl ? (
+                            <img src={student.avatarUrl} alt={student.name} className="h-full w-full object-cover" />
+                          ) : (
+                            getInitials(student.name)
+                          )}
                         </div>
                         <div className="min-w-0">
                           <span className="font-medium text-foreground block truncate">{student.name}</span>
@@ -238,6 +242,29 @@ export function StudentsListPage() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modals */}
+      <ConfirmModal
+        isOpen={!!deletingStudent}
+        onClose={() => setDeletingStudent(null)}
+        onConfirm={() => {
+          if (deletingStudent) {
+            deleteStudent.mutate(deletingStudent.id);
+            setDeletingStudent(null);
+          }
+        }}
+        title="Excluir Aluno"
+        description={
+          <>
+            Deseja realmente excluir o aluno <span className="font-bold text-foreground">"{deletingStudent?.name}"</span>? 
+            Esta ação removerá permanentemente todos os registros vinculados.
+          </>
+        }
+        confirmLabel="Sim, Excluir"
+        cancelLabel="Agora não"
+        variant="danger"
+        icon={Trash2}
+      />
     </div>
   );
 }

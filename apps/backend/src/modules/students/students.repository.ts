@@ -6,12 +6,14 @@ export class StudentsRepository {
     return prisma.student.findMany({
       where: { userId },
       orderBy: { name: 'asc' },
+      include: { schedulePreferences: true },
     });
   }
 
   async findById(id: string, userId: string) {
     return prisma.student.findFirst({
       where: { id, userId },
+      include: { schedulePreferences: true },
     });
   }
 
@@ -27,20 +29,51 @@ export class StudentsRepository {
           orderBy: [{ year: 'desc' }, { month: 'desc' }],
           take: 24,
         },
+        schedulePreferences: true,
       },
     });
   }
 
   async create(userId: string, data: CreateStudentInput) {
+    const { schedulePreferences, ...studentData } = data;
+
     return prisma.student.create({
-      data: { ...data, userId },
+      data: {
+        ...studentData,
+        userId,
+        schedulePreferences: schedulePreferences && schedulePreferences.length > 0 ? {
+          create: schedulePreferences
+        } : undefined
+      },
+      include: { schedulePreferences: true },
     });
   }
 
   async update(id: string, userId: string, data: UpdateStudentInput) {
-    return prisma.student.update({
-      where: { id },
-      data,
+    const { schedulePreferences, ...studentData } = data;
+
+    return prisma.$transaction(async (tx) => {
+      if (schedulePreferences) {
+        // Delete all existing and recreate
+        await tx.studentSchedulePreference.deleteMany({
+          where: { studentId: id },
+        });
+
+        if (schedulePreferences.length > 0) {
+          await tx.studentSchedulePreference.createMany({
+            data: schedulePreferences.map((pref) => ({
+              ...pref,
+              studentId: id,
+            })),
+          });
+        }
+      }
+
+      return tx.student.update({
+        where: { id },
+        data: studentData,
+        include: { schedulePreferences: true },
+      });
     });
   }
 

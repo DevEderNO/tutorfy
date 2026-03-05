@@ -28,6 +28,7 @@ export class AuthService {
         name: true,
         email: true,
         createdAt: true,
+        avatarUrl: true,
       },
     });
 
@@ -37,6 +38,14 @@ export class AuthService {
   async login(data: LoginInput) {
     const user = await prisma.user.findUnique({
       where: { email: data.email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        password: true,
+        createdAt: true,
+        avatarUrl: true,
+      }
     });
 
     if (!user) {
@@ -54,6 +63,7 @@ export class AuthService {
       name: user.name,
       email: user.email,
       createdAt: user.createdAt,
+      avatarUrl: user.avatarUrl,
     };
   }
 

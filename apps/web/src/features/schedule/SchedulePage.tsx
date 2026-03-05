@@ -17,6 +17,8 @@ import {
   eachDayOfInterval,
   isSameMonth,
   isToday,
+  nextDay,
+  getDay,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -27,10 +29,12 @@ import {
   Trash2,
   Filter,
   Download,
-  GripVertical
+  GripVertical,
+  Clock
 } from "lucide-react";
 import type { ClassStatus } from "@tutorfy/types";
 import { getInitials } from "@/lib/utils";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 const statusConfig: Record<string, { bg: string; border: string; text: string; label: string; dot: string }> = {
   SCHEDULED: { bg: "bg-blue-500/10 dark:bg-blue-500/20", border: "border-blue-500", text: "text-blue-600 dark:text-blue-400", label: "Agendada", dot: "bg-blue-500" },
@@ -50,6 +54,12 @@ export function SchedulePage() {
     endTime: "",
     content: "",
   });
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    studentId: "",
+    status: "",
+  });
+  const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
 
   const calendarStart = viewMode === "month" 
     ? startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 }) 
@@ -70,25 +80,34 @@ export function SchedulePage() {
   const updateClass = useUpdateClass();
   const deleteClass = useDeleteClass();
 
+  const filteredClasses = useMemo(() => {
+    if (!classes) return [];
+    return classes.filter((cls) => {
+      const matchesStudent = !filters.studentId || cls.studentId === filters.studentId;
+      const matchesStatus = !filters.status || cls.status === filters.status;
+      return matchesStudent && matchesStatus;
+    });
+  }, [classes, filters]);
+
   const classesByDay = useMemo(() => {
     const map: Record<string, typeof classes> = {};
     daysOfCalendar.forEach((d) => {
       const key = format(d, "yyyy-MM-dd");
       map[key] =
-        classes?.filter(
+        filteredClasses.filter(
           (c) => format(new Date(c.date), "yyyy-MM-dd") === key,
         )?.sort((a, b) => a.startTime.localeCompare(b.startTime)) ?? [];
     });
     return map;
-  }, [classes, daysOfCalendar]);
+  }, [filteredClasses, daysOfCalendar]);
 
-  // Derived metrics
+  // Derived metrics using filtered data
   const activeStudents = students?.filter(s => s.active) || [];
-  const scheduledStudentIds = new Set(classes?.map(c => c.studentId) || []);
+  const scheduledStudentIds = new Set(filteredClasses.map(c => c.studentId));
   const studentsWithoutClasses = activeStudents.filter(s => !scheduledStudentIds.has(s.id));
 
-  const totalClassesPeriod = classes?.length || 0;
-  const completedClassesPeriod = classes?.filter(c => c.status === "COMPLETED").length || 0;
+  const totalClassesPeriod = filteredClasses.length;
+  const completedClassesPeriod = filteredClasses.filter(c => c.status === "COMPLETED").length;
   const goalProgressPercentage = totalClassesPeriod > 0 ? Math.round((completedClassesPeriod / totalClassesPeriod) * 100) : 0;
 
   const handleCreateClass = async () => {
@@ -220,8 +239,19 @@ export function SchedulePage() {
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <button className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-secondary transition-colors">
-              <Filter className="h-3.5 w-3.5" /> Filtrar
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border transition-all text-xs font-medium ${
+                showFilters || filters.studentId || filters.status
+                ? "bg-primary/10 border-primary text-primary shadow-sm"
+                : "border-border text-foreground hover:bg-secondary"
+              }`}
+            >
+              <Filter className="h-3.5 w-3.5" /> 
+              <span>Filtrar</span>
+              {(filters.studentId || filters.status) && (
+                <span className="ml-1 flex h-1.5 w-1.5 rounded-full bg-primary" />
+              )}
             </button>
             <button className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-secondary transition-colors">
               <Download className="h-3.5 w-3.5" /> Exportar
@@ -234,6 +264,50 @@ export function SchedulePage() {
             </button>
           </div>
         </div>
+
+        {/* Filter Bar */}
+        {showFilters && (
+          <div className="bg-card border-b border-border p-4 animate-in slide-in-from-top duration-200">
+            <div className="flex flex-wrap items-end gap-4 max-w-4xl mx-auto md:mx-0">
+              <div className="flex-1 min-w-[200px]">
+                <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Filtrar por Aluno</label>
+                <select
+                  value={filters.studentId}
+                  onChange={(e) => setFilters({ ...filters, studentId: e.target.value })}
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs font-bold text-foreground focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                >
+                  <option value="">Todos os Alunos</option>
+                  {students?.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} {s.active ? "" : "(Inativo)"}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="w-48">
+                <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1.5 ml-1">Status da Aula</label>
+                <select
+                  value={filters.status}
+                  onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs font-bold text-foreground focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                >
+                  <option value="">Todos Status</option>
+                  {Object.entries(statusConfig).map(([key, val]) => (
+                    <option key={key} value={key}>{val.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {(filters.studentId || filters.status) && (
+                <button
+                  onClick={() => setFilters({ studentId: "", status: "" })}
+                  className="px-3 py-2 text-xs font-bold text-destructive hover:bg-destructive/10 rounded-lg transition-colors flex items-center gap-1"
+                >
+                  <X className="h-3.5 w-3.5" /> Limpar Filtros
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* New Class Form Overlay */}
         {showNewClass && (
@@ -272,6 +346,55 @@ export function SchedulePage() {
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
                   </select>
+
+                  {/* Student Schedule Preferences Chips */}
+                  {newClass.studentId && (
+                    <div className="mt-3">
+                      {(() => {
+                        const selectedStudent = students?.find(s => s.id === newClass.studentId);
+                        const preferences = (selectedStudent as any)?.schedulePreferences || [];
+                        
+                        if (preferences.length === 0) return null;
+
+                        const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+                        return (
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight ml-1 flex items-center gap-1">
+                              <Clock className="h-3 w-3" /> Sugestões de Horário
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {preferences.map((pref: any, idx: number) => {
+                                const label = `${dayNames[pref.dayOfWeek]} ${pref.startTime}-${pref.endTime}`;
+                                return (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => {
+                                      const today = new Date();
+                                      const targetDate = getDay(today) === pref.dayOfWeek 
+                                        ? today 
+                                        : nextDay(today, pref.dayOfWeek as any);
+                                      
+                                      setNewClass(prev => ({
+                                        ...prev,
+                                        date: format(targetDate, "yyyy-MM-dd"),
+                                        startTime: pref.startTime,
+                                        endTime: pref.endTime
+                                      }));
+                                    }}
+                                    className="px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary text-[11px] font-bold transition-all hover:scale-105 active:scale-95"
+                                  >
+                                    {label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -401,7 +524,7 @@ export function SchedulePage() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (window.confirm("Tem certeza que deseja remover esta aula?")) deleteClass.mutate(cls.id);
+                                    setDeletingClassId(cls.id);
                                   }}
                                   className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
                                   title="Remover aula"
@@ -433,6 +556,24 @@ export function SchedulePage() {
       >
         <Plus className="h-6 w-6" />
       </button>
+
+      {/* Confirmation Modals */}
+      <ConfirmModal
+        isOpen={!!deletingClassId}
+        onClose={() => setDeletingClassId(null)}
+        onConfirm={() => {
+          if (deletingClassId) {
+            deleteClass.mutate(deletingClassId);
+            setDeletingClassId(null);
+          }
+        }}
+        title="Remover Aula"
+        description="Tem certeza que deseja remover esta aula? Esta ação não pode ser desfeita."
+        confirmLabel="Sim, Remover"
+        cancelLabel="Agora não"
+        variant="danger"
+        icon={Trash2}
+      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ model User {
   email     String   @unique
   password  String
   name      String
+  avatarUrl String?  @map("avatar_url")
   createdAt DateTime @default(now()) @map("created_at")
 
   students     Student[]
@@ -29,6 +30,7 @@ model Student {
   id               String      @id @default(uuid())
   userId           String      @map("user_id")
   name             String
+  avatarUrl        String?     @map("avatar_url")
   grade            String
   school           String
   responsibleName  String      @map("responsible_name")
@@ -42,6 +44,7 @@ model Student {
   user          User           @relation(fields: [userId], references: [id])
   classSessions ClassSession[]
   payments      Payment[]
+  schedulePreferences StudentSchedulePreference[]
 
   @@index([userId])
   @@map("students")
@@ -116,4 +119,18 @@ model PasswordResetToken {
   @@index([token])
   @@index([userId])
   @@map("password_reset_tokens")
+}
+
+model StudentSchedulePreference {
+  id        String   @id @default(uuid())
+  studentId String   @map("student_id")
+  dayOfWeek Int      @map("day_of_week") // 0-6 (Sunday to Saturday)
+  startTime String   @map("start_time") // HH:mm
+  endTime   String   @map("end_time")   // HH:mm
+  createdAt DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("student_schedule_preferences")
 }
