@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: tutorfy-db-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-tutorfy}
+    volumes:
+      - tutorfy_pgdata_prod:/var/lib/postgresql/data
+    networks:
+      - tutorfy-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-tutorfy}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: tutorfy-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-tutorfy}?schema=public
+      - JWT_SECRET=${JWT_SECRET:-super-secret-key-change-me-in-production}
+      - PORT=3333
+      # Para imagens, certifique-se que as variáveis de S3 ou volumes estão configurados corretamente
+      # - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      # - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      # - AWS_REGION=${AWS_REGION}
+      # - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      # E volume temporário se não tiver S3:
+      # - BASE_URL=https://api.seudominio.com
+    ports:
+      # Expor a porta 3333 localmente para o Nginx Proxy Manager
+      - "3333:3333"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tutorfy-net
+    # Se você for salvar imagens locais no backend (invés de S3):
+    # volumes:
+    #  - tutorfy_uploads:/app/apps/backend/uploads
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: tutorfy-web
+    restart: unless-stopped
+    ports:
+      # Expor a porta 80 localmente para o Nginx Proxy Manager apontar
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - tutorfy-net
+
+volumes:
+  tutorfy_pgdata_prod:
+  # tutorfy_uploads:
+
+networks:
+  tutorfy-net:
+    name: tutorfy-prod-network
