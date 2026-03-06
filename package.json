@@ -8,7 +8,9 @@
     "db:generate": "pnpm --filter @tutorfy/backend exec prisma generate",
     "db:push": "pnpm --filter @tutorfy/backend exec prisma db push",
     "db:migrate": "pnpm --filter @tutorfy/backend exec prisma migrate dev",
-    "db:studio": "pnpm --filter @tutorfy/backend exec prisma studio"
+    "db:deploy": "pnpm --filter @tutorfy/backend exec prisma migrate deploy",
+    "db:studio": "pnpm --filter @tutorfy/backend exec prisma studio",
+    "start": "turbo run start"
   },
   "devDependencies": {
     "turbo": "^2.4.0"
