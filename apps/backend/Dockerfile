@@ -1,44 +1,42 @@
 FROM node:22-alpine AS builder
 
-RUN corepack enable pnpm
-RUN apk add --no-cache libc6-compat openssl
+# Instalar libc6-compat (necessário para o turbo e prisma se usarem binários) e corepack
+RUN apk add --no-cache libc6-compat
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
 
-# Copia os manifestos e arquivos do workspace primeiro
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/backend/package.json ./apps/backend/
-COPY apps/web/package.json ./apps/web/
-COPY packages/types/package.json ./packages/types/
-
-# Instala as dependências
-RUN pnpm install --frozen-lockfile
-
-# Copia o restante do código
+# Copiar tudo
 COPY . .
 
-# Gera o client do Prisma e compila o backend
-WORKDIR /app/apps/backend
-RUN npx prisma generate
-WORKDIR /app
-RUN pnpm --filter @tutorfy/backend build
+# Instalar dependências (incluindo workspace)
+RUN pnpm install
 
-# Imagem de produção
+# Gerar Prisma Client
+RUN pnpm --filter @tutorfy/backend run db:generate
+
+# Fazer o build do backend e das dependências locais (types)
+RUN pnpm --filter @tutorfy/backend run build
+
+# Stage 2: Produção (imagem mais limpa)
 FROM node:22-alpine AS runner
 
-RUN corepack enable pnpm
-RUN apk add --no-cache openssl
+RUN apk add --no-cache libc6-compat
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
 
-# Copia toda a pasta compilada do builder (necessário em monorepo simples sem turbo prune, para resolver workspaces)
+# Em monorepos PNPM turborepo, uma abordagem simples para nuvem 
+# é copiar a pasta toda já buildada e só rodar. 
+# Para otimizar mais seria usar `turbo prune`, mas copiar o repositório 
+# limpo de source pesado, ou simplesmente a pasta inteira buildada funciona bem no Railway.
+
 COPY --from=builder /app /app
 
 WORKDIR /app/apps/backend
 
-ENV NODE_ENV=production
-ENV PORT=3333
+# O Railway injeta a porta na variável de ambiente PORT. 
+EXPOSE ${PORT:-3333}
 
-EXPOSE 3333
-
+# Comando de inicialização
 CMD ["pnpm", "start"]
