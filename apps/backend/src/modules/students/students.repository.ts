@@ -1,5 +1,6 @@
 import { prisma } from '../../lib/prisma.js';
 import type { CreateStudentInput, UpdateStudentInput } from './students.schema.js';
+import { Prisma } from '@prisma/client';
 
 export class StudentsRepository {
   async findAll(userId: string) {
@@ -52,7 +53,7 @@ export class StudentsRepository {
   async update(id: string, userId: string, data: UpdateStudentInput) {
     const { schedulePreferences, ...studentData } = data;
 
-    return prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       if (schedulePreferences) {
         // Delete all existing and recreate
         await tx.studentSchedulePreference.deleteMany({
