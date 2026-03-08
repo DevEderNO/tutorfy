@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { env } from './env.js';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
@@ -17,12 +18,12 @@ const app = Fastify({ logger: true });
 
 // Plugins
 await app.register(cors, {
-  origin: true,
+  origin: env.FRONTEND_URL,
   credentials: true,
 });
 
 await app.register(jwt, {
-  secret: process.env.JWT_SECRET || 'fallback-secret',
+  secret: env.JWT_SECRET,
   sign: { expiresIn: '7d' },
 });
 
@@ -69,8 +70,8 @@ app.setErrorHandler((error, request, reply) => {
 });
 
 // Start
-const port = Number(process.env.PORT) || 3333;
-const host = process.env.HOST || '0.0.0.0';
+const port = env.PORT;
+const host = env.HOST;
 
 try {
   await app.listen({ port, host });

@@ -3,8 +3,9 @@ import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../../lib/prisma.js';
 import type { RegisterInput, LoginInput, RequestResetInput, ResetPasswordInput, GoogleLoginInput } from './auth.schema.js';
+import { env } from '../../env.js';
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
 const RESET_TOKEN_EXPIRY_HOURS = 1;
 
@@ -79,7 +80,7 @@ export class AuthService {
     try {
       const ticket = await googleClient.verifyIdToken({
         idToken: data.token,
-        audience: process.env.GOOGLE_CLIENT_ID,
+        audience: env.GOOGLE_CLIENT_ID,
       });
       payload = ticket.getPayload();
     } catch (e) {
@@ -179,7 +180,7 @@ export class AuthService {
 
     // TODO: Integrar com serviço de email (Resend, Nodemailer, etc.)
     // Por enquanto, loga no console para desenvolvimento
-    const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
+    const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
     console.log('');
     console.log('='.repeat(60));
     console.log('🔑 LINK DE RECUPERAÇÃO DE SENHA');
