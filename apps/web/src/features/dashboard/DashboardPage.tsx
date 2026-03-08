@@ -16,6 +16,7 @@ import {
   History,
   Zap,
 } from "lucide-react";
+import { Header } from "@/components/layout/Header";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getInitials } from "@/lib/utils";
@@ -93,50 +94,16 @@ export function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-screen text-slate-100 pb-10">
-      {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-primary/10 px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <h2 className="text-xl font-bold tracking-tight">Visão Geral</h2>
-          <div className="relative w-72 hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
-            <input
-              className="w-full bg-slate-800/50 border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 text-slate-200 placeholder:text-slate-500 transition-all outline-none"
-              placeholder="Buscar alunos ou aulas..."
-              type="text"
-            />
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <button
-            aria-label="Notificações"
-            className="glass p-2.5 rounded-xl text-slate-400 hover:text-white relative transition-colors"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-primary rounded-full neon-glow"></span>
-          </button>
-          <Link
-            to="/schedule"
-            className="gradient-primary hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95"
-          >
-            <Plus className="h-5 w-5" />
-            <span className="hidden sm:inline">Nova Aula</span>
-          </Link>
-          <div className="hidden sm:block h-8 w-[1px] bg-slate-700/50 mx-2"></div>
-          <div className="hidden sm:flex h-10 w-10 rounded-xl glass p-0.5 overflow-hidden border border-primary/20 justify-center items-center bg-primary/10 text-primary font-bold">
-            {user?.avatarUrl ? (
-              <img
-                className="w-full h-full object-cover rounded-lg"
-                src={user.avatarUrl}
-                alt="Avatar"
-              />
-            ) : (
-              user?.name?.charAt(0).toUpperCase()
-            )}
-          </div>
-        </div>
-      </header>
+      <Header
+        title="Visão Geral"
+        searchPlaceholder="Buscar alunos ou aulas..."
+        onSearchChange={() => {}} // TODO: Implement search
+        showCreateButton
+        createButtonLink="/schedule"
+        createButtonLabel="Nova Aula"
+      />
 
-      <div className="p-8 space-y-8 flex-1">
+      <div className="p-8 space-y-8 flex-1 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {/* KPI Section */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="glass p-6 rounded-xl space-y-4 hover:border-primary/30 transition-colors">

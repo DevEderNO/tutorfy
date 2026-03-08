@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { Header } from "@/components/layout/Header";
 
 const statusColors: Record<string, string> = {
   SCHEDULED:
@@ -78,386 +79,392 @@ export function StudentDetailPage() {
   );
 
   return (
-    <div className="flex-1 max-w-[1200px] w-full flex flex-col gap-6">
-      {/* Breadcrumb Info */}
-      <nav className="flex items-center gap-2 text-sm pt-4 mb-2">
-        <Link
-          to="/students"
-          className="text-slate-500 hover:text-slate-300 transition-colors"
-        >
-          Alunos
-        </Link>
-        <ChevronRight className="h-4 w-4 text-slate-600" />
-        <span className="text-primary font-medium">
-          Perfil de {student.name}
-        </span>
-      </nav>
+    <div className="flex flex-col min-h-screen">
+      <Header
+        title={`Perfil: ${student.name}`}
+        actions={
+          <div className="flex items-center gap-3 mr-2">
+            <Link
+              to={`/students/${id}/edit`}
+              className="glass p-2.5 rounded-xl text-primary hover:text-white transition-colors"
+              title="Editar Aluno"
+            >
+              <Pencil className="h-5 w-5" />
+            </Link>
+          </div>
+        }
+      />
 
-      {/* Main Profile Info Card */}
-      <div className="glass-panel rounded-xl p-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] rounded-full -mr-20 -mt-20 pointer-events-none"></div>
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
-          <div className="flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-            <div className="relative">
-              <div className="size-32 rounded-3xl bg-gradient-to-br from-primary to-purple-800 p-1 neon-shadow">
-                <div className="w-full h-full rounded-[1.4rem] bg-background flex items-center justify-center overflow-hidden">
-                  {student.avatarUrl ? (
-                    <img
-                      src={student.avatarUrl}
-                      alt={student.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-primary text-4xl font-black">
-                      {getInitials(student.name)}
+      <div className="flex-1 max-w-[1200px] w-full p-8 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Main Profile Info Card */}
+        <div className="glass-panel rounded-xl p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] rounded-full -mr-20 -mt-20 pointer-events-none"></div>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
+            <div className="flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
+              <div className="relative">
+                <div className="size-32 rounded-3xl bg-gradient-to-br from-primary to-purple-800 p-1 neon-shadow">
+                  <div className="w-full h-full rounded-[1.4rem] bg-background flex items-center justify-center overflow-hidden">
+                    {student.avatarUrl ? (
+                      <img
+                        src={student.avatarUrl}
+                        alt={student.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-primary text-4xl font-black">
+                        {getInitials(student.name)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div
+                  className={`absolute -bottom-2 -right-2 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border-2 border-background ${student.active ? "bg-emerald-500 neon-text-emerald" : "bg-slate-500"}`}
+                >
+                  {student.active ? "Ativo" : "Inativo"}
+                </div>
+              </div>
+              <div className="flex flex-col justify-center">
+                <h1 className="text-3xl font-bold text-slate-100 mb-1 tracking-tight">
+                  {student.name}
+                </h1>
+                <p className="text-slate-400 text-lg mb-2">
+                  {student.grade || "Série não informada"} •{" "}
+                  {student.school || "Colégio não informado"}
+                </p>
+                <div className="flex flex-wrap gap-4 text-sm items-center justify-center md:justify-start">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-panel text-slate-300">
+                    <User className="h-4 w-4 text-primary" />
+                    <span>
+                      Responsável: {student.responsibleName || "Não informado"}
                     </span>
+                  </div>
+                  {student.responsiblePhone && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-panel text-slate-300">
+                      <Phone className="h-4 w-4 text-primary" />
+                      <span>{student.responsiblePhone}</span>
+                    </div>
                   )}
                 </div>
               </div>
-              <div
-                className={`absolute -bottom-2 -right-2 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border-2 border-background ${student.active ? "bg-emerald-500 neon-text-emerald" : "bg-slate-500"}`}
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+              <button
+                onClick={() => navigate(`/students/${id}/edit`)}
+                className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl glass-panel text-slate-100 font-bold text-sm hover:bg-white/5 transition-all"
               >
-                {student.active ? "Ativo" : "Inativo"}
-              </div>
-            </div>
-            <div className="flex flex-col justify-center">
-              <h1 className="text-3xl font-bold text-slate-100 mb-1 tracking-tight">
-                {student.name}
-              </h1>
-              <p className="text-slate-400 text-lg mb-2">
-                {student.grade || "Série não informada"} •{" "}
-                {student.school || "Colégio não informado"}
-              </p>
-              <div className="flex flex-wrap gap-4 text-sm items-center justify-center md:justify-start">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-panel text-slate-300">
-                  <User className="h-4 w-4 text-primary" />
-                  <span>
-                    Responsável: {student.responsibleName || "Não informado"}
-                  </span>
-                </div>
-                {student.responsiblePhone && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-panel text-slate-300">
-                    <Phone className="h-4 w-4 text-primary" />
-                    <span>{student.responsiblePhone}</span>
-                  </div>
-                )}
-              </div>
+                <Pencil className="h-4 w-4" />
+                Editar Perfil
+              </button>
+              <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold text-sm hover:opacity-90 transition-all neon-shadow">
+                <CreditCard className="h-4 w-4" />
+                Adicionar Pagamento
+              </button>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+        </div>
+
+        {/* 4 Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-primary hover:translate-y-[-4px] transition-transform">
+            <div className="flex justify-between items-start mb-4">
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+                Aulas Dadas
+              </p>
+              <CalendarDays className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex items-baseline gap-3">
+              <p className="text-3xl font-bold text-slate-100">
+                {totalClasses}
+              </p>
+              <p className="text-emerald-400 text-xs font-bold">
+                +{totalClasses > 0 ? 1 : 0} este mês
+              </p>
+            </div>
+          </div>
+
+          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-purple-500 hover:translate-y-[-4px] transition-transform">
+            <div className="flex justify-between items-start mb-4">
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+                Pendentes
+              </p>
+              <Receipt className="h-5 w-5 text-purple-500" />
+            </div>
+            <div className="flex items-baseline gap-3">
+              <p className="text-3xl font-bold text-purple-400">
+                R$ {pendingAmount.toFixed(2)}
+              </p>
+              <p className="text-slate-500 text-xs">
+                {pendingPayments.length} Atrasados
+              </p>
+            </div>
+          </div>
+
+          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-emerald-500 hover:translate-y-[-4px] transition-transform">
+            <div className="flex justify-between items-start mb-4">
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+                Presença
+              </p>
+              <TrendingUp className="h-5 w-5 text-emerald-500" />
+            </div>
+            <div className="flex items-baseline gap-3">
+              <p className="text-3xl font-bold text-slate-100">100%</p>
+              <p className="text-slate-500 text-xs">Total impecável</p>
+            </div>
+          </div>
+
+          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-blue-500 hover:translate-y-[-4px] transition-transform">
+            <div className="flex justify-between items-start mb-4">
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+                Mensalidade
+              </p>
+              <CreditCard className="h-5 w-5 text-blue-500" />
+            </div>
+            <div className="flex items-baseline gap-3">
+              <p className="text-3xl font-bold text-slate-100 italic">
+                R$ {student.monthlyFee?.toFixed(2) || "0.00"}
+              </p>
+              <p className="text-slate-500 text-xs underline cursor-pointer hover:text-slate-300">
+                Alterar Plano
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs and Content Section */}
+        <div className="glass-panel rounded-xl overflow-hidden flex flex-col min-h-[500px] mb-8 relative z-10">
+          <div className="flex border-b border-white/10 px-6 gap-8 bg-white/5 overflow-x-auto hide-scrollbar relative z-20">
             <button
-              onClick={() => navigate(`/students/${id}/edit`)}
-              className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl glass-panel text-slate-100 font-bold text-sm hover:bg-white/5 transition-all"
+              onClick={() => setActiveTab("billing")}
+              className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "billing" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300"}`}
             >
-              <Pencil className="h-4 w-4" />
-              Editar Perfil
+              <Receipt className="h-5 w-5" />
+              Histórico de Cobrança
             </button>
-            <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold text-sm hover:opacity-90 transition-all neon-shadow">
-              <CreditCard className="h-4 w-4" />
-              Adicionar Pagamento
+            <button
+              onClick={() => setActiveTab("classes")}
+              className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "classes" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300"}`}
+            >
+              <CalendarDays className="h-5 w-5" />
+              Log de Aulas
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* 4 Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-panel rounded-xl p-6 border-l-4 border-l-primary hover:translate-y-[-4px] transition-transform">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
-              Aulas Dadas
-            </p>
-            <CalendarDays className="h-5 w-5 text-primary" />
-          </div>
-          <div className="flex items-baseline gap-3">
-            <p className="text-3xl font-bold text-slate-100">{totalClasses}</p>
-            <p className="text-emerald-400 text-xs font-bold">
-              +{totalClasses > 0 ? 1 : 0} este mês
-            </p>
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-xl p-6 border-l-4 border-l-purple-500 hover:translate-y-[-4px] transition-transform">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
-              Pendentes
-            </p>
-            <Receipt className="h-5 w-5 text-purple-500" />
-          </div>
-          <div className="flex items-baseline gap-3">
-            <p className="text-3xl font-bold text-purple-400">
-              R$ {pendingAmount.toFixed(2)}
-            </p>
-            <p className="text-slate-500 text-xs">
-              {pendingPayments.length} Atrasados
-            </p>
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-xl p-6 border-l-4 border-l-emerald-500 hover:translate-y-[-4px] transition-transform">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
-              Presença
-            </p>
-            <TrendingUp className="h-5 w-5 text-emerald-500" />
-          </div>
-          <div className="flex items-baseline gap-3">
-            <p className="text-3xl font-bold text-slate-100">100%</p>
-            <p className="text-slate-500 text-xs">Total impecável</p>
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-xl p-6 border-l-4 border-l-blue-500 hover:translate-y-[-4px] transition-transform">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
-              Mensalidade
-            </p>
-            <CreditCard className="h-5 w-5 text-blue-500" />
-          </div>
-          <div className="flex items-baseline gap-3">
-            <p className="text-3xl font-bold text-slate-100 italic">
-              R$ {student.monthlyFee?.toFixed(2) || "0.00"}
-            </p>
-            <p className="text-slate-500 text-xs underline cursor-pointer hover:text-slate-300">
-              Alterar Plano
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs and Content Section */}
-      <div className="glass-panel rounded-xl overflow-hidden flex flex-col min-h-[500px] mb-8 relative z-10">
-        <div className="flex border-b border-white/10 px-6 gap-8 bg-white/5 overflow-x-auto hide-scrollbar relative z-20">
-          <button
-            onClick={() => setActiveTab("billing")}
-            className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "billing" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300"}`}
-          >
-            <Receipt className="h-5 w-5" />
-            Histórico de Cobrança
-          </button>
-          <button
-            onClick={() => setActiveTab("classes")}
-            className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "classes" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300"}`}
-          >
-            <CalendarDays className="h-5 w-5" />
-            Log de Aulas
-          </button>
-        </div>
-
-        <div className="p-6 relative z-20">
-          {activeTab === "billing" && (
-            <>
-              <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
-                <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-                  <Receipt className="h-5 w-5 text-primary" />
-                  Faturas Recentes
-                </h3>
-                <div className="flex gap-2">
-                  <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
-                    <Filter className="h-4 w-4" /> Filtrar
-                  </button>
-                  <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
-                    <Download className="h-4 w-4" /> Exportar PDF
-                  </button>
+          <div className="p-6 relative z-20">
+            {activeTab === "billing" && (
+              <>
+                <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
+                  <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <Receipt className="h-5 w-5 text-primary" />
+                    Faturas Recentes
+                  </h3>
+                  <div className="flex gap-2">
+                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
+                      <Filter className="h-4 w-4" /> Filtrar
+                    </button>
+                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
+                      <Download className="h-4 w-4" /> Exportar PDF
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[600px]">
-                  <thead className="bg-white/5 text-slate-400 text-xs uppercase tracking-widest font-semibold border-b border-white/10">
-                    <tr>
-                      <th className="px-6 py-4">Mês/Ano</th>
-                      <th className="px-6 py-4">Data Venc.</th>
-                      <th className="px-6 py-4">Valor Total</th>
-                      <th className="px-6 py-4 text-center">Status</th>
-                      <th className="px-6 py-4 text-right">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-sm">
-                    {student.payments && student.payments.length > 0 ? (
-                      student.payments.map((payment: any) => (
-                        <tr
-                          key={payment.id}
-                          className="hover:bg-white/5 transition-colors group"
-                        >
-                          <td className="px-6 py-5 font-medium text-slate-100">
-                            Mês {String(payment.month).padStart(2, "0")}/
-                            {payment.year}
-                          </td>
-                          <td className="px-6 py-5 text-slate-400">Dia 10</td>
-                          <td className="px-6 py-5 font-bold text-slate-100">
-                            R$ {payment.amount.toFixed(2)}
-                          </td>
-                          <td className="px-6 py-5 text-center">
-                            <span
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${payment.paid ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}
-                            >
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[600px]">
+                    <thead className="bg-white/5 text-slate-400 text-xs uppercase tracking-widest font-semibold border-b border-white/10">
+                      <tr>
+                        <th className="px-6 py-4">Mês/Ano</th>
+                        <th className="px-6 py-4">Data Venc.</th>
+                        <th className="px-6 py-4">Valor Total</th>
+                        <th className="px-6 py-4 text-center">Status</th>
+                        <th className="px-6 py-4 text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 text-sm">
+                      {student.payments && student.payments.length > 0 ? (
+                        student.payments.map((payment: any) => (
+                          <tr
+                            key={payment.id}
+                            className="hover:bg-white/5 transition-colors group"
+                          >
+                            <td className="px-6 py-5 font-medium text-slate-100">
+                              Mês {String(payment.month).padStart(2, "0")}/
+                              {payment.year}
+                            </td>
+                            <td className="px-6 py-5 text-slate-400">Dia 10</td>
+                            <td className="px-6 py-5 font-bold text-slate-100">
+                              R$ {payment.amount.toFixed(2)}
+                            </td>
+                            <td className="px-6 py-5 text-center">
                               <span
-                                className={`size-1.5 rounded-full ${payment.paid ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}
-                              ></span>
-                              {payment.paid ? "Pago" : "Pendente"}
-                            </span>
-                          </td>
-                          <td className="px-6 py-5 text-right">
-                            <button
-                              className="text-slate-500 hover:text-slate-300 transition-colors"
-                              aria-label="Mais ações relativas à fatura"
-                              title="Mais opções"
-                            >
-                              <MoreHorizontal className="h-5 w-5 ml-auto" />
-                            </button>
+                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${payment.paid ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}
+                              >
+                                <span
+                                  className={`size-1.5 rounded-full ${payment.paid ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}
+                                ></span>
+                                {payment.paid ? "Pago" : "Pendente"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-5 text-right">
+                              <button
+                                className="text-slate-500 hover:text-slate-300 transition-colors"
+                                aria-label="Mais ações relativas à fatura"
+                                title="Mais opções"
+                              >
+                                <MoreHorizontal className="h-5 w-5 ml-auto" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="py-8 text-center text-slate-500"
+                          >
+                            Nenhum histórico de cobrança registrado.
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={5}
-                          className="py-8 text-center text-slate-500"
-                        >
-                          Nenhum histórico de cobrança registrado.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
 
-          {activeTab === "classes" && (
-            <>
-              <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
-                <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-                  <CalendarDays className="h-5 w-5 text-primary" />
-                  Aulas Registradas
-                </h3>
+            {activeTab === "classes" && (
+              <>
+                <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
+                  <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <CalendarDays className="h-5 w-5 text-primary" />
+                    Aulas Registradas
+                  </h3>
+                  <div className="flex gap-2">
+                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
+                      <Filter className="h-4 w-4" /> Filtrar
+                    </button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[700px]">
+                    <thead className="bg-white/5 text-slate-400 text-xs uppercase tracking-widest font-semibold border-b border-white/10">
+                      <tr>
+                        <th className="px-6 py-4">Data</th>
+                        <th className="px-6 py-4">Horário</th>
+                        <th className="px-6 py-4">Conteúdo</th>
+                        <th className="px-6 py-4 text-center">Status</th>
+                        <th className="px-6 py-4 text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 text-sm">
+                      {student.classSessions &&
+                      student.classSessions.length > 0 ? (
+                        student.classSessions.map((cls: any) => (
+                          <tr
+                            key={cls.id}
+                            className="hover:bg-white/5 transition-colors group"
+                          >
+                            <td className="px-6 py-5 font-medium text-slate-100">
+                              {format(new Date(cls.date), "dd/MMM/yyyy", {
+                                locale: ptBR,
+                              })}
+                            </td>
+                            <td className="px-6 py-5 text-slate-400">
+                              <span className="flex items-center gap-1.5">
+                                <Clock className="h-4 w-4 text-primary" />{" "}
+                                {cls.startTime} - {cls.endTime}
+                              </span>
+                            </td>
+                            <td className="px-6 py-5 text-slate-300">
+                              {cls.content || "-"}
+                            </td>
+                            <td className="px-6 py-5 text-center">
+                              <span
+                                className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[cls.status] || "bg-slate-500/10 text-slate-500 border-slate-500/20"}`}
+                              >
+                                {statusLabels[cls.status] || cls.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-5 text-right">
+                              <button
+                                onClick={() => {
+                                  setDeletingClassId(cls.id);
+                                }}
+                                className="text-slate-500 hover:text-red-400 transition-colors ml-auto p-1"
+                                title="Remover aula"
+                                aria-label="Remover aula"
+                              >
+                                <Trash2 className="h-5 w-5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="py-8 text-center text-slate-500"
+                          >
+                            Nenhum log de aulas registrado.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
+            {/* Simple Dummy Pagination */}
+            {((activeTab === "billing" && student.payments?.length > 0) ||
+              (activeTab === "classes" &&
+                student.classSessions?.length > 0)) && (
+              <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/10 bg-white/5 px-6 -mx-6 -mb-6 pb-6">
+                <p className="text-sm text-slate-500">
+                  Exibindo registros recentes
+                </p>
                 <div className="flex gap-2">
-                  <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
-                    <Filter className="h-4 w-4" /> Filtrar
+                  <button
+                    className="size-8 rounded flex items-center justify-center glass-panel text-slate-400 opacity-50 cursor-not-allowed"
+                    disabled
+                    aria-label="Página anterior"
+                    title="Página anterior"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button className="size-8 rounded flex items-center justify-center glass-panel text-slate-100 bg-primary/20 border-primary/30 font-medium">
+                    1
+                  </button>
+                  <button
+                    className="size-8 rounded flex items-center justify-center glass-panel text-slate-400 hover:text-slate-100 transition-colors"
+                    aria-label="Próxima página"
+                    title="Próxima página"
+                  >
+                    <ChevronRight className="h-5 w-5" />
                   </button>
                 </div>
               </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[700px]">
-                  <thead className="bg-white/5 text-slate-400 text-xs uppercase tracking-widest font-semibold border-b border-white/10">
-                    <tr>
-                      <th className="px-6 py-4">Data</th>
-                      <th className="px-6 py-4">Horário</th>
-                      <th className="px-6 py-4">Conteúdo</th>
-                      <th className="px-6 py-4 text-center">Status</th>
-                      <th className="px-6 py-4 text-right">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-sm">
-                    {student.classSessions &&
-                    student.classSessions.length > 0 ? (
-                      student.classSessions.map((cls: any) => (
-                        <tr
-                          key={cls.id}
-                          className="hover:bg-white/5 transition-colors group"
-                        >
-                          <td className="px-6 py-5 font-medium text-slate-100">
-                            {format(new Date(cls.date), "dd/MMM/yyyy", {
-                              locale: ptBR,
-                            })}
-                          </td>
-                          <td className="px-6 py-5 text-slate-400">
-                            <span className="flex items-center gap-1.5">
-                              <Clock className="h-4 w-4 text-primary" />{" "}
-                              {cls.startTime} - {cls.endTime}
-                            </span>
-                          </td>
-                          <td className="px-6 py-5 text-slate-300">
-                            {cls.content || "-"}
-                          </td>
-                          <td className="px-6 py-5 text-center">
-                            <span
-                              className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[cls.status] || "bg-slate-500/10 text-slate-500 border-slate-500/20"}`}
-                            >
-                              {statusLabels[cls.status] || cls.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-5 text-right">
-                            <button
-                              onClick={() => {
-                                setDeletingClassId(cls.id);
-                              }}
-                              className="text-slate-500 hover:text-red-400 transition-colors ml-auto p-1"
-                              title="Remover aula"
-                              aria-label="Remover aula"
-                            >
-                              <Trash2 className="h-5 w-5" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={5}
-                          className="py-8 text-center text-slate-500"
-                        >
-                          Nenhum log de aulas registrado.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-
-          {/* Simple Dummy Pagination */}
-          {((activeTab === "billing" && student.payments?.length > 0) ||
-            (activeTab === "classes" && student.classSessions?.length > 0)) && (
-            <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/10 bg-white/5 px-6 -mx-6 -mb-6 pb-6">
-              <p className="text-sm text-slate-500">
-                Exibindo registros recentes
-              </p>
-              <div className="flex gap-2">
-                <button
-                  className="size-8 rounded flex items-center justify-center glass-panel text-slate-400 opacity-50 cursor-not-allowed"
-                  disabled
-                  aria-label="Página anterior"
-                  title="Página anterior"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button className="size-8 rounded flex items-center justify-center glass-panel text-slate-100 bg-primary/20 border-primary/30 font-medium">
-                  1
-                </button>
-                <button
-                  className="size-8 rounded flex items-center justify-center glass-panel text-slate-400 hover:text-slate-100 transition-colors"
-                  aria-label="Próxima página"
-                  title="Próxima página"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Confirmation Modals */}
-      <ConfirmModal
-        isOpen={!!deletingClassId}
-        onClose={() => setDeletingClassId(null)}
-        onConfirm={() => {
-          if (deletingClassId) {
-            deleteClass.mutate(deletingClassId);
-            setDeletingClassId(null);
-          }
-        }}
-        title="Remover Aula do Histórico"
-        description="Tem certeza que deseja remover esta aula permanentemente? Esta ação não pode ser desfeita."
-        confirmLabel="Sim, Remover"
-        cancelLabel="Agora não"
-        variant="danger"
-        icon={Trash2}
-      />
+        {/* Confirmation Modals */}
+        <ConfirmModal
+          isOpen={!!deletingClassId}
+          onClose={() => setDeletingClassId(null)}
+          onConfirm={() => {
+            if (deletingClassId) {
+              deleteClass.mutate(deletingClassId);
+              setDeletingClassId(null);
+            }
+          }}
+          title="Remover Aula do Histórico"
+          description="Tem certeza que deseja remover esta aula permanentemente? Esta ação não pode ser desfeita."
+          confirmLabel="Sim, Remover"
+          cancelLabel="Agora não"
+          variant="danger"
+          icon={Trash2}
+        />
+      </div>
     </div>
   );
 }

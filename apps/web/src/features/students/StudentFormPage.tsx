@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import type { BillingType } from "@tutorfy/types";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { Header } from "@/components/layout/Header";
 
 const schedulePreferenceSchema = z.object({
   dayOfWeek: z.coerce.number().min(0).max(6),
@@ -222,543 +223,554 @@ export function StudentFormPage() {
   }
 
   return (
-    <div className="flex-1 w-full max-w-4xl mx-auto px-2 py-8 sm:px-6 sm:py-10">
-      {/* Breadcrumbs & Heading */}
-      <div className="mb-10">
-        <nav className="flex items-center gap-2 text-slate-400 text-sm mb-4 glass-panel w-fit px-4 py-1.5 rounded-full">
-          <Link className="hover:text-white transition-colors" to="/students">
-            Alunos
-          </Link>
-          <ChevronRight className="h-4 w-4" />
-          <span className="text-primary font-medium">
-            {isEditing ? "Editar Aluno" : "Novo Aluno"}
-          </span>
-        </nav>
-        <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight mb-2">
-          {isEditing ? "Editar Aluno" : "Cadastro de Novo Aluno"}
-        </h1>
-        <p className="text-slate-400 text-lg">
-          {isEditing
-            ? "Atualize as informações do estudante e suas preferências de fatura."
-            : "Gerencie as informações detalhadas do estudante com interface premium."}
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        {/* Section 1: Informações Pessoais */}
-        <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
-          <div className="flex items-center gap-3 mb-6">
-            <User className="h-6 w-6 text-primary" />
-            <h3 className="text-white text-xl font-bold uppercase tracking-wider">
-              Informações Pessoais
-            </h3>
+    <div className="flex flex-col min-h-screen">
+      <Header
+        title={isEditing ? `Editar: ${student?.name || "Aluno"}` : "Novo Aluno"}
+        actions={
+          <div className="flex items-center gap-3 mr-2">
+            <button
+              type="submit"
+              form="student-form"
+              disabled={isUploading || isSubmitting}
+              className="gradient-primary hover:opacity-90 text-white px-8 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+            >
+              {isSubmitting
+                ? "Salvando..."
+                : isEditing
+                  ? "Salvar Alterações"
+                  : "Cadastrar Aluno"}
+            </button>
           </div>
-          <div className="flex flex-col md:flex-row gap-10 items-start">
-            <div className="flex flex-col items-center gap-4 mx-auto md:mx-0">
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className={`w-32 h-32 rounded-full border-2 border-dashed border-primary/40 flex flex-col items-center justify-center cursor-pointer hover:bg-primary/5 transition-colors group relative overflow-hidden bg-slate-800 ${isUploading ? "opacity-50" : ""}`}
-              >
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt="Avatar"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <>
-                    <Camera className="h-10 w-10 text-slate-500 group-hover:text-primary transition-colors" />
-                    <p className="text-[10px] text-slate-500 mt-2 font-medium group-hover:text-primary transition-colors">
-                      UPLOAD FOTO
-                    </p>
-                  </>
-                )}
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                aria-label="Fazer upload de foto"
-                className="hidden"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                disabled={isUploading}
-              />
-              <p className="text-xs text-slate-500 italic text-center">
-                Tamanho máx: 5MB
-                <br />
-                PNG, JPG
-              </p>
-            </div>
+        }
+      />
 
-            <div className="flex-1 grid grid-cols-1 gap-6 w-full">
+      <div className="flex-1 w-full max-w-4xl mx-auto px-2 py-8 sm:px-6 sm:py-10">
+        <form
+          id="student-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-8"
+        >
+          {/* Section 1: Informações Pessoais */}
+          <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
+            <div className="flex items-center gap-3 mb-6">
+              <User className="h-6 w-6 text-primary" />
+              <h3 className="text-white text-xl font-bold uppercase tracking-wider">
+                Informações Pessoais
+              </h3>
+            </div>
+            <div className="flex flex-col md:flex-row gap-10 items-start">
+              <div className="flex flex-col items-center gap-4 mx-auto md:mx-0">
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`w-32 h-32 rounded-full border-2 border-dashed border-primary/40 flex flex-col items-center justify-center cursor-pointer hover:bg-primary/5 transition-colors group relative overflow-hidden bg-slate-800 ${isUploading ? "opacity-50" : ""}`}
+                >
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt="Avatar"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <>
+                      <Camera className="h-10 w-10 text-slate-500 group-hover:text-primary transition-colors" />
+                      <p className="text-[10px] text-slate-500 mt-2 font-medium group-hover:text-primary transition-colors">
+                        UPLOAD FOTO
+                      </p>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  aria-label="Fazer upload de foto"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  disabled={isUploading}
+                />
+                <p className="text-xs text-slate-500 italic text-center">
+                  Tamanho máx: 5MB
+                  <br />
+                  PNG, JPG
+                </p>
+              </div>
+
+              <div className="flex-1 grid grid-cols-1 gap-6 w-full">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-slate-300">
+                    Nome Completo *
+                  </label>
+                  <input
+                    {...register("name")}
+                    className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
+                    placeholder="Ex: Lucas Gabriel Oliveira"
+                    type="text"
+                  />
+                  {errors.name && (
+                    <p className="text-xs text-red-400 font-medium">
+                      {errors.name.message}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-slate-300">
+                    Data de Nascimento
+                  </label>
+                  <input
+                    {...register("birthDate")}
+                    className="glass-input rounded-lg px-4 py-3 w-full outline-none appearance-none transition-all text-slate-300"
+                    type="date"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 2: Informações Acadêmicas */}
+          <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
+            <div className="flex items-center gap-3 mb-6">
+              <Book className="h-6 w-6 text-primary" />
+              <h3 className="text-white text-xl font-bold uppercase tracking-wider">
+                Informações Acadêmicas
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-slate-300">
-                  Nome Completo *
+                  Colégio *
                 </label>
                 <input
-                  {...register("name")}
+                  {...register("school")}
                   className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
-                  placeholder="Ex: Lucas Gabriel Oliveira"
+                  placeholder="Nome da Instituição"
                   type="text"
                 />
-                {errors.name && (
+                {errors.school && (
                   <p className="text-xs text-red-400 font-medium">
-                    {errors.name.message}
+                    {errors.school.message}
                   </p>
                 )}
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-slate-300">
-                  Data de Nascimento
+                  Série *
                 </label>
-                <input
-                  {...register("birthDate")}
-                  className="glass-input rounded-lg px-4 py-3 w-full outline-none appearance-none transition-all text-slate-300"
-                  type="date"
-                />
+                <select
+                  {...register("grade")}
+                  className="glass-input rounded-lg px-4 py-3 w-full outline-none appearance-none cursor-pointer transition-all"
+                >
+                  <option value="" className="text-slate-900">
+                    Selecione...
+                  </option>
+                  <option value="6º Ano Fundamental" className="text-slate-900">
+                    6º Ano Fundamental
+                  </option>
+                  <option value="7º Ano Fundamental" className="text-slate-900">
+                    7º Ano Fundamental
+                  </option>
+                  <option value="8º Ano Fundamental" className="text-slate-900">
+                    8º Ano Fundamental
+                  </option>
+                  <option value="9º Ano Fundamental" className="text-slate-900">
+                    9º Ano - Fundamental II
+                  </option>
+                  <option value="1º Ano Médio" className="text-slate-900">
+                    1º Ano - Médio
+                  </option>
+                  <option value="2º Ano Médio" className="text-slate-900">
+                    2º Ano - Médio
+                  </option>
+                  <option value="3º Ano Médio" className="text-slate-900">
+                    3º Ano - Médio
+                  </option>
+                  <option value="Outro" className="text-slate-900">
+                    Outro
+                  </option>
+                </select>
+                {errors.grade && (
+                  <p className="text-xs text-red-400 font-medium">
+                    {errors.grade.message}
+                  </p>
+                )}
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Section 2: Informações Acadêmicas */}
-        <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
-          <div className="flex items-center gap-3 mb-6">
-            <Book className="h-6 w-6 text-primary" />
-            <h3 className="text-white text-xl font-bold uppercase tracking-wider">
-              Informações Acadêmicas
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-300">
-                Colégio *
-              </label>
-              <input
-                {...register("school")}
-                className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
-                placeholder="Nome da Instituição"
-                type="text"
-              />
-              {errors.school && (
-                <p className="text-xs text-red-400 font-medium">
-                  {errors.school.message}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-300">
-                Série *
-              </label>
-              <select
-                {...register("grade")}
-                className="glass-input rounded-lg px-4 py-3 w-full outline-none appearance-none cursor-pointer transition-all"
-              >
-                <option value="" className="text-slate-900">
-                  Selecione...
-                </option>
-                <option value="6º Ano Fundamental" className="text-slate-900">
-                  6º Ano Fundamental
-                </option>
-                <option value="7º Ano Fundamental" className="text-slate-900">
-                  7º Ano Fundamental
-                </option>
-                <option value="8º Ano Fundamental" className="text-slate-900">
-                  8º Ano Fundamental
-                </option>
-                <option value="9º Ano Fundamental" className="text-slate-900">
-                  9º Ano - Fundamental II
-                </option>
-                <option value="1º Ano Médio" className="text-slate-900">
-                  1º Ano - Médio
-                </option>
-                <option value="2º Ano Médio" className="text-slate-900">
-                  2º Ano - Médio
-                </option>
-                <option value="3º Ano Médio" className="text-slate-900">
-                  3º Ano - Médio
-                </option>
-                <option value="Outro" className="text-slate-900">
-                  Outro
-                </option>
-              </select>
-              {errors.grade && (
-                <p className="text-xs text-red-400 font-medium">
-                  {errors.grade.message}
-                </p>
-              )}
-            </div>
-            <div className="md:col-span-2 flex flex-col gap-3">
-              <label className="text-sm font-semibold text-slate-300">
-                Turno Escolar
-              </label>
-              <div className="flex p-1.5 glass-panel bg-slate-900/40 rounded-xl w-fit">
-                <label className="cursor-pointer">
-                  <input
-                    {...register("shift")}
-                    value="morning"
-                    className="peer sr-only"
-                    name="shift"
-                    type="radio"
-                  />
-                  <div className="px-8 py-2 rounded-lg text-sm font-bold text-slate-400 peer-checked:bg-primary peer-checked:text-white transition-all shadow-none peer-checked:shadow-lg">
-                    Manhã
-                  </div>
+              <div className="md:col-span-2 flex flex-col gap-3">
+                <label className="text-sm font-semibold text-slate-300">
+                  Turno Escolar
                 </label>
-                <label className="cursor-pointer">
-                  <input
-                    {...register("shift")}
-                    value="afternoon"
-                    className="peer sr-only"
-                    name="shift"
-                    type="radio"
-                  />
-                  <div className="px-8 py-2 rounded-lg text-sm font-bold text-slate-400 peer-checked:bg-primary peer-checked:text-white transition-all shadow-none peer-checked:shadow-lg">
-                    Tarde
-                  </div>
-                </label>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Section 3: Responsáveis */}
-        <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
-          <div className="flex items-center gap-3 mb-6">
-            <Family className="h-6 w-6 text-primary" />
-            <h3 className="text-white text-xl font-bold uppercase tracking-wider">
-              Responsáveis
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-300">
-                Nome do Responsável *
-              </label>
-              <input
-                {...register("responsibleName")}
-                className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
-                type="text"
-                placeholder="Nome completo"
-              />
-              {errors.responsibleName && (
-                <p className="text-xs text-red-400 font-medium">
-                  {errors.responsibleName.message}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-300">
-                CPF
-              </label>
-              <input
-                {...register("cpf")}
-                className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
-                placeholder="000.000.000-00"
-                type="text"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-300">
-                Telefone / WhatsApp *
-              </label>
-              <input
-                {...register("responsiblePhone")}
-                className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
-                placeholder="(00) 00000-0000"
-                type="tel"
-              />
-              {errors.responsiblePhone && (
-                <p className="text-xs text-red-400 font-medium">
-                  {errors.responsiblePhone.message}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-300">
-                E-mail
-              </label>
-              <input
-                {...register("email")}
-                className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
-                placeholder="responsavel@email.com"
-                type="email"
-              />
-              {errors.email && (
-                <p className="text-xs text-red-400 font-medium">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Section 4: Cobrança */}
-        <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
-          <div className="flex items-center gap-3 mb-6">
-            <CreditCard className="h-6 w-6 text-primary" />
-            <h3 className="text-white text-xl font-bold uppercase tracking-wider">
-              Cobrança
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <label className="cursor-pointer relative">
-              <input
-                {...register("billingType")}
-                value="MONTHLY"
-                className="peer sr-only"
-                name="billingType"
-                type="radio"
-              />
-              <div className="h-full p-6 rounded-xl glass-panel border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 transition-all flex flex-col gap-2 peer-checked:purple-glow">
-                <CalendarSync className="h-6 w-6 text-primary peer-checked:text-primary transition-colors" />
-                <h4 className="text-white font-bold text-lg">
-                  Mensalidade Fixa
-                </h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Ideal para planos recorrentes com valor fechado todo mês.
-                </p>
-              </div>
-            </label>
-            <label className="cursor-pointer relative">
-              <input
-                {...register("billingType")}
-                value="HOURLY"
-                className="peer sr-only"
-                name="billingType"
-                type="radio"
-              />
-              <div className="h-full p-6 rounded-xl glass-panel border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 transition-all flex flex-col gap-2 peer-checked:purple-glow">
-                <Clock className="h-6 w-6 text-slate-400 peer-checked:text-primary transition-colors" />
-                <h4 className="text-white font-bold text-lg">Valor por Hora</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Cobrança baseada no tempo real de tutoria realizado.
-                </p>
-              </div>
-            </label>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-300">
-                Vencimento
-              </label>
-              <select
-                {...register("dueDate")}
-                className="glass-input rounded-lg px-4 py-3 w-full outline-none appearance-none cursor-pointer text-slate-300 transition-all"
-              >
-                <option value="05" className="text-slate-900">
-                  Dia 05
-                </option>
-                <option value="10" className="text-slate-900">
-                  Dia 10
-                </option>
-                <option value="15" className="text-slate-900">
-                  Dia 15
-                </option>
-                <option value="20" className="text-slate-900">
-                  Dia 20
-                </option>
-                <option value="25" className="text-slate-900">
-                  Dia 25
-                </option>
-              </select>
-            </div>
-            <div className="flex flex-col gap-2">
-              {billingType === "MONTHLY" ? (
-                <>
-                  <label className="text-sm font-semibold text-slate-300">
-                    Valor da Mensalidade *
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">
-                      R$
-                    </span>
+                <div className="flex p-1.5 glass-panel bg-slate-900/40 rounded-xl w-fit">
+                  <label className="cursor-pointer">
                     <input
-                      {...register("monthlyFee")}
-                      className="glass-input rounded-lg pl-12 pr-4 py-3 w-full outline-none transition-all font-bold text-lg"
-                      placeholder="450.00"
-                      type="number"
-                      step="0.01"
+                      {...register("shift")}
+                      value="morning"
+                      className="peer sr-only"
+                      name="shift"
+                      type="radio"
                     />
-                  </div>
-                  {errors.monthlyFee && (
-                    <p className="text-xs text-red-400 font-medium">
-                      {errors.monthlyFee.message}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <>
-                  <label className="text-sm font-semibold text-slate-300">
-                    Valor Base Hora-Aula *
+                    <div className="px-8 py-2 rounded-lg text-sm font-bold text-slate-400 peer-checked:bg-primary peer-checked:text-white transition-all shadow-none peer-checked:shadow-lg">
+                      Manhã
+                    </div>
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">
-                      R$
-                    </span>
+                  <label className="cursor-pointer">
                     <input
-                      {...register("hourlyRate")}
-                      className="glass-input rounded-lg pl-12 pr-4 py-3 w-full outline-none transition-all font-bold text-lg"
-                      placeholder="80.00"
-                      type="number"
-                      step="0.01"
+                      {...register("shift")}
+                      value="afternoon"
+                      className="peer sr-only"
+                      name="shift"
+                      type="radio"
                     />
-                  </div>
-                  {errors.hourlyRate && (
-                    <p className="text-xs text-red-400 font-medium">
-                      {errors.hourlyRate.message}
-                    </p>
-                  )}
-                </>
-              )}
+                    <div className="px-8 py-2 rounded-lg text-sm font-bold text-slate-400 peer-checked:bg-primary peer-checked:text-white transition-all shadow-none peer-checked:shadow-lg">
+                      Tarde
+                    </div>
+                  </label>
+                </div>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Section 5: Horários */}
-        <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-6 w-6 text-primary" />
+          {/* Section 3: Responsáveis */}
+          <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
+            <div className="flex items-center gap-3 mb-6">
+              <Family className="h-6 w-6 text-primary" />
               <h3 className="text-white text-xl font-bold uppercase tracking-wider">
-                Horários
+                Responsáveis
               </h3>
             </div>
-            <button
-              type="button"
-              onClick={() =>
-                append({ dayOfWeek: 1, startTime: "14:00", endTime: "15:00" })
-              }
-              className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel hover:bg-white/10 transition-colors text-primary text-sm font-bold"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Adicionar Horário</span>
-            </button>
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-slate-300">
+                  Nome do Responsável *
+                </label>
+                <input
+                  {...register("responsibleName")}
+                  className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
+                  type="text"
+                  placeholder="Nome completo"
+                />
+                {errors.responsibleName && (
+                  <p className="text-xs text-red-400 font-medium">
+                    {errors.responsibleName.message}
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-slate-300">
+                  CPF
+                </label>
+                <input
+                  {...register("cpf")}
+                  className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
+                  placeholder="000.000.000-00"
+                  type="text"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-slate-300">
+                  Telefone / WhatsApp *
+                </label>
+                <input
+                  {...register("responsiblePhone")}
+                  className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
+                  placeholder="(00) 00000-0000"
+                  type="tel"
+                />
+                {errors.responsiblePhone && (
+                  <p className="text-xs text-red-400 font-medium">
+                    {errors.responsiblePhone.message}
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-slate-300">
+                  E-mail
+                </label>
+                <input
+                  {...register("email")}
+                  className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
+                  placeholder="responsavel@email.com"
+                  type="email"
+                />
+                {errors.email && (
+                  <p className="text-xs text-red-400 font-medium">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          </section>
 
-          {/* Time Slots */}
-          {fields.length === 0 ? (
-            <div className="text-center py-8 glass-panel bg-slate-900/30 rounded-xl border border-dashed border-white/10">
-              <p className="text-sm text-slate-400">
-                Nenhum horário de preferência cadastrado.
-              </p>
+          {/* Section 4: Cobrança */}
+          <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
+            <div className="flex items-center gap-3 mb-6">
+              <CreditCard className="h-6 w-6 text-primary" />
+              <h3 className="text-white text-xl font-bold uppercase tracking-wider">
+                Cobrança
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              <label className="cursor-pointer relative">
+                <input
+                  {...register("billingType")}
+                  value="MONTHLY"
+                  className="peer sr-only"
+                  name="billingType"
+                  type="radio"
+                />
+                <div className="h-full p-6 rounded-xl glass-panel border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 transition-all flex flex-col gap-2 peer-checked:purple-glow">
+                  <CalendarSync className="h-6 w-6 text-primary peer-checked:text-primary transition-colors" />
+                  <h4 className="text-white font-bold text-lg">
+                    Mensalidade Fixa
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Ideal para planos recorrentes com valor fechado todo mês.
+                  </p>
+                </div>
+              </label>
+              <label className="cursor-pointer relative">
+                <input
+                  {...register("billingType")}
+                  value="HOURLY"
+                  className="peer sr-only"
+                  name="billingType"
+                  type="radio"
+                />
+                <div className="h-full p-6 rounded-xl glass-panel border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 transition-all flex flex-col gap-2 peer-checked:purple-glow">
+                  <Clock className="h-6 w-6 text-slate-400 peer-checked:text-primary transition-colors" />
+                  <h4 className="text-white font-bold text-lg">
+                    Valor por Hora
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Cobrança baseada no tempo real de tutoria realizado.
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-slate-300">
+                  Vencimento
+                </label>
+                <select
+                  {...register("dueDate")}
+                  className="glass-input rounded-lg px-4 py-3 w-full outline-none appearance-none cursor-pointer text-slate-300 transition-all"
+                >
+                  <option value="05" className="text-slate-900">
+                    Dia 05
+                  </option>
+                  <option value="10" className="text-slate-900">
+                    Dia 10
+                  </option>
+                  <option value="15" className="text-slate-900">
+                    Dia 15
+                  </option>
+                  <option value="20" className="text-slate-900">
+                    Dia 20
+                  </option>
+                  <option value="25" className="text-slate-900">
+                    Dia 25
+                  </option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-2">
+                {billingType === "MONTHLY" ? (
+                  <>
+                    <label className="text-sm font-semibold text-slate-300">
+                      Valor da Mensalidade *
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">
+                        R$
+                      </span>
+                      <input
+                        {...register("monthlyFee")}
+                        className="glass-input rounded-lg pl-12 pr-4 py-3 w-full outline-none transition-all font-bold text-lg"
+                        placeholder="450.00"
+                        type="number"
+                        step="0.01"
+                      />
+                    </div>
+                    {errors.monthlyFee && (
+                      <p className="text-xs text-red-400 font-medium">
+                        {errors.monthlyFee.message}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <label className="text-sm font-semibold text-slate-300">
+                      Valor Base Hora-Aula *
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">
+                        R$
+                      </span>
+                      <input
+                        {...register("hourlyRate")}
+                        className="glass-input rounded-lg pl-12 pr-4 py-3 w-full outline-none transition-all font-bold text-lg"
+                        placeholder="80.00"
+                        type="number"
+                        step="0.01"
+                      />
+                    </div>
+                    {errors.hourlyRate && (
+                      <p className="text-xs text-red-400 font-medium">
+                        {errors.hourlyRate.message}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Section 5: Horários */}
+          <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Calendar className="h-6 w-6 text-primary" />
+                <h3 className="text-white text-xl font-bold uppercase tracking-wider">
+                  Horários
+                </h3>
+              </div>
               <button
                 type="button"
                 onClick={() =>
                   append({ dayOfWeek: 1, startTime: "14:00", endTime: "15:00" })
                 }
-                className="mt-2 text-sm text-primary font-bold hover:text-primary/80 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel hover:bg-white/10 transition-colors text-primary text-sm font-bold"
               >
-                Adicionar um agora
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Adicionar Horário</span>
               </button>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {fields.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="flex flex-col md:flex-row items-center gap-4 p-4 glass-input rounded-xl bg-slate-900/30"
+
+            {/* Time Slots */}
+            {fields.length === 0 ? (
+              <div className="text-center py-8 glass-panel bg-slate-900/30 rounded-xl border border-dashed border-white/10">
+                <p className="text-sm text-slate-400">
+                  Nenhum horário de preferência cadastrado.
+                </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    append({
+                      dayOfWeek: 1,
+                      startTime: "14:00",
+                      endTime: "15:00",
+                    })
+                  }
+                  className="mt-2 text-sm text-primary font-bold hover:text-primary/80 transition-colors"
                 >
-                  <div className="w-full md:flex-1 md:min-w-[120px]">
-                    <select
-                      {...register(`schedulePreferences.${index}.dayOfWeek`)}
-                      className="bg-transparent border-none text-white text-sm w-full focus:ring-0 appearance-none cursor-pointer"
-                    >
-                      <option value={0} className="text-slate-900">
-                        Domingo
-                      </option>
-                      <option value={1} className="text-slate-900">
-                        Segunda-feira
-                      </option>
-                      <option value={2} className="text-slate-900">
-                        Terça-feira
-                      </option>
-                      <option value={3} className="text-slate-900">
-                        Quarta-feira
-                      </option>
-                      <option value={4} className="text-slate-900">
-                        Quinta-feira
-                      </option>
-                      <option value={5} className="text-slate-900">
-                        Sexta-feira
-                      </option>
-                      <option value={6} className="text-slate-900">
-                        Sábado
-                      </option>
-                    </select>
-                  </div>
-                  <div className="flex w-full md:w-auto items-center gap-2 justify-between md:justify-center">
-                    <input
-                      {...register(`schedulePreferences.${index}.startTime`)}
-                      className="bg-transparent border-none text-white text-sm focus:ring-0 placeholder-slate-500 w-full md:w-24 text-center"
-                      type="time"
-                    />
-                    <span className="text-slate-500 text-sm">até</span>
-                    <input
-                      {...register(`schedulePreferences.${index}.endTime`)}
-                      className="bg-transparent border-none text-white text-sm focus:ring-0 placeholder-slate-500 w-full md:w-24 text-center"
-                      type="time"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    aria-label="Deletar horário"
-                    className="w-full md:w-auto flex justify-center text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-400/10 transition-colors mt-2 md:mt-0 md:ml-auto"
+                  Adicionar um agora
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="flex flex-col md:flex-row items-center gap-4 p-4 glass-input rounded-xl bg-slate-900/30"
                   >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
-                </div>
-              ))}
+                    <div className="w-full md:flex-1 md:min-w-[120px]">
+                      <select
+                        {...register(`schedulePreferences.${index}.dayOfWeek`)}
+                        className="bg-transparent border-none text-white text-sm w-full focus:ring-0 appearance-none cursor-pointer"
+                      >
+                        <option value={0} className="text-slate-900">
+                          Domingo
+                        </option>
+                        <option value={1} className="text-slate-900">
+                          Segunda-feira
+                        </option>
+                        <option value={2} className="text-slate-900">
+                          Terça-feira
+                        </option>
+                        <option value={3} className="text-slate-900">
+                          Quarta-feira
+                        </option>
+                        <option value={4} className="text-slate-900">
+                          Quinta-feira
+                        </option>
+                        <option value={5} className="text-slate-900">
+                          Sexta-feira
+                        </option>
+                        <option value={6} className="text-slate-900">
+                          Sábado
+                        </option>
+                      </select>
+                    </div>
+                    <div className="flex w-full md:w-auto items-center gap-2 justify-between md:justify-center">
+                      <input
+                        {...register(`schedulePreferences.${index}.startTime`)}
+                        className="bg-transparent border-none text-white text-sm focus:ring-0 placeholder-slate-500 w-full md:w-24 text-center"
+                        type="time"
+                      />
+                      <span className="text-slate-500 text-sm">até</span>
+                      <input
+                        {...register(`schedulePreferences.${index}.endTime`)}
+                        className="bg-transparent border-none text-white text-sm focus:ring-0 placeholder-slate-500 w-full md:w-24 text-center"
+                        type="time"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      aria-label="Deletar horário"
+                      className="w-full md:w-auto flex justify-center text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-400/10 transition-colors mt-2 md:mt-0 md:ml-auto"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Tip */}
+            <div className="mt-8 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 flex gap-4">
+              <span className="text-blue-400 text-2xl">💡</span>
+              <p className="text-sm text-blue-100/80 leading-relaxed">
+                <strong className="text-blue-300">Dica:</strong> Defina os
+                horários base para automatizar a agenda semanal. O sistema
+                enviará lembretes 30 minutos antes de cada sessão.
+              </p>
             </div>
-          )}
+          </section>
 
-          {/* Tip */}
-          <div className="mt-8 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 flex gap-4">
-            <span className="text-blue-400 text-2xl">💡</span>
-            <p className="text-sm text-blue-100/80 leading-relaxed">
-              <strong className="text-blue-300">Dica:</strong> Defina os
-              horários base para automatizar a agenda semanal. O sistema enviará
-              lembretes 30 minutos antes de cada sessão.
-            </p>
-          </div>
-        </section>
+          {/* Form Actions */}
+          <footer className="flex flex-col-reverse sm:flex-row items-center justify-end gap-4 sm:gap-6 pt-6 pb-20">
+            <button
+              type="button"
+              onClick={() => navigate("/students")}
+              className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || isUploading}
+              className="w-full sm:w-auto px-10 py-3 rounded-xl bg-gradient-to-r from-primary to-[#9333ea] text-white font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {isSubmitting
+                ? "Salvando..."
+                : isEditing
+                  ? "Atualizar Aluno"
+                  : "Salvar Aluno"}
+            </button>
+          </footer>
+        </form>
 
-        {/* Form Actions */}
-        <footer className="flex flex-col-reverse sm:flex-row items-center justify-end gap-4 sm:gap-6 pt-6 pb-20">
-          <button
-            type="button"
-            onClick={() => navigate("/students")}
-            className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full sm:w-auto px-10 py-3 rounded-xl bg-gradient-to-r from-primary to-[#9333ea] text-white font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
-          >
-            {isSubmitting
-              ? "Salvando..."
-              : isEditing
-                ? "Atualizar Aluno"
-                : "Salvar Aluno"}
-          </button>
-        </footer>
-      </form>
-
-      <ConfirmModal
-        isOpen={showErrorModal}
-        onClose={() => setShowErrorModal(false)}
-        onConfirm={() => setShowErrorModal(false)}
-        title="Erro no Upload"
-        description="Não foi possível carregar a imagem. Verifique o tamanho (máx 5MB) e o formato do arquivo."
-        confirmLabel="Entendido"
-        showCancel={false}
-        variant="danger"
-        icon={AlertCircle}
-      />
+        <ConfirmModal
+          isOpen={showErrorModal}
+          onClose={() => setShowErrorModal(false)}
+          onConfirm={() => setShowErrorModal(false)}
+          title="Erro no Upload"
+          description="Não foi possível carregar a imagem. Verifique o tamanho (máx 5MB) e o formato do arquivo."
+          confirmLabel="Entendido"
+          showCancel={false}
+          variant="danger"
+          icon={AlertCircle}
+        />
+      </div>
     </div>
   );
 }
