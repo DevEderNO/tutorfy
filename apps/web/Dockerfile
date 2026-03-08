@@ -11,6 +11,13 @@ COPY . .
 # Instalar dependências
 RUN pnpm install
 
+# Injetar variáveis de ambiente para o build do Vite
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+
 # Buildar o frontend (Vite)
 RUN pnpm --filter @tutorfy/web run build
 
