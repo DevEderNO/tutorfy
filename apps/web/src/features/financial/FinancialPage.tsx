@@ -7,7 +7,17 @@ import {
   useDeletePayment,
 } from "../payments/hooks/usePayments";
 import { useStudents } from "../students/hooks/useStudents";
-import { DollarSign, Plus, Check, X as XIcon, Trash2, CalendarDays, Filter, TrendingUp, Sparkles } from "lucide-react";
+import {
+  DollarSign,
+  Plus,
+  Check,
+  X as XIcon,
+  Trash2,
+  CalendarDays,
+  Filter,
+  TrendingUp,
+  Sparkles,
+} from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { ConfirmModal } from "@/components/ConfirmModal";
 
@@ -17,7 +27,7 @@ export function FinancialPage() {
   const [year, setYear] = useState(now.getFullYear());
   const [showGenerate, setShowGenerate] = useState(false);
   const [showManual, setShowManual] = useState(false);
-  
+
   // Custom filter state added for new UI tabs
   const [activeTab, setActiveTab] = useState<"MONTHLY" | "HOURLY">("MONTHLY");
 
@@ -27,7 +37,9 @@ export function FinancialPage() {
     amount: 0,
     classHours: 0,
   });
-  const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null);
+  const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(
+    null,
+  );
 
   const { data: payments, isLoading } = usePayments({ month, year });
   const { data: students } = useStudents();
@@ -77,26 +89,37 @@ export function FinancialPage() {
   };
 
   const months = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
   ];
 
   // Global counts and sums
   const paidCount = payments?.filter((p) => p.paid).length ?? 0;
   const pendingCount = payments?.filter((p) => !p.paid).length ?? 0;
-  
+
   const totalReceived =
     payments?.filter((p) => p.paid).reduce((sum, p) => sum + p.amount, 0) ?? 0;
   const totalPending =
     payments?.filter((p) => !p.paid).reduce((sum, p) => sum + p.amount, 0) ?? 0;
   const totalExpected = totalReceived + totalPending;
 
-  const collectionRate = payments && payments.length > 0
-    ? Math.round((paidCount / payments.length) * 100)
-    : 0;
+  const collectionRate =
+    payments && payments.length > 0
+      ? Math.round((paidCount / payments.length) * 100)
+      : 0;
 
   // Filter payments by active tab
-  const filteredPayments = payments?.filter(p => p.billingType === activeTab);
+  const filteredPayments = payments?.filter((p) => p.billingType === activeTab);
 
   // Avatar colors
   const avatarColors = [
@@ -104,55 +127,92 @@ export function FinancialPage() {
     "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400",
     "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400",
     "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-    "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
+    "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400",
   ];
 
   return (
     <div className="flex flex-1 flex-col lg:flex-row gap-8 overflow-hidden h-full">
       {/* Sidebar Metrics */}
-      <aside className="w-full lg:w-80 flex-shrink-0 flex flex-col gap-6">
-        <div className="bg-card rounded-xl border border-border p-6 shadow-sm flex flex-col gap-2">
-          <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Resumo Financeiro</p>
-          <h3 className="text-3xl font-black text-foreground">
-            R$ {totalReceived.toFixed(2)}
-            <span className="text-sm font-medium text-muted-foreground block mt-1">/ R$ {totalExpected.toFixed(2)} esperados</span>
-          </h3>
-          <div className="flex items-center gap-2 mt-2 text-sm text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full w-fit">
+      <aside className="w-full lg:w-80 flex-shrink-0 flex flex-col gap-6 overflow-y-auto pr-1 pb-4">
+        <div className="glass-panel rounded-xl border border-white/10 p-6 flex flex-col gap-3 relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/20 rounded-full blur-2xl pointer-events-none"></div>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+            Resumo Financeiro
+          </p>
+          <div className="flex flex-col">
+            <h3 className="text-3xl font-black text-foreground">
+              R$ {totalReceived.toFixed(2)}
+            </h3>
+            <span className="text-sm font-medium text-muted-foreground mt-1">
+              de R$ {totalExpected.toFixed(2)} esperados
+            </span>
+          </div>
+
+          <div className="mt-2 text-sm font-bold bg-primary/20 text-primary px-3 py-1.5 rounded-full w-fit shadow-[0_0_15px_rgba(116,61,245,0.3)] border border-primary/20 flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
-            Taxa de recebimento: {collectionRate}%
+            Recebido: {collectionRate}%
+          </div>
+          <div className="h-1.5 w-full bg-white/5 rounded-full mt-2 overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full shadow-[0_0_15px_rgba(116,61,245,0.3)] transition-all duration-500"
+              style={{ width: `${collectionRate}%` }}
+            ></div>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-          <h4 className="font-bold text-foreground mb-4">Status de Pagamentos</h4>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Recebidos ({paidCount})
-              </span>
-              <span className="font-bold text-foreground">R$ {totalReceived.toFixed(2)}</span>
+        <div className="glass-panel rounded-xl border border-white/10 p-6 flex flex-col gap-4">
+          <h4 className="font-bold text-foreground text-sm uppercase tracking-widest">
+            Status de Mensalidades
+          </h4>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between items-end">
+                <span className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>{" "}
+                  Pagos ({paidCount})
+                </span>
+                <span className="font-bold text-emerald-400">
+                  R$ {totalReceived.toFixed(2)}
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-500"
+                  style={{ width: `${collectionRate}%` }}
+                ></div>
+              </div>
             </div>
-            
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-amber-500"></div> Pendentes ({pendingCount})
-              </span>
-              <span className="font-bold text-foreground">R$ {totalPending.toFixed(2)}</span>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between items-end">
+                <span className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>{" "}
+                  Pendentes ({pendingCount})
+                </span>
+                <span className="font-bold text-amber-400">
+                  R$ {totalPending.toFixed(2)}
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)] transition-all duration-500"
+                  style={{
+                    width: `${payments && payments.length > 0 ? (pendingCount / payments.length) * 100 : 0}%`,
+                  }}
+                ></div>
+              </div>
             </div>
-          </div>
-          
-          <div className="w-full bg-secondary h-1.5 rounded-full mt-4">
-            <div className="bg-primary h-1.5 rounded-full transition-all" style={{ width: `${collectionRate}%` }}></div>
           </div>
         </div>
 
         {/* Generate / Manual Blocks */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 mt-auto border-t border-border pt-6">
           <button
             onClick={() => setShowManual(true)}
-            className="w-full flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground hover:bg-secondary transition-all shadow-sm"
+            className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/10 glass-panel px-4 py-3.5 text-sm font-bold text-foreground hover:bg-white/5 transition-all shadow-sm group"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform" />
             Lançamento Avulso
           </button>
         </div>
@@ -160,19 +220,19 @@ export function FinancialPage() {
 
       {/* Main Content View */}
       <div className="flex flex-1 flex-col gap-6 overflow-y-auto pb-8 pr-2">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex flex-col gap-1">
             <h2 className="text-3xl font-black leading-tight tracking-tight text-foreground">
               Faturamento Automatizado
             </h2>
-            <p className="text-muted-foreground text-sm">
-              Gerencie faturas e pagamentos de seus alunos.
+            <p className="text-muted-foreground text-sm font-medium">
+              Gestão financeira inteligente Tutorfy
             </p>
           </div>
-          
+
           <button
             onClick={() => setShowGenerate(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95 shrink-0"
+            className="flex items-center gap-3 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-[0_0_15px_rgba(116,61,245,0.4)] hover:opacity-90 transition-all hover:scale-[1.02] active:scale-95 shrink-0"
           >
             <Sparkles className="h-5 w-5" />
             <span>Gerar Faturas do Mês</span>
@@ -180,148 +240,185 @@ export function FinancialPage() {
         </div>
 
         {/* Filters Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm gap-4">
-          <div className="flex gap-2 p-1 bg-secondary rounded-lg w-full sm:w-auto">
-            <button
-              onClick={() => setActiveTab("HOURLY")}
-              className={`px-6 py-2 rounded-md text-sm font-semibold transition-all flex-1 sm:flex-none ${
-                activeTab === "HOURLY"
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Valor por Hora
-            </button>
+        <section className="glass-panel rounded-2xl p-4 flex flex-col lg:flex-row items-center justify-between gap-4 border border-white/10">
+          <div className="flex items-center p-1 bg-black/20 dark:bg-white/5 rounded-lg border border-white/5 w-full lg:w-auto overflow-x-auto">
             <button
               onClick={() => setActiveTab("MONTHLY")}
-              className={`px-6 py-2 rounded-md text-sm font-semibold transition-all flex-1 sm:flex-none ${
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all whitespace-nowrap flex-1 lg:flex-none ${
                 activeTab === "MONTHLY"
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-white/10 text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
               }`}
             >
               Mensalidade Fixa
             </button>
+            <button
+              onClick={() => setActiveTab("HOURLY")}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all whitespace-nowrap flex-1 lg:flex-none ${
+                activeTab === "HOURLY"
+                  ? "bg-white/10 text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+              }`}
+            >
+              Valor por Hora
+            </button>
           </div>
-          
-          <div className="flex gap-3 w-full sm:w-auto items-center justify-end">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+
+          <div className="flex gap-4 w-full lg:w-auto items-center justify-end">
+            <div className="relative w-full lg:w-auto">
               <select
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
-                className="bg-transparent border-none text-sm font-medium text-foreground focus:ring-0 cursor-pointer pr-1"
+                className="w-full lg:w-auto appearance-none bg-black/5 dark:bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none backdrop-blur-md pr-10 cursor-pointer"
                 aria-label="Mês"
                 title="Mês"
               >
                 {months.map((m, i) => (
-                  <option key={i} value={i + 1}>{m}</option>
+                  <option key={i} value={i + 1}>
+                    {m}
+                  </option>
                 ))}
               </select>
+              <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            </div>
+            <div className="relative w-full lg:w-auto">
               <select
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="bg-transparent border-none text-sm font-medium text-muted-foreground focus:ring-0 cursor-pointer"
+                className="w-full lg:w-auto appearance-none bg-black/5 dark:bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none backdrop-blur-md pr-10 cursor-pointer"
                 aria-label="Ano"
                 title="Ano"
               >
-                 {[2024, 2025, 2026, 2027].map((y) => (
-                   <option key={y} value={y}>{y}</option>
-                 ))}
+                {[2024, 2025, 2026, 2027].map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
               </select>
+              <Filter className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Dynamic Payment Table */}
-        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col">
-          <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-card">
+        <div className="glass-panel rounded-2xl border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col">
+          <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
             <h3 className="text-lg font-bold text-foreground">
-              {activeTab === "MONTHLY" ? "Lançamentos: Mensalidade Fixa" : "Lançamentos: Valor por Hora"}
+              {activeTab === "MONTHLY"
+                ? "Lançamentos: Mensalidade Fixa"
+                : "Lançamentos: Valor por Hora"}
             </h3>
-            <span className="text-xs font-semibold px-3 py-1 bg-secondary text-muted-foreground rounded-full">
+            <span className="text-xs font-bold px-3 py-1 bg-white/10 text-muted-foreground rounded-full border border-white/5">
               {filteredPayments?.length || 0} Registros
             </span>
           </div>
-          
+
           {isLoading ? (
             <div className="flex h-32 items-center justify-center p-8">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             </div>
           ) : !filteredPayments || filteredPayments.length === 0 ? (
             <div className="p-12 text-center">
-              <DollarSign className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-              <p className="text-muted-foreground font-medium">Nenhum pagamento registrado nesta categoria.</p>
+              <DollarSign className="mx-auto h-12 w-12 text-muted-foreground/30 mb-4" />
+              <p className="text-muted-foreground font-medium">
+                Nenhum pagamento registrado nesta categoria.
+              </p>
               <p className="text-sm text-muted-foreground mt-1">
                 Tente alterar os filtros de mês ou gerar faturas do mês.
               </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-secondary/50 text-muted-foreground text-xs font-bold uppercase tracking-wider">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-white/5 text-muted-foreground text-xs font-bold uppercase tracking-widest border-b border-white/10">
                   <tr>
-                    <th className="px-6 py-4 whitespace-nowrap truncate min-w-[200px]">Aluno</th>
-                    <th className="px-6 py-4 whitespace-nowrap truncate">Detalhes</th>
-                    <th className="px-6 py-4 whitespace-nowrap truncate min-w-[120px]">Valor Total</th>
-                    <th className="px-6 py-4 whitespace-nowrap truncate">Status</th>
-                    <th className="px-6 py-4 text-right whitespace-nowrap truncate min-w-[150px]">Ação</th>
+                    <th className="px-6 py-4 whitespace-nowrap truncate min-w-[200px]">
+                      Aluno
+                    </th>
+                    <th className="px-6 py-4 whitespace-nowrap truncate">
+                      Detalhes
+                    </th>
+                    <th className="px-6 py-4 whitespace-nowrap truncate min-w-[120px]">
+                      Valor Total
+                    </th>
+                    <th className="px-6 py-4 whitespace-nowrap truncate">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-right whitespace-nowrap truncate min-w-[150px]">
+                      Ação
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-white/5">
                   {filteredPayments.map((payment, idx) => {
-                    const studentName = (payment as any).student?.name || "Desconhecido";
+                    const studentName =
+                      (payment as any).student?.name || "Desconhecido";
                     const initial = getInitials(studentName);
                     const colorClass = avatarColors[idx % avatarColors.length];
-                    
+
                     return (
-                      <tr key={payment.id} className="hover:bg-secondary/30 transition-colors group">
-                        <td className="px-6 py-4">
+                      <tr
+                        key={payment.id}
+                        className="hover:bg-white/[0.02] transition-colors group"
+                      >
+                        <td className="px-6 py-5">
                           <div className="flex items-center gap-3">
-                            <div className={`size-8 shrink-0 rounded-full flex items-center justify-center font-bold text-xs ${colorClass}`}>
+                            <div
+                              className={`size-10 shrink-0 rounded-full flex items-center justify-center font-bold text-xs ${colorClass} border border-white/10 shadow-sm`}
+                            >
                               {initial}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <p className="text-sm font-bold text-foreground truncate max-w-[140px] md:max-w-[200px]">{studentName}</p>
-                              <p className="text-xs text-muted-foreground truncate max-w-[140px] md:max-w-[200px]">{(payment as any).student?.school || "Sem escola"}</p>
+                              <p className="text-sm font-bold text-foreground truncate max-w-[140px] md:max-w-[200px]">
+                                {studentName}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate max-w-[140px] md:max-w-[200px]">
+                                {(payment as any).student?.school ||
+                                  "Sem escola"}
+                              </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                           {activeTab === "HOURLY" ? (
-                             <span className="text-sm font-medium text-muted-foreground whitespace-nowrap truncate">
-                               {payment.classHours} hrs x R${(payment as any).student?.hourlyRate?.toFixed(2) || "0.00"}
-                             </span>
-                           ) : (
-                             <span className="text-sm font-medium text-muted-foreground whitespace-nowrap truncate">
-                               Mês de Referência
-                             </span>
-                           )}
+                        <td className="px-6 py-5">
+                          {activeTab === "HOURLY" ? (
+                            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap truncate">
+                              {payment.classHours} hrs x R$
+                              {(payment as any).student?.hourlyRate?.toFixed(
+                                2,
+                              ) || "0.00"}
+                            </span>
+                          ) : (
+                            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap truncate">
+                              Mês de Referência {payment.month}/{payment.year}
+                            </span>
+                          )}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-5">
                           <span className="text-sm font-bold text-foreground whitespace-nowrap truncate">
                             R$ {payment.amount.toFixed(2)}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-5">
                           <span
-                            className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${
+                            className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider border ${
                               payment.paid
-                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
+                                : "bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]"
                             }`}
                           >
                             {payment.paid ? "Pago" : "Pendente"}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-6 py-5 text-right">
                           <div className="flex items-center justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                             <button
-                              onClick={() => handleTogglePaid(payment.id, payment.paid)}
+                              onClick={() =>
+                                handleTogglePaid(payment.id, payment.paid)
+                              }
                               className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap truncate ${
                                 payment.paid
-                                  ? "text-muted-foreground hover:bg-secondary"
-                                  : "text-primary bg-primary/10 hover:bg-primary/20"
+                                  ? "text-muted-foreground hover:bg-white/10"
+                                  : "text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20"
                               }`}
                             >
                               {payment.paid ? "Desfazer" : "Marcar Pago"}
@@ -332,6 +429,7 @@ export function FinancialPage() {
                               }}
                               className="p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors shrink-0"
                               title="Apagar"
+                              aria-label="Apagar"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -348,54 +446,80 @@ export function FinancialPage() {
 
         {/* Summary of Recent Invoices Visual */}
         <div className="flex flex-col gap-4 mt-2">
-          <h3 className="text-xl font-bold text-foreground">Visão Resumida do Mês</h3>
+          <h3 className="text-xl font-bold text-foreground tracking-tight">
+            Visão Resumida do Mês
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="bg-card p-5 rounded-xl border border-border shadow-sm flex flex-col gap-3 relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-bl-full -mr-4 -mt-4"></div>
-               <div className="flex justify-between items-start">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">Status</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 uppercase w-fit">Pagos Total</span>
-                  </div>
-               </div>
-               <div className="flex justify-between items-end mt-2">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">Valor Acumulado</span>
-                    <span className="text-xl font-black text-foreground">R$ {totalReceived.toFixed(2)}</span>
-                  </div>
-               </div>
+            <div className="glass-panel p-5 rounded-xl border border-white/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-bl-full -mr-4 -mt-4 group-hover:scale-110 transition-transform duration-500"></div>
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">
+                    Status
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full border border-emerald-500/20 text-[10px] font-bold bg-emerald-500/10 text-emerald-400 uppercase w-fit">
+                    Pagos Total
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between items-end mt-2 relative z-10">
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    Valor Acumulado
+                  </span>
+                  <span className="text-2xl font-black text-foreground mt-0.5">
+                    R$ {totalReceived.toFixed(2)}
+                  </span>
+                </div>
+              </div>
             </div>
-            
-            <div className="bg-card p-5 rounded-xl border border-border shadow-sm flex flex-col gap-3 relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-bl-full -mr-4 -mt-4"></div>
-               <div className="flex justify-between items-start">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">Status</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 uppercase w-fit">Pendentes Total</span>
-                  </div>
-               </div>
-               <div className="flex justify-between items-end mt-2">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">Valor a Receber</span>
-                    <span className="text-xl font-black text-foreground">R$ {totalPending.toFixed(2)}</span>
-                  </div>
-               </div>
+
+            <div className="glass-panel p-5 rounded-xl border border-white/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-bl-full -mr-4 -mt-4 group-hover:scale-110 transition-transform duration-500"></div>
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">
+                    Status
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full border border-amber-500/20 text-[10px] font-bold bg-amber-500/10 text-amber-400 uppercase w-fit">
+                    Pendentes Total
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between items-end mt-2 relative z-10">
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    Valor a Receber
+                  </span>
+                  <span className="text-2xl font-black text-foreground mt-0.5">
+                    R$ {totalPending.toFixed(2)}
+                  </span>
+                </div>
+              </div>
             </div>
-            
-            <div className="bg-card p-5 rounded-xl border border-primary/20 shadow-sm flex flex-col gap-3 relative overflow-hidden border-dashed">
-               <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -mr-4 -mt-4"></div>
-               <div className="flex justify-between items-start">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-primary font-bold uppercase tracking-widest mb-1">Projeção</span>
-                    <span className="text-sm font-bold text-foreground">Total do Mês</span>
-                  </div>
-               </div>
-               <div className="flex justify-between items-end mt-2">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">Soma Máxima</span>
-                    <span className="text-xl font-black text-primary">R$ {totalExpected.toFixed(2)}</span>
-                  </div>
-               </div>
+
+            <div className="glass-panel p-5 rounded-xl border border-primary/30 shadow-[0_0_15px_rgba(116,61,245,0.1)] flex flex-col gap-3 relative overflow-hidden border-dashed group hover:border-primary/50 transition-colors">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-full -mr-4 -mt-4 blur-xl group-hover:bg-primary/20 transition-colors duration-500"></div>
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-primary font-bold uppercase tracking-widest mb-1">
+                    Projeção
+                  </span>
+                  <span className="text-sm font-bold text-foreground">
+                    Total do Mês
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between items-end mt-2 relative z-10">
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">
+                    Soma Máxima
+                  </span>
+                  <span className="text-2xl font-black text-primary mt-0.5">
+                    R$ {totalExpected.toFixed(2)}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -403,87 +527,141 @@ export function FinancialPage() {
 
       {/* Manual Payment MODAL Form */}
       {showManual && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <div className="bg-card rounded-2xl p-6 w-full max-w-lg border border-border shadow-2xl relative">
-            <button 
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background-dark/80 backdrop-blur-md transition-all">
+          <div className="glass-panel rounded-2xl p-8 w-full max-w-lg border border-white/10 shadow-2xl relative">
+            <button
+              aria-label="Fechar modal"
+              title="Fechar"
               onClick={() => setShowManual(false)}
-              className="absolute top-4 right-4 p-2 text-muted-foreground hover:bg-secondary rounded-full"
+              className="absolute top-6 right-6 p-2 text-muted-foreground hover:text-white hover:bg-white/5 rounded-full transition-colors"
             >
               <XIcon className="h-5 w-5" />
             </button>
-            <h3 className="mb-6 text-xl font-black text-foreground">
-              Novo Lançamento Avulso <span className="text-primary text-sm align-middle ml-2">({months[month - 1]}/{year})</span>
+            <h3 className="mb-2 text-2xl font-black text-foreground">
+              Novo Lançamento
+              <span className="text-primary text-sm align-middle ml-2 font-bold tracking-wider">
+                ({months[month - 1]}/{year})
+              </span>
             </h3>
-            
-            <div className="flex flex-col gap-4">
+            <p className="text-muted-foreground text-sm mb-8 font-medium">
+              Preencha os dados para registrar uma nova entrada financeira
+              avulsa no sistema.
+            </p>
+
+            <div className="flex flex-col gap-6">
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-foreground">Aluno *</label>
+                <label className="mb-2 block text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Aluno *
+                </label>
                 <select
+                  title="Aluno"
+                  aria-label="Aluno"
                   value={manualForm.studentId}
-                  onChange={(e) => setManualForm({ ...manualForm, studentId: e.target.value })}
-                  className="w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                  onChange={(e) =>
+                    setManualForm({ ...manualForm, studentId: e.target.value })
+                  }
+                  className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all cursor-pointer"
                 >
-                  <option value="">Selecione um aluno...</option>
-                  {students?.filter((s) => s.active).map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
+                  <option value="" className="bg-background-dark">
+                    Selecione um aluno...
+                  </option>
+                  {students
+                    ?.filter((s) => s.active)
+                    .map((s) => (
+                      <option
+                        key={s.id}
+                        value={s.id}
+                        className="bg-background-dark"
+                      >
+                        {s.name}
+                      </option>
+                    ))}
                 </select>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-foreground">Tipo de Cobrança *</label>
+                <label className="mb-2 block text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Tipo de Cobrança *
+                </label>
                 <select
+                  title="Tipo de Cobrança"
+                  aria-label="Tipo de Cobrança"
                   value={manualForm.billingType}
-                  onChange={(e) => setManualForm({ ...manualForm, billingType: e.target.value as any })}
-                  className="w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                  onChange={(e) =>
+                    setManualForm({
+                      ...manualForm,
+                      billingType: e.target.value as any,
+                    })
+                  }
+                  className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all cursor-pointer"
                 >
-                  <option value="MONTHLY">Mensalidade Fixa</option>
-                  <option value="HOURLY">Por Hora-Aula</option>
+                  <option value="MONTHLY" className="bg-background-dark">
+                    Mensalidade Fixa
+                  </option>
+                  <option value="HOURLY" className="bg-background-dark">
+                    Por Hora-Aula
+                  </option>
                 </select>
               </div>
 
               {manualForm.billingType === "HOURLY" ? (
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-foreground">Quantidade de Horas *</label>
+                  <label className="mb-2 block text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Quantidade de Horas *
+                  </label>
                   <input
                     type="number"
                     step="0.5"
                     value={manualForm.classHours || ""}
-                    onChange={(e) => setManualForm({ ...manualForm, classHours: Number(e.target.value) })}
-                    className="w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                    onChange={(e) =>
+                      setManualForm({
+                        ...manualForm,
+                        classHours: Number(e.target.value),
+                      })
+                    }
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground/50"
                     placeholder="Ex: 10"
                   />
                 </div>
               ) : (
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-foreground">Valor Calculado (R$) *</label>
+                  <label className="mb-2 block text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Valor Calculado (R$) *
+                  </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">R$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
+                      R$
+                    </span>
                     <input
                       type="number"
                       step="0.01"
                       value={manualForm.amount || ""}
-                      onChange={(e) => setManualForm({ ...manualForm, amount: Number(e.target.value) })}
-                      className="w-full pl-12 pr-4 rounded-lg border border-input bg-background py-3 text-foreground focus:ring-2 focus:ring-primary/20 transition-all font-bold text-lg"
-                      placeholder="500.00"
+                      onChange={(e) =>
+                        setManualForm({
+                          ...manualForm,
+                          amount: Number(e.target.value),
+                        })
+                      }
+                      className="w-full pl-12 pr-4 bg-white/5 border border-white/10 rounded-xl py-3 text-lg font-bold text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground/50"
+                      placeholder="0.00"
                     />
                   </div>
                 </div>
               )}
 
-              <div className="flex gap-3 pt-4 mt-2 border-t border-border">
+              <div className="flex gap-4 pt-4 mt-2">
+                <button
+                  onClick={() => setShowManual(false)}
+                  className="flex-1 px-6 py-3 rounded-xl border border-white/10 text-muted-foreground font-bold hover:bg-white/5 hover:text-foreground transition-all"
+                >
+                  Cancelar
+                </button>
                 <button
                   onClick={handleManualSubmit}
                   disabled={!manualForm.studentId}
-                  className="flex-1 rounded-xl gradient-primary px-4 py-3 text-sm font-bold text-white hover:opacity-90 disabled:opacity-50"
+                  className="flex-1 px-6 py-3 rounded-xl bg-primary text-white font-bold shadow-[0_0_15px_rgba(116,61,245,0.4)] hover:opacity-90 disabled:opacity-50 transition-all"
                 >
                   Lançar Pagamento
-                </button>
-                <button
-                  onClick={() => setShowManual(false)}
-                  className="flex-1 rounded-xl border border-border bg-secondary px-4 py-3 text-sm font-bold text-foreground hover:bg-accent"
-                >
-                  Cancelar
                 </button>
               </div>
             </div>
@@ -493,34 +671,41 @@ export function FinancialPage() {
 
       {/* Generate Confirmation MODAL */}
       {showGenerate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-           <div className="bg-card rounded-2xl p-6 w-full max-w-md border border-border shadow-2xl relative text-center">
-             <div className="mx-auto size-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
-                <Sparkles className="h-8 w-8" />
-             </div>
-             
-             <h3 className="text-xl font-black text-foreground mb-2">Gerar Mensalidades</h3>
-             
-             <p className="text-muted-foreground mb-6">
-                Todas as faturas pendentes do mês de <strong>{months[month - 1]} de {year}</strong> para alunos ativos (Mensalidade e Por Hora) serão geradas no sistema.
-             </p>
-             
-             <div className="flex gap-3">
-               <button
-                 onClick={() => setShowGenerate(false)}
-                 className="flex-1 rounded-xl border border-border bg-secondary px-4 py-3 text-sm font-bold text-foreground hover:bg-accent"
-               >
-                 Agora não
-               </button>
-               <button
-                 onClick={handleGeneratePayments}
-                 className="flex-1 rounded-xl gradient-primary px-4 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90"
-               >
-                 Confirmar Geração
-               </button>
-             </div>
-           </div>
-         </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background-dark/80 backdrop-blur-md transition-all">
+          <div className="glass-panel rounded-2xl p-8 w-full max-w-md border border-white/10 shadow-2xl relative text-center">
+            <div className="mx-auto size-16 bg-primary/20 text-primary border border-primary/30 rounded-full flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(116,61,245,0.3)]">
+              <Sparkles className="h-8 w-8" />
+            </div>
+
+            <h3 className="text-2xl font-black text-foreground mb-2 tracking-tight">
+              Gerar Mensalidades
+            </h3>
+
+            <p className="text-muted-foreground text-sm mb-8 font-medium">
+              Todas as faturas pendentes do mês de{" "}
+              <strong className="text-foreground">
+                {months[month - 1]} de {year}
+              </strong>{" "}
+              para alunos ativos (Mensalidade e Por Hora) serão geradas no
+              sistema.
+            </p>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowGenerate(false)}
+                className="flex-1 px-6 py-3 rounded-xl border border-white/10 text-muted-foreground font-bold hover:bg-white/5 hover:text-foreground transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleGeneratePayments}
+                className="flex-1 px-6 py-3 rounded-xl bg-primary text-white font-bold shadow-[0_0_15px_rgba(116,61,245,0.4)] hover:opacity-90 transition-all"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Confirmation Modals */}

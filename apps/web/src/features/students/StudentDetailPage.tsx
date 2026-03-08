@@ -16,7 +16,7 @@ import {
   Clock,
   MoreHorizontal,
   ChevronLeft,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -24,10 +24,14 @@ import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 
 const statusColors: Record<string, string> = {
-  SCHEDULED: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  COMPLETED: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  CANCELED: "bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20",
-  MISSED: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+  SCHEDULED:
+    "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+  COMPLETED:
+    "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  CANCELED:
+    "bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20",
+  MISSED:
+    "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
 };
 
 const statusLabels: Record<string, string> = {
@@ -68,70 +72,88 @@ export function StudentDetailPage() {
 
   const totalClasses = student.classSessions?.length || 0;
   const pendingPayments = student.payments?.filter((p: any) => !p.paid) || [];
-  const pendingAmount = pendingPayments.reduce((acc: number, p: any) => acc + p.amount, 0);
+  const pendingAmount = pendingPayments.reduce(
+    (acc: number, p: any) => acc + p.amount,
+    0,
+  );
 
   return (
     <div className="flex-1 max-w-[1200px] w-full flex flex-col gap-6">
       {/* Breadcrumb Info */}
-      <nav className="flex items-center gap-2 text-sm pt-4">
-        <Link to="/students" className="text-muted-foreground hover:text-primary transition-colors">
+      <nav className="flex items-center gap-2 text-sm pt-4 mb-2">
+        <Link
+          to="/students"
+          className="text-slate-500 hover:text-slate-300 transition-colors"
+        >
           Alunos
         </Link>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        <span className="text-foreground font-medium">Perfil de {student.name}</span>
+        <ChevronRight className="h-4 w-4 text-slate-600" />
+        <span className="text-primary font-medium">
+          Perfil de {student.name}
+        </span>
       </nav>
 
       {/* Main Profile Info Card */}
-      <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
-          <div className="flex items-center gap-6">
-            <div className="bg-primary/5 aspect-square rounded-2xl size-28 shadow-sm border border-border flex items-center justify-center text-primary text-4xl font-black overflow-hidden relative">
-              {student.avatarUrl ? (
-                <img src={student.avatarUrl} alt={student.name} className="h-full w-full object-cover" />
-              ) : (
-                getInitials(student.name)
-              )}
+      <div className="glass-panel rounded-xl p-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] rounded-full -mr-20 -mt-20 pointer-events-none"></div>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
+          <div className="flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
+            <div className="relative">
+              <div className="size-32 rounded-3xl bg-gradient-to-br from-primary to-purple-800 p-1 neon-shadow">
+                <div className="w-full h-full rounded-[1.4rem] bg-background flex items-center justify-center overflow-hidden">
+                  {student.avatarUrl ? (
+                    <img
+                      src={student.avatarUrl}
+                      alt={student.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-primary text-4xl font-black">
+                      {getInitials(student.name)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div
+                className={`absolute -bottom-2 -right-2 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border-2 border-background ${student.active ? "bg-emerald-500 neon-text-emerald" : "bg-slate-500"}`}
+              >
+                {student.active ? "Ativo" : "Inativo"}
+              </div>
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-3">
-                <h1 className="text-foreground text-3xl font-bold tracking-tight">{student.name}</h1>
-                <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${student.active ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-secondary text-muted-foreground"}`}>
-                  {student.active ? "Ativo" : "Inativo"}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">
-                  {student.grade || "Série não informada"}
-                </span>
-                <p className="text-muted-foreground text-sm flex items-center gap-1">
-                  <School className="h-3 w-3" />
-                  {student.school || "Colégio não informado"}
-                </p>
-              </div>
-              <div className="flex flex-col gap-1 mt-3">
-                <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                  <User className="h-4 w-4" />
-                  <span>Responsável: {student.responsibleName || "Não informado"}</span>
+            <div className="flex flex-col justify-center">
+              <h1 className="text-3xl font-bold text-slate-100 mb-1 tracking-tight">
+                {student.name}
+              </h1>
+              <p className="text-slate-400 text-lg mb-2">
+                {student.grade || "Série não informada"} •{" "}
+                {student.school || "Colégio não informado"}
+              </p>
+              <div className="flex flex-wrap gap-4 text-sm items-center justify-center md:justify-start">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-panel text-slate-300">
+                  <User className="h-4 w-4 text-primary" />
+                  <span>
+                    Responsável: {student.responsibleName || "Não informado"}
+                  </span>
                 </div>
                 {student.responsiblePhone && (
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                    <Phone className="h-4 w-4" />
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-panel text-slate-300">
+                    <Phone className="h-4 w-4 text-primary" />
                     <span>{student.responsiblePhone}</span>
                   </div>
                 )}
               </div>
             </div>
           </div>
-          <div className="flex gap-3 h-fit flex-col sm:flex-row">
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
             <button
               onClick={() => navigate(`/students/${id}/edit`)}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-primary/10 text-primary font-bold hover:bg-primary/20 transition-all text-sm"
+              className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl glass-panel text-slate-100 font-bold text-sm hover:bg-white/5 transition-all"
             >
-              <Pencil className="h-5 w-5" />
+              <Pencil className="h-4 w-4" />
               Editar Perfil
             </button>
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg gradient-primary text-white font-bold hover:opacity-90 shadow-lg shadow-primary/20 transition-all text-sm">
-              <CreditCard className="h-5 w-5" />
+            <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold text-sm hover:opacity-90 transition-all neon-shadow">
+              <CreditCard className="h-4 w-4" />
               Adicionar Pagamento
             </button>
           </div>
@@ -140,104 +162,148 @@ export function StudentDetailPage() {
 
       {/* 4 Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-card p-5 rounded-xl border border-border shadow-sm flex flex-col gap-1">
-          <p className="text-muted-foreground text-sm font-medium">Total de Aulas Dadas</p>
-          <div className="flex items-end justify-between">
-            <p className="text-foreground text-2xl font-bold tracking-tight">{totalClasses}</p>
-            <span className="text-emerald-500 text-sm font-bold flex items-center gap-1">
-              +{(totalClasses > 0 ? 1 : 0)} <TrendingUp className="h-4 w-4" />
-            </span>
+        <div className="glass-panel rounded-xl p-6 border-l-4 border-l-primary hover:translate-y-[-4px] transition-transform">
+          <div className="flex justify-between items-start mb-4">
+            <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+              Aulas Dadas
+            </p>
+            <CalendarDays className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex items-baseline gap-3">
+            <p className="text-3xl font-bold text-slate-100">{totalClasses}</p>
+            <p className="text-emerald-400 text-xs font-bold">
+              +{totalClasses > 0 ? 1 : 0} este mês
+            </p>
           </div>
         </div>
-        
-        <div className="bg-card p-5 rounded-xl border border-border shadow-sm flex flex-col gap-1">
-          <p className="text-muted-foreground text-sm font-medium">Pagamentos Pendentes</p>
-          <div className="flex items-end justify-between">
-            <p className="text-foreground text-2xl font-bold tracking-tight text-primary">
+
+        <div className="glass-panel rounded-xl p-6 border-l-4 border-l-purple-500 hover:translate-y-[-4px] transition-transform">
+          <div className="flex justify-between items-start mb-4">
+            <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+              Pendentes
+            </p>
+            <Receipt className="h-5 w-5 text-purple-500" />
+          </div>
+          <div className="flex items-baseline gap-3">
+            <p className="text-3xl font-bold text-purple-400">
               R$ {pendingAmount.toFixed(2)}
             </p>
-            <span className={`${pendingPayments.length > 0 ? "text-amber-500" : "text-emerald-500"} text-sm font-bold`}>
+            <p className="text-slate-500 text-xs">
               {pendingPayments.length} Atrasados
-            </span>
+            </p>
           </div>
         </div>
 
-        <div className="bg-card p-5 rounded-xl border border-border shadow-sm flex flex-col gap-1">
-          <p className="text-muted-foreground text-sm font-medium">Taxa de Presença</p>
-          <div className="flex items-end justify-between">
-            <p className="text-foreground text-2xl font-bold tracking-tight">100%</p>
-            <span className="text-emerald-500 text-sm font-bold">Estável</span>
+        <div className="glass-panel rounded-xl p-6 border-l-4 border-l-emerald-500 hover:translate-y-[-4px] transition-transform">
+          <div className="flex justify-between items-start mb-4">
+            <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+              Presença
+            </p>
+            <TrendingUp className="h-5 w-5 text-emerald-500" />
+          </div>
+          <div className="flex items-baseline gap-3">
+            <p className="text-3xl font-bold text-slate-100">100%</p>
+            <p className="text-slate-500 text-xs">Total impecável</p>
           </div>
         </div>
 
-        <div className="bg-card p-5 rounded-xl border border-border shadow-sm flex flex-col gap-1">
-          <p className="text-muted-foreground text-sm font-medium">Situação de Mensalidade</p>
-          <div className="flex items-end justify-between">
-            <p className="text-foreground text-2xl font-bold tracking-tight">R$ {student.monthlyFee?.toFixed(2) || "0.00"}</p>
-            <span className="text-muted-foreground text-sm font-bold underline cursor-pointer">Alterar</span>
+        <div className="glass-panel rounded-xl p-6 border-l-4 border-l-blue-500 hover:translate-y-[-4px] transition-transform">
+          <div className="flex justify-between items-start mb-4">
+            <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+              Mensalidade
+            </p>
+            <CreditCard className="h-5 w-5 text-blue-500" />
+          </div>
+          <div className="flex items-baseline gap-3">
+            <p className="text-3xl font-bold text-slate-100 italic">
+              R$ {student.monthlyFee?.toFixed(2) || "0.00"}
+            </p>
+            <p className="text-slate-500 text-xs underline cursor-pointer hover:text-slate-300">
+              Alterar Plano
+            </p>
           </div>
         </div>
       </div>
 
       {/* Tabs and Content Section */}
-      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col min-h-[500px] mb-8">
-        <div className="flex border-b border-border px-6 gap-8 bg-secondary/30 overflow-x-auto hide-scrollbar">
-          <button 
+      <div className="glass-panel rounded-xl overflow-hidden flex flex-col min-h-[500px] mb-8 relative z-10">
+        <div className="flex border-b border-white/10 px-6 gap-8 bg-white/5 overflow-x-auto hide-scrollbar relative z-20">
+          <button
             onClick={() => setActiveTab("billing")}
-            className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "billing" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "billing" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300"}`}
           >
             <Receipt className="h-5 w-5" />
             Histórico de Cobrança
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab("classes")}
-            className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "classes" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "classes" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300"}`}
           >
             <CalendarDays className="h-5 w-5" />
             Log de Aulas
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 relative z-20">
           {activeTab === "billing" && (
             <>
               <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
-                <h3 className="text-lg font-bold text-foreground">Faturas Recentes</h3>
+                <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                  <Receipt className="h-5 w-5 text-primary" />
+                  Faturas Recentes
+                </h3>
                 <div className="flex gap-2">
-                  <button className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors">
+                  <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
                     <Filter className="h-4 w-4" /> Filtrar
                   </button>
-                  <button className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors">
+                  <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
                     <Download className="h-4 w-4" /> Exportar PDF
                   </button>
                 </div>
               </div>
-              
+
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[600px]">
-                  <thead>
-                    <tr className="text-muted-foreground text-xs font-bold uppercase tracking-wider border-b border-border">
-                      <th className="pb-3 px-2">Referência</th>
-                      <th className="pb-3 px-2">Data Venc.</th>
-                      <th className="pb-3 px-2">Valor</th>
-                      <th className="pb-3 px-2">Status</th>
-                      <th className="pb-3 px-2 text-right">Ações</th>
+                  <thead className="bg-white/5 text-slate-400 text-xs uppercase tracking-widest font-semibold border-b border-white/10">
+                    <tr>
+                      <th className="px-6 py-4">Mês/Ano</th>
+                      <th className="px-6 py-4">Data Venc.</th>
+                      <th className="px-6 py-4">Valor Total</th>
+                      <th className="px-6 py-4 text-center">Status</th>
+                      <th className="px-6 py-4 text-right">Ações</th>
                     </tr>
                   </thead>
-                  <tbody className="text-sm">
+                  <tbody className="divide-y divide-white/5 text-sm">
                     {student.payments && student.payments.length > 0 ? (
                       student.payments.map((payment: any) => (
-                        <tr key={payment.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors group">
-                          <td className="py-4 px-2 font-medium text-foreground">Mês {String(payment.month).padStart(2, "0")}/{payment.year}</td>
-                          <td className="py-4 px-2 text-muted-foreground">Dia 10</td>
-                          <td className="py-4 px-2 font-bold text-foreground">R$ {payment.amount.toFixed(2)}</td>
-                          <td className="py-4 px-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${payment.paid ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"}`}>
+                        <tr
+                          key={payment.id}
+                          className="hover:bg-white/5 transition-colors group"
+                        >
+                          <td className="px-6 py-5 font-medium text-slate-100">
+                            Mês {String(payment.month).padStart(2, "0")}/
+                            {payment.year}
+                          </td>
+                          <td className="px-6 py-5 text-slate-400">Dia 10</td>
+                          <td className="px-6 py-5 font-bold text-slate-100">
+                            R$ {payment.amount.toFixed(2)}
+                          </td>
+                          <td className="px-6 py-5 text-center">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${payment.paid ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}
+                            >
+                              <span
+                                className={`size-1.5 rounded-full ${payment.paid ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}
+                              ></span>
                               {payment.paid ? "Pago" : "Pendente"}
                             </span>
                           </td>
-                          <td className="py-4 px-2 text-right">
-                            <button className="text-muted-foreground hover:text-primary transition-colors">
+                          <td className="px-6 py-5 text-right">
+                            <button
+                              className="text-slate-500 hover:text-slate-300 transition-colors"
+                              aria-label="Mais ações relativas à fatura"
+                              title="Mais opções"
+                            >
                               <MoreHorizontal className="h-5 w-5 ml-auto" />
                             </button>
                           </td>
@@ -245,7 +311,12 @@ export function StudentDetailPage() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-muted-foreground">Nenhum histórico de cobrança registrado.</td>
+                        <td
+                          colSpan={5}
+                          className="py-8 text-center text-slate-500"
+                        >
+                          Nenhum histórico de cobrança registrado.
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -257,9 +328,12 @@ export function StudentDetailPage() {
           {activeTab === "classes" && (
             <>
               <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
-                <h3 className="text-lg font-bold text-foreground">Aulas Registradas</h3>
+                <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5 text-primary" />
+                  Aulas Registradas
+                </h3>
                 <div className="flex gap-2">
-                  <button className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors">
+                  <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
                     <Filter className="h-4 w-4" /> Filtrar
                   </button>
                 </div>
@@ -267,40 +341,52 @@ export function StudentDetailPage() {
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[700px]">
-                  <thead>
-                    <tr className="text-muted-foreground text-xs font-bold uppercase tracking-wider border-b border-border">
-                      <th className="pb-3 px-2">Data</th>
-                      <th className="pb-3 px-2">Horário</th>
-                      <th className="pb-3 px-2">Conteúdo</th>
-                      <th className="pb-3 px-2">Status</th>
-                      <th className="pb-3 px-2 text-right">Ações</th>
+                  <thead className="bg-white/5 text-slate-400 text-xs uppercase tracking-widest font-semibold border-b border-white/10">
+                    <tr>
+                      <th className="px-6 py-4">Data</th>
+                      <th className="px-6 py-4">Horário</th>
+                      <th className="px-6 py-4">Conteúdo</th>
+                      <th className="px-6 py-4 text-center">Status</th>
+                      <th className="px-6 py-4 text-right">Ações</th>
                     </tr>
                   </thead>
-                  <tbody className="text-sm">
-                    {student.classSessions && student.classSessions.length > 0 ? (
+                  <tbody className="divide-y divide-white/5 text-sm">
+                    {student.classSessions &&
+                    student.classSessions.length > 0 ? (
                       student.classSessions.map((cls: any) => (
-                        <tr key={cls.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors group">
-                          <td className="py-4 px-2 font-medium text-foreground">
-                            {format(new Date(cls.date), "dd/MMM/yyyy", { locale: ptBR })}
+                        <tr
+                          key={cls.id}
+                          className="hover:bg-white/5 transition-colors group"
+                        >
+                          <td className="px-6 py-5 font-medium text-slate-100">
+                            {format(new Date(cls.date), "dd/MMM/yyyy", {
+                              locale: ptBR,
+                            })}
                           </td>
-                          <td className="py-4 px-2 text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-4 w-4 text-primary" /> {cls.startTime} - {cls.endTime}
+                          <td className="px-6 py-5 text-slate-400">
+                            <span className="flex items-center gap-1.5">
+                              <Clock className="h-4 w-4 text-primary" />{" "}
+                              {cls.startTime} - {cls.endTime}
                             </span>
                           </td>
-                          <td className="py-4 px-2 text-foreground">{cls.content || "-"}</td>
-                          <td className="py-4 px-2">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[cls.status] || "bg-secondary text-muted-foreground"}`}>
+                          <td className="px-6 py-5 text-slate-300">
+                            {cls.content || "-"}
+                          </td>
+                          <td className="px-6 py-5 text-center">
+                            <span
+                              className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[cls.status] || "bg-slate-500/10 text-slate-500 border-slate-500/20"}`}
+                            >
                               {statusLabels[cls.status] || cls.status}
                             </span>
                           </td>
-                          <td className="py-4 px-2 text-right">
+                          <td className="px-6 py-5 text-right">
                             <button
                               onClick={() => {
                                 setDeletingClassId(cls.id);
                               }}
-                              className="text-muted-foreground hover:text-destructive transition-colors ml-auto p-1"
+                              className="text-slate-500 hover:text-red-400 transition-colors ml-auto p-1"
                               title="Remover aula"
+                              aria-label="Remover aula"
                             >
                               <Trash2 className="h-5 w-5" />
                             </button>
@@ -309,7 +395,12 @@ export function StudentDetailPage() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-muted-foreground">Nenhum log de aulas registrado.</td>
+                        <td
+                          colSpan={5}
+                          className="py-8 text-center text-slate-500"
+                        >
+                          Nenhum log de aulas registrado.
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -319,16 +410,29 @@ export function StudentDetailPage() {
           )}
 
           {/* Simple Dummy Pagination */}
-          {((activeTab === "billing" && student.payments?.length > 0) || (activeTab === "classes" && student.classSessions?.length > 0)) && (
-            <div className="flex items-center justify-between mt-8 pt-4 border-t border-border">
-              <p className="text-xs text-muted-foreground">
+          {((activeTab === "billing" && student.payments?.length > 0) ||
+            (activeTab === "classes" && student.classSessions?.length > 0)) && (
+            <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/10 bg-white/5 px-6 -mx-6 -mb-6 pb-6">
+              <p className="text-sm text-slate-500">
                 Exibindo registros recentes
               </p>
               <div className="flex gap-2">
-                <button className="p-1 rounded bg-secondary text-muted-foreground cursor-not-allowed" disabled>
+                <button
+                  className="size-8 rounded flex items-center justify-center glass-panel text-slate-400 opacity-50 cursor-not-allowed"
+                  disabled
+                  aria-label="Página anterior"
+                  title="Página anterior"
+                >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                <button className="p-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+                <button className="size-8 rounded flex items-center justify-center glass-panel text-slate-100 bg-primary/20 border-primary/30 font-medium">
+                  1
+                </button>
+                <button
+                  className="size-8 rounded flex items-center justify-center glass-panel text-slate-400 hover:text-slate-100 transition-colors"
+                  aria-label="Próxima página"
+                  title="Próxima página"
+                >
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>

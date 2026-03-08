@@ -12,6 +12,8 @@ import {
   LayoutDashboard,
   Receipt,
   Layers,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
 
 export function RegisterPage() {
@@ -57,149 +59,157 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen overflow-hidden bg-background">
+    <div className="flex min-h-screen overflow-hidden bg-[#0c0816] font-inter">
       {/* LEFT SIDE: Hero Section (60%) */}
-      <div className="hidden lg:flex w-[60%] relative flex-col justify-center px-20 overflow-hidden border-r border-slate-800/50">
+      <div className="hidden lg:flex w-[60%] relative flex-col justify-center px-24 overflow-hidden border-r border-white/5">
         {/* Abstract Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-indigo-900/30" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-indigo-950/20" />
 
-        {/* Decorative Glow */}
-        <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-primary/10 rounded-full blur-[120px]" />
+        {/* Decorative Glows */}
+        <div className="absolute -bottom-40 -left-40 w-[45rem] h-[45rem] bg-primary/20 rounded-full blur-[150px] animate-pulse" />
+        <div className="absolute top-[-10%] right-[-10%] w-[35rem] h-[35rem] bg-indigo-500/10 rounded-full blur-[120px]" />
 
         {/* Branding */}
-        <div className="relative z-10 mb-12 flex items-center gap-3">
-          <div className="gradient-primary p-2.5 rounded-lg shadow-lg shadow-primary/20">
-            <GraduationCap className="h-7 w-7 text-white" />
+        <div className="relative z-10 mb-16 flex items-center gap-4 group cursor-default">
+          <div className="size-14 bg-primary rounded-2xl flex items-center justify-center text-white shadow-[0_0_25px_rgba(116,61,245,0.4)] group-hover:scale-110 transition-transform duration-500">
+            <GraduationCap className="h-8 w-8 drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]" />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-white">
+          <h1 className="text-4xl font-black tracking-tighter text-white">
             Tutorfy
           </h1>
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-xl">
-          <h2 className="text-5xl font-extrabold text-white leading-tight mb-6">
+        <div className="relative z-10 max-w-2xl">
+          <h2 className="text-6xl font-black text-white leading-[1.1] mb-10 tracking-tight">
             Junte-se ao <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-indigo-400 to-primary/80 animate-gradient-x">
               Tutorfy.
             </span>
           </h2>
-          <p className="text-muted-foreground text-lg mb-12">
+          <p className="text-muted-foreground text-xl mb-16 font-medium leading-relaxed max-w-lg">
             A plataforma definitiva para tutores que buscam excelência no
             gerenciamento de negócio e alunos.
           </p>
 
           {/* Feature Cards */}
-          <div className="grid gap-4">
+          <div className="grid gap-6">
             <FeatureCard
-              icon={<LayoutDashboard className="h-5 w-5 text-primary" />}
-              iconBg="bg-primary/20"
+              icon={<LayoutDashboard className="h-6 w-6 text-primary" />}
+              iconBg="bg-primary/15"
               borderColor="border-l-primary/60"
               title="Gestão Simplificada"
-              description="Controle total de horários e alunos em um só lugar."
+              description="Controle total de horários, alunos e conteúdos em um painel intuitivo e poderoso."
             />
             <FeatureCard
-              icon={<Receipt className="h-5 w-5 text-indigo-400" />}
-              iconBg="bg-indigo-400/20"
+              icon={<Receipt className="h-6 w-6 text-indigo-400" />}
+              iconBg="bg-indigo-400/15"
               borderColor="border-l-indigo-400/60"
-              title="Dual Billing Automático"
-              description="Faturamento automatizado e transparente para todos."
+              title="Faturamento Inteligente"
+              description="Cobranças automatizadas, controle de inadimplência e diversos métodos de pagamento."
             />
             <FeatureCard
-              icon={<Layers className="h-5 w-5 text-slate-200" />}
-              iconBg="bg-slate-400/20"
-              borderColor="border-l-slate-400/60"
-              title="Multi-tenant Nativo"
-              description="Gerencie múltiplas unidades ou equipes de tutores."
+              icon={<Layers className="h-6 w-6 text-slate-200" />}
+              iconBg="bg-white/10"
+              borderColor="border-l-white/60"
+              title="Escalabilidade Real"
+              description="Gerencie centenas de alunos ou múltiplos professores com a mesma facilidade."
             />
           </div>
         </div>
       </div>
 
       {/* RIGHT SIDE: Register Section (40%) */}
-      <div className="w-full lg:w-[40%] flex flex-col justify-center items-center px-8 lg:px-16 bg-slate-950/50 relative overflow-y-auto max-h-screen py-8">
-        {/* Subtle Background Gradient */}
-        <div className="absolute inset-0 login-gradient-bg opacity-40" />
+      <div className="w-full lg:w-[40%] flex flex-col justify-center items-center px-10 lg:px-20 bg-[#151022] relative border-l border-white/5 overflow-y-auto custom-scrollbar">
+        {/* Subtle Background Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-black/20 pointer-events-none" />
 
-        <div className="w-full max-w-md relative z-10 my-auto">
+        <div className="w-full max-w-md relative z-10 py-12 my-auto">
           {/* Mobile Logo */}
-          <div className="lg:hidden mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl gradient-primary shadow-lg shadow-primary/30">
-              <GraduationCap className="h-8 w-8 text-white" />
+          <div className="lg:hidden mb-12 text-center">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-primary shadow-[0_10px_30px_rgba(116,61,245,0.4)]">
+              <GraduationCap className="h-10 w-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-foreground">Tutorfy</h1>
+            <h1 className="text-4xl font-black text-white tracking-tighter">
+              Tutorfy
+            </h1>
           </div>
 
           {/* Glassmorphism Form Card */}
-          <div className="glass rounded-2xl p-8 lg:p-10 shadow-2xl">
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-6">
-                <div className="bg-primary/10 p-4 rounded-full">
-                  <GraduationCap className="h-8 w-8 text-primary" />
-                </div>
+          <div className="glass-panel rounded-[2.5rem] p-10 lg:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-6 text-[10px] font-black uppercase tracking-widest text-primary animate-pulse">
+                <CheckCircle2 className="h-3 w-3" /> Inscrição Aberta
               </div>
-              <h2 className="text-2xl font-bold text-white">Criar sua conta</h2>
-              <p className="text-muted-foreground text-sm mt-2">
-                Comece sua jornada premium hoje.
+              <h2 className="text-3xl font-black text-white tracking-tight">
+                Criar conta
+              </h2>
+              <p className="text-muted-foreground font-semibold text-base mt-2">
+                Comece sua jornada premium hoje
               </p>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="mb-6 rounded-lg bg-destructive/10 p-3 text-sm text-destructive border border-destructive/20">
+              <div className="mb-8 rounded-2xl bg-destructive/10 p-5 text-sm font-bold text-destructive border border-destructive/20 flex items-center gap-3 shadow-[0_4px_15px_rgba(239,68,68,0.1)] animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="size-2 rounded-full bg-destructive animate-pulse" />
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name Field */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider ml-1">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
                   Nome Completo
                 </label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <UserIcon className="text-slate-500 h-5 w-5 group-focus-within:text-primary transition-colors" />
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-primary transition-colors">
+                    <UserIcon className="h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-all duration-300" />
                   </div>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg py-3 pl-10 pr-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                    placeholder="Seu nome completo"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white font-bold placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 shadow-inner"
+                    placeholder="Seu nome"
+                    autoComplete="name"
                   />
                 </div>
               </div>
 
               {/* Email Field */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider ml-1">
-                  Email
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                  E-mail Profissional
                 </label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="text-slate-500 h-5 w-5 group-focus-within:text-primary transition-colors" />
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-primary transition-colors">
+                    <Mail className="h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-all duration-300" />
                   </div>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg py-3 pl-10 pr-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white font-bold placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 shadow-inner"
                     placeholder="seu@email.com"
+                    autoComplete="email"
                   />
                 </div>
               </div>
 
               {/* Password Field */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider ml-1">
-                  Senha
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                  Senha de Segurança
                 </label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="text-slate-500 h-5 w-5 group-focus-within:text-primary transition-colors" />
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-primary transition-colors">
+                    <Lock className="h-5 w-5 text-muted-foreground/50 group-focus-within:text-primary transition-all duration-300" />
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -207,13 +217,14 @@ export function RegisterPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={8}
-                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg py-3 pl-10 pr-10 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                    placeholder="••••••••"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-12 text-white font-bold placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 shadow-inner"
+                    placeholder="Mínimo 8 caracteres"
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-primary transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -225,24 +236,33 @@ export function RegisterPage() {
               </div>
 
               {/* Terms */}
-              <div className="flex items-start gap-2 py-2">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  required
-                  className="mt-1 rounded border-slate-700 bg-slate-900 text-primary focus:ring-primary"
-                />
+              <div className="flex items-start gap-3 py-2 group cursor-pointer">
+                <div className="relative h-5 w-5 mt-0.5">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    required
+                    className="peer appearance-none h-5 w-5 rounded-lg border border-white/10 bg-white/5 checked:bg-primary checked:border-primary transition-all cursor-pointer"
+                  />
+                  <CheckCircle2 className="absolute top-0.5 left-0.5 h-4 w-4 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
+                </div>
                 <label
                   htmlFor="terms"
-                  className="text-xs text-slate-400 leading-normal"
+                  className="text-xs text-muted-foreground leading-relaxed font-semibold cursor-pointer select-none"
                 >
-                  Eu concordo com os{" "}
-                  <a href="#" className="text-primary hover:underline">
-                    Termos de Serviço
+                  Eu li e concordo com os{" "}
+                  <a
+                    href="#"
+                    className="text-primary hover:text-indigo-400 underline transition-colors"
+                  >
+                    Termos de Uso
                   </a>{" "}
                   e{" "}
-                  <a href="#" className="text-primary hover:underline">
-                    Política de Privacidade
+                  <a
+                    href="#"
+                    className="text-primary hover:text-indigo-400 underline transition-colors"
+                  >
+                    Políticas
                   </a>
                   .
                 </label>
@@ -252,44 +272,60 @@ export function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full gradient-primary hover:opacity-90 text-white font-bold py-3.5 rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full gradient-primary hover:shadow-[0_0_30px_rgba(116,61,245,0.6)] text-white font-black py-4 rounded-2xl shadow-xl shadow-primary/25 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
               >
-                {loading ? "Cadastrando..." : "Cadastrar"}
+                <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                <span className="relative flex items-center justify-center gap-3 text-lg tracking-tight">
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Criando conta...
+                    </>
+                  ) : (
+                    "Cadastrar Agora"
+                  )}
+                </span>
               </button>
 
               {/* Divider */}
-              <div className="flex items-center gap-4 py-2">
-                <div className="h-[1px] flex-1 bg-slate-800" />
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">
-                  ou
+              <div className="flex items-center gap-4 py-3">
+                <div className="h-[1px] flex-1 bg-white/10" />
+                <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.4em]">
+                  Ou use sua conta
                 </span>
-                <div className="h-[1px] flex-1 bg-slate-800" />
+                <div className="h-[1px] flex-1 bg-white/10" />
               </div>
 
               {/* Google Button */}
-              <div className="flex justify-center w-full">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => setError("Erro ao conectar com Google")}
-                  useOneTap
-                  theme="filled_black"
-                  shape="rectangular"
-                  width="100%"
-                />
+              <div className="flex justify-center w-full group">
+                <div className="w-full bg-white rounded-2xl p-[1px] group-hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all overflow-hidden">
+                  <div className="w-full overflow-hidden rounded-[0.9rem]">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={() => setError("Erro ao conectar com Google")}
+                      useOneTap
+                      theme="filled_black"
+                      shape="rectangular"
+                      width="100%"
+                    />
+                  </div>
+                </div>
               </div>
             </form>
           </div>
 
           {/* Footer Link */}
-          <p className="text-center mt-8 text-slate-500 text-sm">
-            Já tem uma conta?{" "}
-            <Link
-              to="/login"
-              className="text-primary font-bold hover:underline"
-            >
-              Faça login
-            </Link>
-          </p>
+          <div className="text-center mt-12 bg-white/5 border border-white/5 py-4 px-6 rounded-3xl backdrop-blur-sm">
+            <p className="text-muted-foreground text-sm font-bold">
+              Já faz parte do Tutorfy?{" "}
+              <Link
+                to="/login"
+                className="text-primary font-black hover:text-primary-hover hover:underline transition-all ml-1"
+              >
+                Faça login
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -312,12 +348,20 @@ function FeatureCard({
 }) {
   return (
     <div
-      className={`glass p-4 rounded-xl flex items-center gap-4 border-l-4 ${borderColor}`}
+      className={`glass-panel p-6 rounded-[2rem] flex items-start gap-6 border-l-4 ${borderColor} bg-white/5 border border-white/5 hover:bg-white/10 transition-all hover:scale-[1.02] cursor-default shadow-lg group`}
     >
-      <div className={`${iconBg} p-2 rounded-lg`}>{icon}</div>
-      <div>
-        <h3 className="font-bold text-white">{title}</h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
+      <div
+        className={`${iconBg} p-3 rounded-2xl shadow-inner group-hover:bg-primary/20 transition-colors duration-500`}
+      >
+        {icon}
+      </div>
+      <div className="pt-1">
+        <h3 className="font-black text-white text-lg tracking-tight mb-1">
+          {title}
+        </h3>
+        <p className="text-muted-foreground font-medium leading-relaxed">
+          {description}
+        </p>
       </div>
     </div>
   );
