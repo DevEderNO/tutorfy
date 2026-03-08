@@ -8,14 +8,16 @@ import {
   Lock,
   Eye,
   EyeOff,
-  CalendarDays,
-  Wallet,
-  BarChart3,
+  User as UserIcon,
+  LayoutDashboard,
+  Receipt,
+  Layers,
 } from "lucide-react";
 
-export function LoginPage() {
-  const { login } = useAuth();
+export function RegisterPage() {
+  const { register, googleLogin } = useAuth();
   const navigate = useNavigate();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -28,16 +30,14 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      await register(name, email, password);
       navigate("/");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Erro ao fazer login");
+      setError(err.response?.data?.message || "Erro ao criar conta");
     } finally {
       setLoading(false);
     }
   };
-
-  const { googleLogin } = useAuth();
 
   const handleGoogleSuccess = async (
     credentialResponse: CredentialResponse,
@@ -79,75 +79,68 @@ export function LoginPage() {
         {/* Content */}
         <div className="relative z-10 max-w-xl">
           <h2 className="text-5xl font-extrabold text-white leading-tight mb-6">
-            Gestão de Aulas <br />
+            Junte-se ao <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-400">
-              Particulares.
+              Tutorfy.
             </span>
           </h2>
           <p className="text-muted-foreground text-lg mb-12">
             A plataforma definitiva para tutores que buscam excelência no
-            gerenciamento de alunos, horários e finanças.
+            gerenciamento de negócio e alunos.
           </p>
 
           {/* Feature Cards */}
           <div className="grid gap-4">
             <FeatureCard
-              icon={<CalendarDays className="h-5 w-5 text-primary" />}
+              icon={<LayoutDashboard className="h-5 w-5 text-primary" />}
               iconBg="bg-primary/20"
               borderColor="border-l-primary/60"
-              title="Agenda inteligente"
-              description="Sincronização em tempo real e lembretes automáticos."
+              title="Gestão Simplificada"
+              description="Controle total de horários e alunos em um só lugar."
             />
             <FeatureCard
-              icon={<Wallet className="h-5 w-5 text-indigo-400" />}
+              icon={<Receipt className="h-5 w-5 text-indigo-400" />}
               iconBg="bg-indigo-400/20"
               borderColor="border-l-indigo-400/60"
-              title="Controle financeiro"
-              description="Fluxo de caixa, pagamentos recorrentes e faturas."
+              title="Dual Billing Automático"
+              description="Faturamento automatizado e transparente para todos."
             />
             <FeatureCard
-              icon={<BarChart3 className="h-5 w-5 text-slate-200" />}
+              icon={<Layers className="h-5 w-5 text-slate-200" />}
               iconBg="bg-slate-400/20"
               borderColor="border-l-slate-400/60"
-              title="Relatórios detalhados"
-              description="Análise de desempenho e crescimento de alunos."
+              title="Multi-tenant Nativo"
+              description="Gerencie múltiplas unidades ou equipes de tutores."
             />
           </div>
         </div>
       </div>
 
-      {/* RIGHT SIDE: Login Section (40%) */}
-      <div className="w-full lg:w-[40%] flex flex-col justify-center items-center px-8 lg:px-16 bg-slate-950/50 relative">
+      {/* RIGHT SIDE: Register Section (40%) */}
+      <div className="w-full lg:w-[40%] flex flex-col justify-center items-center px-8 lg:px-16 bg-slate-950/50 relative overflow-y-auto max-h-screen py-8">
         {/* Subtle Background Gradient */}
         <div className="absolute inset-0 login-gradient-bg opacity-40" />
 
-        <div className="w-full max-w-md relative z-10">
-          {/* Mobile Logo (shown only on small screens) */}
+        <div className="w-full max-w-md relative z-10 my-auto">
+          {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl gradient-primary shadow-lg shadow-primary/30">
               <GraduationCap className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-foreground">Tutorfy</h1>
-            <p className="mt-1 text-muted-foreground">
-              Gestão de Aulas Particulares
-            </p>
           </div>
 
           {/* Glassmorphism Form Card */}
           <div className="glass rounded-2xl p-8 lg:p-10 shadow-2xl">
-            {/* Top Icon */}
-            <div className="flex justify-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-tr from-primary to-indigo-600 rounded-full flex items-center justify-center shadow-xl shadow-primary/30">
-                <GraduationCap className="h-8 w-8 text-white" />
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-6">
+                <div className="bg-primary/10 p-4 rounded-full">
+                  <GraduationCap className="h-8 w-8 text-primary" />
+                </div>
               </div>
-            </div>
-
-            <div className="text-center mb-10">
-              <h2 className="text-2xl font-bold text-white">
-                Bem-vindo de volta
-              </h2>
+              <h2 className="text-2xl font-bold text-white">Criar sua conta</h2>
               <p className="text-muted-foreground text-sm mt-2">
-                Entre com suas credenciais para acessar sua conta
+                Comece sua jornada premium hoje.
               </p>
             </div>
 
@@ -158,63 +151,69 @@ export function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Field */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="email"
-                  className="text-sm font-medium text-slate-300 ml-1"
-                >
-                  E-mail
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Name Field */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider ml-1">
+                  Nome Completo
                 </label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 h-5 w-5" />
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <UserIcon className="text-slate-500 h-5 w-5 group-focus-within:text-primary transition-colors" />
+                  </div>
                   <input
-                    id="email"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg py-3 pl-10 pr-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    placeholder="Seu nome completo"
+                  />
+                </div>
+              </div>
+
+              {/* Email Field */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider ml-1">
+                  Email
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="text-slate-500 h-5 w-5 group-focus-within:text-primary transition-colors" />
+                  </div>
+                  <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg py-3.5 pl-12 pr-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-ring/40 transition-all"
+                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg py-3 pl-10 pr-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                     placeholder="seu@email.com"
                   />
                 </div>
               </div>
 
               {/* Password Field */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center px-1">
-                  <label
-                    htmlFor="password"
-                    className="text-sm font-medium text-slate-300"
-                  >
-                    Senha
-                  </label>
-                  <Link
-                    to="/recover-password"
-                    className="text-xs font-semibold text-primary hover:text-indigo-400 transition-colors"
-                  >
-                    Esqueceu a senha?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 h-5 w-5" />
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider ml-1">
+                  Senha
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="text-slate-500 h-5 w-5 group-focus-within:text-primary transition-colors" />
+                  </div>
                   <input
-                    id="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg py-3.5 pl-12 pr-12 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-ring/40 transition-all"
+                    minLength={8}
+                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg py-3 pl-10 pr-10 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
-                    aria-label={
-                      showPassword ? "Ocultar senha" : "Mostrar senha"
-                    }
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -225,13 +224,37 @@ export function LoginPage() {
                 </div>
               </div>
 
+              {/* Terms */}
+              <div className="flex items-start gap-2 py-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  required
+                  className="mt-1 rounded border-slate-700 bg-slate-900 text-primary focus:ring-primary"
+                />
+                <label
+                  htmlFor="terms"
+                  className="text-xs text-slate-400 leading-normal"
+                >
+                  Eu concordo com os{" "}
+                  <a href="#" className="text-primary hover:underline">
+                    Termos de Serviço
+                  </a>{" "}
+                  e{" "}
+                  <a href="#" className="text-primary hover:underline">
+                    Política de Privacidade
+                  </a>
+                  .
+                </label>
+              </div>
+
               {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full gradient-primary hover:opacity-90 text-white font-bold py-4 rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full gradient-primary hover:opacity-90 text-white font-bold py-3.5 rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Entrando..." : "Entrar na Plataforma"}
+                {loading ? "Cadastrando..." : "Cadastrar"}
               </button>
 
               {/* Divider */}
@@ -247,7 +270,7 @@ export function LoginPage() {
               <div className="flex justify-center w-full">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
-                  onError={() => setError("Erro ao iniciar com Google")}
+                  onError={() => setError("Erro ao conectar com Google")}
                   useOneTap
                   theme="filled_black"
                   shape="rectangular"
@@ -259,12 +282,12 @@ export function LoginPage() {
 
           {/* Footer Link */}
           <p className="text-center mt-8 text-slate-500 text-sm">
-            Ainda não tem uma conta?{" "}
+            Já tem uma conta?{" "}
             <Link
-              to="/register"
+              to="/login"
               className="text-primary font-bold hover:underline"
             >
-              Cadastre-se grátis
+              Faça login
             </Link>
           </p>
         </div>
