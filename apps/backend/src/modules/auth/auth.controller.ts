@@ -5,6 +5,7 @@ import {
   loginSchema,
   requestResetSchema,
   resetPasswordSchema,
+  googleLoginSchema,
 } from './auth.schema.js';
 
 const authService = new AuthService();
@@ -41,6 +42,26 @@ export class AuthController {
 
     try {
       const user = await authService.login(parsed.data);
+      const token = await reply.jwtSign({ id: user.id });
+      return reply.send({ data: { token, user } });
+    } catch (error: any) {
+      return reply
+        .status(error.statusCode || 500)
+        .send({ message: error.message });
+    }
+  }
+
+  async googleLogin(request: FastifyRequest, reply: FastifyReply) {
+    const parsed = googleLoginSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        message: 'Dados inválidos',
+        errors: parsed.error.flatten().fieldErrors,
+      });
+    }
+
+    try {
+      const user = await authService.googleLogin(parsed.data);
       const token = await reply.jwtSign({ id: user.id });
       return reply.send({ data: { token, user } });
     } catch (error: any) {

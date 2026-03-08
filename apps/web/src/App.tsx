@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { LoginPage } from "@/features/auth/LoginPage";
@@ -41,33 +42,43 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/recover-password" element={<RecoverPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route
-              element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/students" element={<StudentsListPage />} />
-              <Route path="/students/new" element={<StudentFormPage />} />
-              <Route path="/students/:id/edit" element={<StudentFormPage />} />
-              <Route path="/students/:id" element={<StudentDetailPage />} />
-              <Route path="/schedule" element={<SchedulePage />} />
-              <Route path="/financial" element={<FinancialPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Route>
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route
+                path="/recover-password"
+                element={<RecoverPasswordPage />}
+              />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/students" element={<StudentsListPage />} />
+                <Route path="/students/new" element={<StudentFormPage />} />
+                <Route
+                  path="/students/:id/edit"
+                  element={<StudentFormPage />}
+                />
+                <Route path="/students/:id" element={<StudentDetailPage />} />
+                <Route path="/schedule" element={<SchedulePage />} />
+                <Route path="/financial" element={<FinancialPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Route>
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </GoogleOAuthProvider>
   );
 }

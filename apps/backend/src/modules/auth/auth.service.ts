@@ -1,7 +1,10 @@
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../../lib/prisma.js';
-import type { RegisterInput, LoginInput, RequestResetInput, ResetPasswordInput } from './auth.schema.js';
+import type { RegisterInput, LoginInput, RequestResetInput, ResetPasswordInput, GoogleLoginInput } from './auth.schema.js';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const RESET_TOKEN_EXPIRY_HOURS = 1;
 
@@ -52,10 +55,84 @@ export class AuthService {
       throw { statusCode: 401, message: 'Credenciais inválidas' };
     }
 
+    if (!user.password) {
+      throw { statusCode: 401, message: 'Por favor, autentique-se utilizando sua conta Google.' };
+    }
+
     const validPassword = await bcrypt.compare(data.password, user.password);
 
     if (!validPassword) {
       throw { statusCode: 401, message: 'Credenciais inválidas' };
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+      avatarUrl: user.avatarUrl,
+    };
+  }
+
+  async googleLogin(data: GoogleLoginInput) {
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: data.token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch (e) {
+      throw { statusCode: 401, message: 'Token do Google inválido' };
+    }
+
+    if (!payload || !payload.email) {
+      throw { statusCode: 401, message: 'Não foi possível verificar a conta do Google' };
+    }
+
+    const email = payload.email;
+    const name = payload.name || email.split('@')[0];
+    const avatarUrl = payload.picture || null;
+    const googleId = payload.sub;
+
+    let user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        avatarUrl: true,
+      }
+    });
+
+    if (!user) {
+      // Create new user via Google
+      user = await prisma.user.create({
+        data: {
+          email,
+          name,
+          avatarUrl,
+          googleId,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+          avatarUrl: true,
+        }
+      });
+    } else {
+      // Update existing user with googleId if it doesn't have one
+      // or simply fetch the latest user info needed.
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { 
+          googleId,
+          ...(avatarUrl && !user.avatarUrl ? { avatarUrl } : {})
+        }
+      });
     }
 
     return {

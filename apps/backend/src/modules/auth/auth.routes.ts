@@ -8,4 +8,5 @@ export async function authRoutes(app: FastifyInstance) {
   app.post('/login', controller.login.bind(controller));
   app.post('/request-reset', controller.requestReset.bind(controller));
   app.post('/reset-password', controller.resetPassword.bind(controller));
+  app.post('/google', controller.googleLogin.bind(controller));
 }

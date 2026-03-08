@@ -20,7 +20,12 @@ export const resetPasswordSchema = z.object({
   password: z.string().min(6, 'Senha deve ter ao menos 6 caracteres'),
 });
 
+export const googleLoginSchema = z.object({
+  token: z.string().min(1, 'Token do Google é obrigatório'),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RequestResetInput = z.infer<typeof requestResetSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type GoogleLoginInput = z.infer<typeof googleLoginSchema>;

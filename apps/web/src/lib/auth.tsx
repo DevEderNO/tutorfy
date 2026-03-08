@@ -14,6 +14,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  googleLogin: (token: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
@@ -40,6 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await api.post<{ data: AuthResponse }>("/auth/login", {
       email,
       password,
+    });
+    const { token: newToken, user: newUser } = res.data.data;
+    localStorage.setItem("tutorfy_token", newToken);
+    localStorage.setItem("tutorfy_user", JSON.stringify(newUser));
+    setToken(newToken);
+    setUser(newUser);
+  };
+
+  const googleLogin = async (googleToken: string) => {
+    const res = await api.post<{ data: AuthResponse }>("/auth/google", {
+      token: googleToken,
     });
     const { token: newToken, user: newUser } = res.data.data;
     localStorage.setItem("tutorfy_token", newToken);
@@ -85,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!token,
         isLoading,
         login,
+        googleLogin,
         register,
         logout,
         updateUser,
