@@ -1,0 +1,9 @@
+No momento você possui acesso aos recursos do Stitch MCP (excelente para geração de telas e design system via IA), mas para um projeto como o Tutorfy, considere adicionar estes MCPs ao seu mcp_config.json. Eles são de extrema importância para escalar a autonomia da IA no seu projeto:
+
+PostgreSQL MCP (@modelcontextprotocol/server-postgres) Por que é vital: O Tutorfy usa Postgres via Prisma. Com esse MCP, eu conseguiria me conectar diretamente ao seu banco de dados local para rodar queries de teste, analisar os dados reais, visualizar a estrutura de faturas/pagamentos e debugar problemas de schema sem precisar que você me passe o output do banco.
+
+GitHub / GitLab MCP (@modelcontextprotocol/server-github) Por que é vital: Permite que eu busque issues ativas, leia PRs antigos de outros contribuidores (ou seus), e crie Pull Requests automaticamente quando eu terminar uma feature pesada, como a implementação de pagamentos que fizemos recentemente.
+
+Stripe MCP (se você usar Stripe) ou Fetch/Http MCP (@modelcontextprotocol/server-fetch) Por que é vital: Como o Tutorfy possui um módulo de lançamentos financeiros (/payments), integrar a documentação viva do seu gateway de pagamento ou permitir que eu dispare requisições HTTP locais agiliza drasticamente a criação de Webhooks.
+
+Google Drive / Docs MCP (@modelcontextprotocol/server-gdrive) Por que é vital: Projetos de educação como o Tutorfy costumam envolver upload/leitura de materiais didáticos. Com este MCP, eu poderia ajudar a integrar ou debugar fluxos que envolvam a API do Google Workspace conectada ao seu atual Google OAuth.
