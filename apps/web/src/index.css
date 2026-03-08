@@ -52,6 +52,33 @@
     border-right: 1px solid rgba(139, 92, 246, 0.1);
   }
 
+  .glass-panel {
+    background: rgba(30, 41, 59, 0.6);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-btn {
+    background: rgba(255, 255, 255, 0.05);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+  }
+  .glass-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .purple-glow {
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+  }
+
+  .emerald-glow {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+  }
+
   .sidebar-active {
     background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0) 100%);
     border-left: 3px solid var(--color-primary);
