@@ -45,6 +45,22 @@
     border: 1px solid rgba(148, 163, 184, 0.1);
   }
 
+  .glass-sidebar {
+    background: rgba(139, 92, 246, 0.05);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(139, 92, 246, 0.1);
+  }
+
+  .sidebar-active {
+    background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0) 100%);
+    border-left: 3px solid var(--color-primary);
+  }
+
+  .neon-glow {
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+  }
+
   .gradient-primary {
     background: linear-gradient(135deg, #8b5cf6, #6366f1);
   }

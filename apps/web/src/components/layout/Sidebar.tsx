@@ -28,67 +28,72 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 glass border-r border-border">
-      <div className="flex h-full flex-col">
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary">
-            <GraduationCap className="h-5 w-5 text-white" />
+    <aside className="fixed left-0 top-0 z-40 h-screen w-64 glass-sidebar flex flex-col">
+      {/* Logo */}
+      <div className="flex items-center gap-3 p-8">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary neon-glow">
+          <GraduationCap className="h-5 w-5 text-white" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">
+            Tutorfy
+          </h1>
+          <p className="text-xs text-primary/70 font-medium">Gestão de Aulas</p>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 space-y-2 px-4">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === "/"}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ${
+                isActive
+                  ? "sidebar-active text-primary font-semibold"
+                  : "text-slate-400 hover:text-white font-medium"
+              }`
+            }
+          >
+            <item.icon className="h-5 w-5" />
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* User / Logout */}
+      <div className="mt-auto border-t border-primary/10 p-6">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/30 bg-primary/20 font-bold text-primary">
+            {user?.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user?.name || "User"}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              user?.name?.charAt(0).toUpperCase()
+            )}
           </div>
-          <div>
-            <h1 className="text-lg font-bold text-foreground">Tutorfy</h1>
-            <p className="text-xs text-muted-foreground">Gestão de Aulas</p>
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <p className="truncate text-sm font-bold text-foreground">
+              {user?.name}
+            </p>
+            <p className="truncate text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Premium Plan
+            </p>
           </div>
         </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 py-4">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === "/"}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? "gradient-primary text-white shadow-lg shadow-primary/25"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                }`
-              }
-            >
-              <item.icon className="h-5 w-5" />
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* User / Logout */}
-        <div className="border-t border-border px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-primary text-sm font-bold overflow-hidden shrink-0">
-              {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt={user?.name || "User"} className="h-full w-full object-cover" />
-              ) : (
-                user?.name?.charAt(0).toUpperCase()
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
-                {user?.name}
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {user?.email}
-              </p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-              title="Sair"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 text-sm font-medium text-slate-400 transition-colors hover:text-red-400"
+          title="Sair"
+        >
+          <LogOut className="h-4 w-4" />
+          Sair
+        </button>
       </div>
     </aside>
   );
