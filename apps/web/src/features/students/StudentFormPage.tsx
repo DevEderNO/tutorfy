@@ -100,6 +100,21 @@ export function StudentFormPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [grades, setGrades] = useState<string[]>([
+    "1º Ano Ensino Fundamental",
+    "2º Ano Ensino Fundamental",
+    "3º Ano Ensino Fundamental",
+    "4º Ano Ensino Fundamental",
+    "5º Ano Ensino Fundamental",
+    "6º Ano Ensino Fundamental",
+    "7º Ano Ensino Fundamental",
+    "8º Ano Ensino Fundamental",
+    "9º Ano Ensino Fundamental",
+    "1º Ano Ensino Médio",
+    "2º Ano Ensino Médio",
+    "3º Ano Ensino Médio",
+    "Outro",
+  ]);
 
   const {
     register,
@@ -362,30 +377,15 @@ export function StudentFormPage() {
                   <option value="" className="text-slate-900">
                     Selecione...
                   </option>
-                  <option value="6º Ano Fundamental" className="text-slate-900">
-                    6º Ano Fundamental
-                  </option>
-                  <option value="7º Ano Fundamental" className="text-slate-900">
-                    7º Ano Fundamental
-                  </option>
-                  <option value="8º Ano Fundamental" className="text-slate-900">
-                    8º Ano Fundamental
-                  </option>
-                  <option value="9º Ano Fundamental" className="text-slate-900">
-                    9º Ano - Fundamental II
-                  </option>
-                  <option value="1º Ano Médio" className="text-slate-900">
-                    1º Ano - Médio
-                  </option>
-                  <option value="2º Ano Médio" className="text-slate-900">
-                    2º Ano - Médio
-                  </option>
-                  <option value="3º Ano Médio" className="text-slate-900">
-                    3º Ano - Médio
-                  </option>
-                  <option value="Outro" className="text-slate-900">
-                    Outro
-                  </option>
+                  {grades.map((grade) => (
+                    <option
+                      key={grade}
+                      value={grade}
+                      className="text-slate-900"
+                    >
+                      {grade}
+                    </option>
+                  ))}
                 </select>
                 {errors.grade && (
                   <p className="text-xs text-red-400 font-medium">

@@ -30,8 +30,10 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate("/");
+      const user = await login(email, password);
+      if (user.id) {
+        navigate("/");
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || "Erro ao fazer login");
     } finally {

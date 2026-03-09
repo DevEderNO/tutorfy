@@ -13,7 +13,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   googleLogin: (token: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User> => {
     const res = await api.post<{ data: AuthResponse }>("/auth/login", {
       email,
       password,
@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("tutorfy_user", JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
+    return newUser;
   };
 
   const googleLogin = async (googleToken: string) => {

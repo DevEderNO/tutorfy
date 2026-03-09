@@ -11,7 +11,7 @@ export class PaymentsRepository {
 
     return prisma.payment.findMany({
       where,
-      include: { student: { select: { id: true, name: true, monthlyFee: true, billingType: true, hourlyRate: true } } },
+      include: { student: { select: { id: true, name: true, monthlyFee: true, billingType: true, hourlyRate: true, school: true } } },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
     });
   }
