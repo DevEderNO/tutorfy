@@ -31,6 +31,23 @@ export class StudentsRepository {
           take: 24,
         },
         schedulePreferences: true,
+        evolutionEntries: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            categories: {
+              include: {
+                category: true,
+              },
+            },
+            classSession: {
+              select: {
+                id: true,
+                date: true,
+                content: true,
+              },
+            },
+          },
+        },
       },
     });
   }

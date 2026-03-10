@@ -23,6 +23,7 @@ import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { Header } from "@/components/layout/Header";
+import { EvolutionTab } from "./components/EvolutionTab";
 
 const statusColors: Record<string, string> = {
   SCHEDULED:
@@ -47,7 +48,7 @@ export function StudentDetailPage() {
   const navigate = useNavigate();
   const { data: student, isLoading } = useStudent(id);
   const deleteClass = useDeleteClass();
-  const [activeTab, setActiveTab] = useState<"billing" | "classes">("billing");
+  const [activeTab, setActiveTab] = useState<"billing" | "classes" | "evolution">("billing");
   const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
 
   if (isLoading) {
@@ -247,6 +248,13 @@ export function StudentDetailPage() {
               <CalendarDays className="h-5 w-5" />
               Log de Aulas
             </button>
+            <button
+              onClick={() => setActiveTab("evolution")}
+              className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "evolution" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300"}`}
+            >
+              <TrendingUp className="h-5 w-5" />
+              Evolução
+            </button>
           </div>
 
           <div className="p-6 relative z-20">
@@ -412,6 +420,10 @@ export function StudentDetailPage() {
                   </table>
                 </div>
               </>
+            )}
+
+            {activeTab === "evolution" && id && (
+              <EvolutionTab studentId={id} />
             )}
 
             {/* Simple Dummy Pagination */}

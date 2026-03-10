@@ -13,6 +13,8 @@ import { paymentsRoutes } from './modules/payments/payments.routes.js';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes.js';
 import { uploadRoutes } from './modules/upload/upload.routes.js';
 import { usersRoutes } from './modules/users/users.routes.js';
+import { evolutionRoutes } from './modules/evolution/evolution.routes.js';
+import { skillCategoriesRoutes } from './modules/skill-categories/skill-categories.routes.js';
 
 const app = Fastify({ logger: true });
 
@@ -46,6 +48,8 @@ await app.register(paymentsRoutes, { prefix: '/payments' });
 await app.register(dashboardRoutes, { prefix: '/dashboard' });
 await app.register(uploadRoutes, { prefix: '/upload' });
 await app.register(usersRoutes, { prefix: '/users' });
+await app.register(evolutionRoutes, { prefix: '/evolution' });
+await app.register(skillCategoriesRoutes, { prefix: '/skill-categories' });
 
 // Health check
 app.get('/health', async () => ({ status: 'ok' }));

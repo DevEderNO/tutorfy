@@ -19,6 +19,12 @@ export const createStudentSchema = z.object({
   monthlyFee: z.number().min(0, 'Valor da mensalidade não pode ser negativo').optional().default(0),
   hourlyRate: z.number().positive('Valor por hora deve ser positivo').optional().nullable(),
   schedulePreferences: z.array(schedulePreferenceSchema).optional(),
+  // Avaliação Inicial
+  currentLevel: z.string().max(500).optional().nullable(),
+  strengths: z.string().max(2000).optional().nullable(),
+  areasToImprove: z.string().max(2000).optional().nullable(),
+  goals: z.string().max(2000).optional().nullable(),
+  initialObservations: z.string().max(5000).optional().nullable(),
 }).refine(
   (data) => {
     if (data.billingType === 'MONTHLY') return (data.monthlyFee ?? 0) > 0;
@@ -45,6 +51,12 @@ export const updateStudentSchema = z.object({
   hourlyRate: z.number().positive().optional().nullable(),
   active: z.boolean().optional(),
   schedulePreferences: z.array(schedulePreferenceSchema).optional(),
+  // Avaliação Inicial
+  currentLevel: z.string().max(500).optional().nullable(),
+  strengths: z.string().max(2000).optional().nullable(),
+  areasToImprove: z.string().max(2000).optional().nullable(),
+  goals: z.string().max(2000).optional().nullable(),
+  initialObservations: z.string().max(5000).optional().nullable(),
 });
 
 export type CreateStudentInput = z.infer<typeof createStudentSchema>;

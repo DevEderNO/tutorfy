@@ -23,6 +23,7 @@ model User {
   classSessions ClassSession[]
   payments     Payment[]
   passwordResetTokens PasswordResetToken[]
+  skillCategories     SkillCategory[]
 
   @@map("users")
 }
@@ -42,10 +43,18 @@ model Student {
   active           Boolean     @default(true)
   createdAt        DateTime    @default(now()) @map("created_at")
 
+  // Avaliação Inicial
+  currentLevel        String?  @map("current_level")
+  strengths           String?
+  areasToImprove      String?  @map("areas_to_improve")
+  goals               String?
+  initialObservations String?  @map("initial_observations")
+
   user          User           @relation(fields: [userId], references: [id])
   classSessions ClassSession[]
   payments      Payment[]
   schedulePreferences StudentSchedulePreference[]
+  evolutionEntries    EvolutionEntry[]
 
   @@index([userId])
   @@map("students")
@@ -78,6 +87,7 @@ model ClassSession {
 
   user    User    @relation(fields: [userId], references: [id])
   student Student @relation(fields: [studentId], references: [id])
+  evolutionEntries EvolutionEntry[]
 
   @@index([userId])
   @@index([studentId])
@@ -134,4 +144,46 @@ model StudentSchedulePreference {
 
   @@index([studentId])
   @@map("student_schedule_preferences")
+}
+
+model SkillCategory {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String
+  color     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User                   @relation(fields: [userId], references: [id])
+  entries EvolutionEntryCategory[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("skill_categories")
+}
+
+model EvolutionEntry {
+  id             String   @id @default(uuid())
+  studentId      String   @map("student_id")
+  classSessionId String?  @map("class_session_id")
+  description    String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  student      Student                @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classSession ClassSession?          @relation(fields: [classSessionId], references: [id], onDelete: SetNull)
+  categories   EvolutionEntryCategory[]
+
+  @@index([studentId])
+  @@index([classSessionId])
+  @@map("evolution_entries")
+}
+
+model EvolutionEntryCategory {
+  entryId    String @map("entry_id")
+  categoryId String @map("category_id")
+
+  entry    EvolutionEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  category SkillCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([entryId, categoryId])
+  @@map("evolution_entry_categories")
 }
