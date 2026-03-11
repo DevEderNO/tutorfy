@@ -31,10 +31,12 @@ import {
   Download,
   GripVertical,
   Clock,
+  Pencil,
 } from "lucide-react";
 import type { ClassStatus } from "@tutorfy/types";
 import { getInitials } from "@/lib/utils";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { Modal } from "@/components/Modal";
 import { Header } from "@/components/layout/Header";
 import { Search } from "lucide-react";
 
@@ -89,6 +91,19 @@ export function SchedulePage() {
     status: "",
   });
   const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
+  const [completingClass, setCompletingClass] = useState<{
+    id: string;
+    content: string;
+    homework: string;
+  } | null>(null);
+  const [editingClass, setEditingClass] = useState<{
+    id: string;
+    studentId: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    content: string;
+  } | null>(null);
 
   const calendarStart =
     viewMode === "month"
@@ -172,7 +187,39 @@ export function SchedulePage() {
   };
 
   const handleStatusChange = (id: string, status: ClassStatus) => {
+    if (status === 'COMPLETED') {
+      setCompletingClass({ id, content: '', homework: '' });
+      return;
+    }
     updateClass.mutate({ id, data: { status } });
+  };
+
+  const handleConfirmComplete = () => {
+    if (!completingClass || !completingClass.content.trim()) return;
+    updateClass.mutate({
+      id: completingClass.id,
+      data: {
+        status: 'COMPLETED',
+        content: completingClass.content.trim(),
+        homework: completingClass.homework.trim() || undefined,
+      },
+    });
+    setCompletingClass(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingClass || !editingClass.date || !editingClass.startTime || !editingClass.endTime) return;
+    await updateClass.mutateAsync({
+      id: editingClass.id,
+      data: {
+        studentId: editingClass.studentId,
+        date: editingClass.date,
+        startTime: editingClass.startTime,
+        endTime: editingClass.endTime,
+        content: editingClass.content || undefined,
+      },
+    });
+    setEditingClass(null);
   };
 
   const navigatePrevious = () => {
@@ -432,23 +479,11 @@ export function SchedulePage() {
             </div>
           )}
 
-          {/* New Class Form Overlay */}
-          {showNewClass && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-              <div className="glass-dark w-full max-w-sm rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative">
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold text-white">Nova Aula</h2>
-                    <button
-                      onClick={() => setShowNewClass(false)}
-                      aria-label="Fechar"
-                      title="Fechar"
-                      className="text-slate-500 hover:text-white transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
-
+          <Modal
+            isOpen={showNewClass}
+            onClose={() => setShowNewClass(false)}
+            title="Nova Aula"
+          >
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
@@ -621,7 +656,22 @@ export function SchedulePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 mt-8">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                        Plano da Aula
+                      </label>
+                      <textarea
+                        value={newClass.content}
+                        onChange={(e) =>
+                          setNewClass({ ...newClass, content: e.target.value })
+                        }
+                        placeholder="O que será trabalhado nesta aula..."
+                        rows={2}
+                        className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 focus:ring-primary focus:border-primary transition-all font-medium outline-none resize-none"
+                      />
+                    </div>
+
+                  <div className="grid grid-cols-2 gap-3 mt-6">
                     <button
                       onClick={() => setShowNewClass(false)}
                       className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
@@ -641,10 +691,7 @@ export function SchedulePage() {
                       Agendar
                     </button>
                   </div>
-                </div>
-              </div>
-            </div>
-          )}
+          </Modal>
 
           <div className="flex-1 overflow-auto p-4 sm:p-6 custom-scrollbar relative z-0">
             <div className="min-w-[800px] h-full flex flex-col glass rounded-xl overflow-hidden shadow-2xl relative">
@@ -730,6 +777,23 @@ export function SchedulePage() {
                                 </div>
 
                                 <div className="opacity-0 group-hover/item:opacity-100 flex items-center bg-slate-900/90 backdrop-blur-md rounded-md absolute right-0 top-0 bottom-0 px-1 shadow-lg transition-opacity border border-white/10">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingClass({
+                                        id: cls.id,
+                                        studentId: cls.studentId,
+                                        date: format(new Date(cls.date), "yyyy-MM-dd"),
+                                        startTime: cls.startTime,
+                                        endTime: cls.endTime,
+                                        content: cls.content ?? "",
+                                      });
+                                    }}
+                                    className="p-1 text-slate-400 hover:text-primary transition-colors"
+                                    title="Editar aula"
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </button>
                                   <select
                                     value={cls.status}
                                     onChange={(e) =>
@@ -791,6 +855,161 @@ export function SchedulePage() {
         >
           <Plus className="h-6 w-6" />
         </button>
+
+        {/* Edit Class Modal */}
+        <Modal
+          isOpen={!!editingClass}
+          onClose={() => setEditingClass(null)}
+          title="Editar Aula"
+        >
+          {editingClass && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                  Aluno
+                </label>
+                <select
+                  value={editingClass.studentId}
+                  onChange={(e) => setEditingClass({ ...editingClass, studentId: e.target.value })}
+                  aria-label="Selecione o aluno"
+                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none"
+                >
+                  {students?.filter((s) => s.active).map((s) => (
+                    <option key={s.id} value={s.id} className="bg-slate-900 text-slate-200">
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                  Data
+                </label>
+                <input
+                  type="date"
+                  value={editingClass.date}
+                  onChange={(e) => setEditingClass({ ...editingClass, date: e.target.value })}
+                  aria-label="Data da aula"
+                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                    Início
+                  </label>
+                  <input
+                    type="time"
+                    value={editingClass.startTime}
+                    onChange={(e) => setEditingClass({ ...editingClass, startTime: e.target.value })}
+                    aria-label="Horário de início"
+                    className="w-full glass-input rounded-xl px-3 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                    Fim
+                  </label>
+                  <input
+                    type="time"
+                    value={editingClass.endTime}
+                    onChange={(e) => setEditingClass({ ...editingClass, endTime: e.target.value })}
+                    aria-label="Horário de fim"
+                    className="w-full glass-input rounded-xl px-3 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                  Plano da Aula
+                </label>
+                <textarea
+                  value={editingClass.content}
+                  onChange={(e) => setEditingClass({ ...editingClass, content: e.target.value })}
+                  placeholder="O que será trabalhado nesta aula..."
+                  rows={2}
+                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <button
+                  onClick={() => setEditingClass(null)}
+                  className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={!editingClass.date || !editingClass.startTime || !editingClass.endTime || updateClass.isPending}
+                  className="w-full bg-primary py-3.5 rounded-xl text-white font-bold text-sm neon-glow hover:brightness-110 disabled:opacity-50 disabled:shadow-none transition-all"
+                >
+                  {updateClass.isPending ? "Salvando..." : "Salvar"}
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
+
+        {/* Complete Class Modal */}
+        <Modal
+          isOpen={!!completingClass}
+          onClose={() => setCompletingClass(null)}
+          title="Registrar Aula Concluída"
+        >
+          {completingClass && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                  O que foi feito *
+                </label>
+                <textarea
+                  value={completingClass.content}
+                  onChange={(e) =>
+                    setCompletingClass({ ...completingClass, content: e.target.value })
+                  }
+                  placeholder="Descreva o conteúdo trabalhado na aula..."
+                  rows={3}
+                  autoFocus
+                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                  Tarefa para próxima aula
+                </label>
+                <textarea
+                  value={completingClass.homework}
+                  onChange={(e) =>
+                    setCompletingClass({ ...completingClass, homework: e.target.value })
+                  }
+                  placeholder="Ex: Exercícios pág. 34-36..."
+                  rows={2}
+                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <button
+                  onClick={() => setCompletingClass(null)}
+                  className="w-full py-3 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleConfirmComplete}
+                  disabled={!completingClass.content.trim()}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl text-white font-bold text-sm disabled:opacity-50 disabled:pointer-events-none transition-all"
+                >
+                  Concluir e Notificar
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
 
         {/* Confirmation Modals */}
         <ConfirmModal

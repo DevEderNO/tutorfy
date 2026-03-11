@@ -61,7 +61,10 @@ export class StudentsRepository {
         userId,
         schedulePreferences: schedulePreferences && schedulePreferences.length > 0 ? {
           create: schedulePreferences
-        } : undefined
+        } : undefined,
+        shareToken: {
+          create: {},
+        },
       },
       include: { schedulePreferences: true },
     });

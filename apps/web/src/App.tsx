@@ -14,6 +14,7 @@ import { StudentDetailPage } from "@/features/students/StudentDetailPage";
 import { SchedulePage } from "@/features/schedule/SchedulePage";
 import { FinancialPage } from "@/features/financial/FinancialPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
+import { StudentPortalPage } from "@/features/portal/StudentPortalPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,6 +52,7 @@ export default function App() {
         <BrowserRouter>
           <AuthProvider>
             <Routes>
+              <Route path="/p/:token" element={<StudentPortalPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route

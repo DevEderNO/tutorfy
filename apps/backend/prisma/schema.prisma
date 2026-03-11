@@ -55,9 +55,21 @@ model Student {
   payments      Payment[]
   schedulePreferences StudentSchedulePreference[]
   evolutionEntries    EvolutionEntry[]
+  shareToken    StudentShareToken?
 
   @@index([userId])
   @@map("students")
+}
+
+model StudentShareToken {
+  id        String   @id @default(uuid())
+  studentId String   @unique @map("student_id")
+  token     String   @unique @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_share_tokens")
 }
 
 enum BillingType {

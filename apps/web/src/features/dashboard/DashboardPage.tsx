@@ -1,7 +1,18 @@
 import { useDashboard } from "./hooks/useDashboard";
 import { usePayments } from "../payments/hooks/usePayments";
-import { useClasses, useUpdateClass, useDeleteClass } from "../classes/hooks/useClasses";
-import { format, startOfWeek, addDays, isSameDay, addWeeks, parseISO } from "date-fns";
+import {
+  useClasses,
+  useUpdateClass,
+  useDeleteClass,
+} from "../classes/hooks/useClasses";
+import {
+  format,
+  startOfWeek,
+  addDays,
+  isSameDay,
+  addWeeks,
+  parseISO,
+} from "date-fns";
 import { ClassStatus } from "@tutorfy/types";
 import { ptBR } from "date-fns/locale";
 import {
@@ -23,8 +34,11 @@ import {
   UserX,
   CalendarClock,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
+import { Modal } from "@/components/Modal";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { Link } from "react-router-dom";
@@ -33,7 +47,14 @@ import { useAuth } from "@/lib/auth";
 
 const statusConfig: Record<
   string,
-  { dot: string; text: string; bg: string; border: string; avatarBg: string; label: string }
+  {
+    dot: string;
+    text: string;
+    bg: string;
+    border: string;
+    avatarBg: string;
+    label: string;
+  }
 > = {
   SCHEDULED: {
     dot: "bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]",
@@ -76,35 +97,75 @@ export function DashboardPage() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState<Date>(new Date());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(
+    null,
+  );
+  const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
+  const [completingClass, setCompletingClass] = useState<{
+    id: string;
+    content: string;
+    homework: string;
+  } | null>(null);
+  const [editingClass, setEditingClass] = useState<{
+    id: string;
+    studentId: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    content: string;
+  } | null>(null);
 
-  const { mutate: updateClass } = useUpdateClass();
+  const { mutate: updateClass, isPending: isUpdating } = useUpdateClass();
   const { mutate: deleteClass } = useDeleteClass();
 
   const closeMenu = () => {
     setOpenMenuId(null);
     setMenuPos(null);
-    setConfirmDeleteId(null);
   };
 
-  const handleMenuToggle = (e: React.MouseEvent<HTMLButtonElement>, id: string) => {
-    if (openMenuId === id) { closeMenu(); return; }
+  const handleMenuToggle = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    id: string,
+  ) => {
+    if (openMenuId === id) {
+      closeMenu();
+      return;
+    }
     const rect = e.currentTarget.getBoundingClientRect();
     const menuWidth = 192;
-    const left = rect.right - menuWidth > 0 ? rect.right - menuWidth : rect.left;
+    const left =
+      rect.right - menuWidth > 0 ? rect.right - menuWidth : rect.left;
     setMenuPos({ top: rect.bottom + 6, left });
     setOpenMenuId(id);
   };
 
   const handleStatusChange = (id: string, status: ClassStatus) => {
+    if (status === ClassStatus.COMPLETED) {
+      closeMenu();
+      setCompletingClass({ id, content: "", homework: "" });
+      return;
+    }
     updateClass({ id, data: { status } });
     closeMenu();
   };
 
-  const handleDelete = (id: string) => {
-    deleteClass(id);
-    closeMenu();
+  const handleConfirmComplete = () => {
+    if (!completingClass || !completingClass.content.trim()) return;
+    updateClass({
+      id: completingClass.id,
+      data: {
+        status: ClassStatus.COMPLETED,
+        content: completingClass.content.trim(),
+        homework: completingClass.homework.trim() || undefined,
+      },
+    });
+    setCompletingClass(null);
+  };
+
+  const handleDelete = () => {
+    if (!deletingClassId) return;
+    deleteClass(deletingClassId);
+    setDeletingClassId(null);
   };
 
   useEffect(() => {
@@ -125,9 +186,13 @@ export function DashboardPage() {
   });
 
   const today = new Date();
-  const weekStart = startOfWeek(addWeeks(today, weekOffset), { weekStartsOn: 1 });
+  const weekStart = startOfWeek(addWeeks(today, weekOffset), {
+    weekStartsOn: 1,
+  });
   const weekEnd = addDays(weekStart, 6);
-  const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
+  const weekDays = Array.from({ length: 7 }).map((_, i) =>
+    addDays(weekStart, i),
+  );
 
   const { data: weekClasses, isLoading: isClassesLoading } = useClasses({
     startDate: format(weekStart, "yyyy-MM-dd"),
@@ -143,7 +208,8 @@ export function DashboardPage() {
   }
 
   const filteredClasses = (weekClasses ?? []).filter(
-    (c) => c.status === activeFilter && isSameDay(parseISO(c.date), selectedDay),
+    (c) =>
+      c.status === activeFilter && isSameDay(parseISO(c.date), selectedDay),
   );
 
   const paidCount = payments?.filter((p) => p.paid).length ?? 0;
@@ -208,7 +274,10 @@ export function DashboardPage() {
                   {paidCount} de {totalCount} pagamentos
                 </span>
                 <span className="text-emerald-400 font-bold">
-                  {totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0}%
+                  {totalCount > 0
+                    ? Math.round((paidCount / totalCount) * 100)
+                    : 0}
+                  %
                 </span>
               </div>
             </div>
@@ -432,9 +501,11 @@ export function DashboardPage() {
             ) : filteredClasses.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {filteredClasses.map((cls) => {
-                  const config = statusConfig[cls.status] || statusConfig.SCHEDULED;
+                  const config =
+                    statusConfig[cls.status] || statusConfig.SCHEDULED;
                   const isMenuOpen = openMenuId === cls.id;
-                  const studentName = (cls as any).student?.name || "Desconhecido";
+                  const studentName =
+                    (cls as any).student?.name || "Desconhecido";
 
                   return (
                     <div
@@ -443,12 +514,18 @@ export function DashboardPage() {
                     >
                       {/* Header: avatar + info + menu */}
                       <div className="flex items-center gap-3">
-                        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${config.avatarBg}`}>
+                        <div
+                          className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${config.avatarBg}`}
+                        >
                           {getInitials(studentName)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-bold text-sm text-white leading-tight truncate">Aula Particular</h4>
-                          <p className="text-xs text-slate-400 mt-0.5 truncate">{studentName}</p>
+                          <h4 className="font-bold text-sm text-white leading-tight truncate">
+                            Aula Particular
+                          </h4>
+                          <p className="text-xs text-slate-400 mt-0.5 truncate">
+                            {studentName}
+                          </p>
                         </div>
                         <button
                           aria-label="Opções da aula"
@@ -467,9 +544,13 @@ export function DashboardPage() {
                       <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/5">
                         <div className="flex items-center gap-1 text-slate-500 text-xs">
                           <Clock className="h-3 w-3 shrink-0" />
-                          <span className="tabular-nums">{cls.startTime} - {cls.endTime}</span>
+                          <span className="tabular-nums">
+                            {cls.startTime} - {cls.endTime}
+                          </span>
                         </div>
-                        <span className={`shrink-0 px-2 py-0.5 ${config.bg} ${config.text} rounded-full text-[10px] font-bold uppercase tracking-wider`}>
+                        <span
+                          className={`shrink-0 px-2 py-0.5 ${config.bg} ${config.text} rounded-full text-[10px] font-bold uppercase tracking-wider`}
+                        >
                           {config.label}
                         </span>
                       </div>
@@ -479,82 +560,108 @@ export function DashboardPage() {
               </div>
             ) : (
               <div className="text-center py-8 text-slate-500 text-sm">
-                Nenhuma aula {statusConfig[activeFilter]?.label.toLowerCase()} em{" "}
-                {format(selectedDay, "EEEE, d 'de' MMMM", { locale: ptBR })}.
+                Nenhuma aula {statusConfig[activeFilter]?.label.toLowerCase()}{" "}
+                em {format(selectedDay, "EEEE, d 'de' MMMM", { locale: ptBR })}.
               </div>
             )}
           </div>
 
           {/* Context menu portal */}
-          {openMenuId && menuPos && ReactDOM.createPortal(
-            <>
-              <div className="fixed inset-0 z-[998]" onClick={closeMenu} />
-              <div
-                className="fixed z-[999] w-48 rounded-md border border-slate-700/70 bg-[#120e1e] shadow-lg shadow-black/50 py-1 animate-in fade-in-0 zoom-in-95 duration-100"
-                style={{ top: menuPos.top, left: menuPos.left }}
-              >
-                {(() => {
-                  const cls = filteredClasses.find((c) => c.id === openMenuId)!;
-                  if (!cls) return null;
-                  const isConfirming = confirmDeleteId === openMenuId;
+          {openMenuId &&
+            menuPos &&
+            ReactDOM.createPortal(
+              <>
+                <div className="fixed inset-0 z-[998]" onClick={closeMenu} />
+                <div
+                  className="fixed z-[999] w-48 rounded-md border border-slate-700/70 bg-[#120e1e] shadow-lg shadow-black/50 py-1 animate-in fade-in-0 zoom-in-95 duration-100"
+                  style={{ top: menuPos.top, left: menuPos.left }}
+                >
+                  {(() => {
+                    const cls = filteredClasses.find(
+                      (c) => c.id === openMenuId,
+                    )!;
+                    if (!cls) return null;
+                    const statusActions: {
+                      status: ClassStatus;
+                      label: string;
+                      icon: React.ReactNode;
+                    }[] = [
+                      {
+                        status: ClassStatus.COMPLETED,
+                        label: "Concluir",
+                        icon: (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                        ),
+                      },
+                      {
+                        status: ClassStatus.MISSED,
+                        label: "Falta",
+                        icon: <UserX className="h-4 w-4 text-orange-400" />,
+                      },
+                      {
+                        status: ClassStatus.CANCELED,
+                        label: "Cancelar",
+                        icon: <XCircle className="h-4 w-4 text-slate-400" />,
+                      },
+                      {
+                        status: ClassStatus.SCHEDULED,
+                        label: "Reagendar",
+                        icon: (
+                          <CalendarClock className="h-4 w-4 text-primary" />
+                        ),
+                      },
+                    ].filter((a) => a.status !== cls.status);
 
-                  const statusActions: { status: ClassStatus; label: string; icon: React.ReactNode }[] = [
-                    { status: ClassStatus.COMPLETED, label: "Marcar como Concluída", icon: <CheckCircle2 className="h-4 w-4 text-emerald-400" /> },
-                    { status: ClassStatus.MISSED,    label: "Marcar como Falta",     icon: <UserX className="h-4 w-4 text-orange-400" /> },
-                    { status: ClassStatus.CANCELED,  label: "Cancelar Aula",         icon: <XCircle className="h-4 w-4 text-slate-400" /> },
-                    { status: ClassStatus.SCHEDULED, label: "Reagendar",             icon: <CalendarClock className="h-4 w-4 text-primary" /> },
-                  ].filter((a) => a.status !== cls.status);
-
-                  if (isConfirming) {
                     return (
-                      <div className="px-3 py-2 space-y-2">
-                        <p className="text-xs font-semibold text-slate-200">Excluir aula?</p>
-                        <p className="text-[11px] text-slate-500">Esta ação não pode ser desfeita.</p>
-                        <div className="flex gap-2 pt-1">
-                          <button
-                            onClick={() => setConfirmDeleteId(null)}
-                            className="flex-1 py-1.5 rounded-md text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
-                          >
-                            Cancelar
-                          </button>
-                          <button
-                            onClick={() => handleDelete(cls.id)}
-                            className="flex-1 py-1.5 rounded-md text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors"
-                          >
-                            Excluir
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <>
-                      {statusActions.map((action) => (
+                      <>
                         <button
-                          key={action.status}
-                          onClick={() => handleStatusChange(cls.id, action.status)}
+                          onClick={() => {
+                            setEditingClass({
+                              id: cls.id,
+                              studentId: cls.studentId,
+                              date: format(parseISO(cls.date), "yyyy-MM-dd"),
+                              startTime: cls.startTime,
+                              endTime: cls.endTime,
+                              content: cls.content ?? "",
+                            });
+                            closeMenu();
+                          }}
                           className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800/80 transition-colors"
                         >
-                          {action.icon}
-                          {action.label}
+                          <Pencil className="h-4 w-4 text-primary" />
+                          Editar Aula
                         </button>
-                      ))}
-                      <div className="h-px bg-slate-700/50 my-1" />
-                      <button
-                        onClick={() => setConfirmDeleteId(cls.id)}
-                        className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Excluir Aula
-                      </button>
-                    </>
-                  );
-                })()}
-              </div>
-            </>,
-            document.body
-          )}
+                        <div className="h-px bg-slate-700/50 my-1" />
+                        {statusActions.map((action) => (
+                          <button
+                            key={action.status}
+                            onClick={() =>
+                              handleStatusChange(cls.id, action.status)
+                            }
+                            className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800/80 transition-colors"
+                          >
+                            {action.icon}
+                            {action.label}
+                          </button>
+                        ))}
+                        <div className="h-px bg-slate-700/50 my-1" />
+                        <button
+                          onClick={() => {
+                            setDeletingClassId(cls.id);
+                            closeMenu();
+                          }}
+                          className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Excluir Aula
+                        </button>
+                      </>
+                    );
+                  })()}
+                </div>
+              </>,
+              document.body,
+            )}
         </section>
 
         {/* Bottom Layer */}
@@ -637,6 +744,182 @@ export function DashboardPage() {
           </div>
         </section>
       </div>
+
+      {/* Edit Class Modal */}
+      <Modal
+        isOpen={!!editingClass}
+        onClose={() => setEditingClass(null)}
+        title="Editar Aula"
+      >
+        {editingClass && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                Data
+              </label>
+              <input
+                type="date"
+                value={editingClass.date}
+                onChange={(e) =>
+                  setEditingClass({ ...editingClass, date: e.target.value })
+                }
+                aria-label="Data da aula"
+                className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                  Início
+                </label>
+                <input
+                  type="time"
+                  value={editingClass.startTime}
+                  onChange={(e) =>
+                    setEditingClass({ ...editingClass, startTime: e.target.value })
+                  }
+                  aria-label="Horário de início"
+                  className="w-full glass-input rounded-xl px-3 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                  Fim
+                </label>
+                <input
+                  type="time"
+                  value={editingClass.endTime}
+                  onChange={(e) =>
+                    setEditingClass({ ...editingClass, endTime: e.target.value })
+                  }
+                  aria-label="Horário de fim"
+                  className="w-full glass-input rounded-xl px-3 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                Plano da Aula
+              </label>
+              <textarea
+                value={editingClass.content}
+                onChange={(e) =>
+                  setEditingClass({ ...editingClass, content: e.target.value })
+                }
+                placeholder="O que será trabalhado nesta aula..."
+                rows={2}
+                className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <button
+                onClick={() => setEditingClass(null)}
+                className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (!editingClass.date || !editingClass.startTime || !editingClass.endTime)
+                    return;
+                  updateClass({
+                    id: editingClass.id,
+                    data: {
+                      date: editingClass.date,
+                      startTime: editingClass.startTime,
+                      endTime: editingClass.endTime,
+                      content: editingClass.content || undefined,
+                    },
+                  });
+                  setEditingClass(null);
+                }}
+                disabled={
+                  !editingClass.date ||
+                  !editingClass.startTime ||
+                  !editingClass.endTime ||
+                  isUpdating
+                }
+                className="w-full bg-primary py-3.5 rounded-xl text-white font-bold text-sm neon-glow hover:brightness-110 disabled:opacity-50 disabled:shadow-none transition-all"
+              >
+                {isUpdating ? "Salvando..." : "Salvar"}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Complete Class Modal */}
+      <Modal
+        isOpen={!!completingClass}
+        onClose={() => setCompletingClass(null)}
+        title="Registrar Aula Concluída"
+      >
+        {completingClass && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                O que foi feito *
+              </label>
+              <textarea
+                value={completingClass.content}
+                onChange={(e) =>
+                  setCompletingClass({ ...completingClass, content: e.target.value })
+                }
+                placeholder="Descreva o conteúdo trabalhado na aula..."
+                rows={3}
+                autoFocus
+                className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                Tarefa para próxima aula
+              </label>
+              <textarea
+                value={completingClass.homework}
+                onChange={(e) =>
+                  setCompletingClass({ ...completingClass, homework: e.target.value })
+                }
+                placeholder="Ex: Exercícios pág. 34-36..."
+                rows={2}
+                className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <button
+                onClick={() => setCompletingClass(null)}
+                className="w-full py-3 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmComplete}
+                disabled={!completingClass.content.trim()}
+                className="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl text-white font-bold text-sm disabled:opacity-50 disabled:pointer-events-none transition-all"
+              >
+                Concluir e Notificar
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Delete Class Modal */}
+      <ConfirmModal
+        isOpen={!!deletingClassId}
+        onClose={() => setDeletingClassId(null)}
+        onConfirm={handleDelete}
+        title="Excluir Aula"
+        description="Tem certeza que deseja excluir esta aula? Esta ação não pode ser desfeita."
+        confirmLabel="Sim, Excluir"
+        cancelLabel="Cancelar"
+        icon={Trash2}
+        variant="danger"
+      />
     </div>
   );
 }

@@ -7,6 +7,7 @@ const envSchema = z.object({
   HOST: z.string().default('0.0.0.0'),
   GOOGLE_CLIENT_ID: z.string(),
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
+  PUBLIC_URL: z.string().url().default('http://localhost:3000'),
 });
 
 const _env = envSchema.safeParse(process.env);

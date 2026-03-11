@@ -11,7 +11,6 @@ import {
   DollarSign,
   Plus,
   Check,
-  X as XIcon,
   Trash2,
   CalendarDays,
   Filter,
@@ -20,6 +19,7 @@ import {
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { Modal } from "@/components/Modal";
 import { Header } from "@/components/layout/Header";
 
 export function FinancialPage() {
@@ -583,190 +583,152 @@ export function FinancialPage() {
           </div>
 
           {/* Manual Payment MODAL Form */}
-          {showManual && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background-dark/80 backdrop-blur-md transition-all">
-              <div className="glass-panel rounded-2xl p-8 w-full max-w-lg border border-white/10 shadow-2xl relative">
-                <button
-                  aria-label="Fechar modal"
-                  title="Fechar"
-                  onClick={() => setShowManual(false)}
-                  className="absolute top-6 right-6 p-2 text-muted-foreground hover:text-white hover:bg-white/5 rounded-full transition-colors"
+          <Modal
+            isOpen={showManual}
+            onClose={() => setShowManual(false)}
+            title="Novo Lançamento"
+            size="lg"
+          >
+            <p className="text-slate-400 text-sm mb-6 font-medium -mt-2">
+              {months[month - 1]}/{year} — Preencha os dados para registrar uma entrada financeira avulsa.
+            </p>
+
+            <div className="flex flex-col gap-5">
+              <div>
+                <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                  Aluno *
+                </label>
+                <select
+                  title="Aluno"
+                  aria-label="Aluno"
+                  value={manualForm.studentId}
+                  onChange={(e) =>
+                    setManualForm({ ...manualForm, studentId: e.target.value })
+                  }
+                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none"
                 >
-                  <XIcon className="h-5 w-5" />
-                </button>
-                <h3 className="mb-2 text-2xl font-black text-foreground">
-                  Novo Lançamento
-                  <span className="text-primary text-sm align-middle ml-2 font-bold tracking-wider">
-                    ({months[month - 1]}/{year})
-                  </span>
-                </h3>
-                <p className="text-muted-foreground text-sm mb-8 font-medium">
-                  Preencha os dados para registrar uma nova entrada financeira
-                  avulsa no sistema.
-                </p>
+                  <option value="" className="bg-slate-900">
+                    Selecione um aluno...
+                  </option>
+                  {students?.filter((s) => s.active).map((s) => (
+                    <option key={s.id} value={s.id} className="bg-slate-900">
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                <div className="flex flex-col gap-6">
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                      Aluno *
-                    </label>
-                    <select
-                      title="Aluno"
-                      aria-label="Aluno"
-                      value={manualForm.studentId}
+              <div>
+                <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                  Tipo de Cobrança *
+                </label>
+                <select
+                  title="Tipo de Cobrança"
+                  aria-label="Tipo de Cobrança"
+                  value={manualForm.billingType}
+                  onChange={(e) =>
+                    setManualForm({ ...manualForm, billingType: e.target.value as any })
+                  }
+                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none"
+                >
+                  <option value="MONTHLY" className="bg-slate-900">Mensalidade Fixa</option>
+                  <option value="HOURLY" className="bg-slate-900">Por Hora-Aula</option>
+                </select>
+              </div>
+
+              {manualForm.billingType === "HOURLY" ? (
+                <div>
+                  <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                    Quantidade de Horas *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={manualForm.classHours || ""}
+                    onChange={(e) =>
+                      setManualForm({ ...manualForm, classHours: Number(e.target.value) })
+                    }
+                    className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none"
+                    placeholder="Ex: 10"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                    Valor Calculado (R$) *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
+                      R$
+                    </span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={manualForm.amount || ""}
                       onChange={(e) =>
-                        setManualForm({
-                          ...manualForm,
-                          studentId: e.target.value,
-                        })
+                        setManualForm({ ...manualForm, amount: Number(e.target.value) })
                       }
-                      className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all cursor-pointer"
-                    >
-                      <option value="" className="bg-background-dark">
-                        Selecione um aluno...
-                      </option>
-                      {students
-                        ?.filter((s) => s.active)
-                        .map((s) => (
-                          <option
-                            key={s.id}
-                            value={s.id}
-                            className="bg-background-dark"
-                          >
-                            {s.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                      Tipo de Cobrança *
-                    </label>
-                    <select
-                      title="Tipo de Cobrança"
-                      aria-label="Tipo de Cobrança"
-                      value={manualForm.billingType}
-                      onChange={(e) =>
-                        setManualForm({
-                          ...manualForm,
-                          billingType: e.target.value as any,
-                        })
-                      }
-                      className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all cursor-pointer"
-                    >
-                      <option value="MONTHLY" className="bg-background-dark">
-                        Mensalidade Fixa
-                      </option>
-                      <option value="HOURLY" className="bg-background-dark">
-                        Por Hora-Aula
-                      </option>
-                    </select>
-                  </div>
-
-                  {manualForm.billingType === "HOURLY" ? (
-                    <div>
-                      <label className="mb-2 block text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                        Quantidade de Horas *
-                      </label>
-                      <input
-                        type="number"
-                        step="0.5"
-                        value={manualForm.classHours || ""}
-                        onChange={(e) =>
-                          setManualForm({
-                            ...manualForm,
-                            classHours: Number(e.target.value),
-                          })
-                        }
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground/50"
-                        placeholder="Ex: 10"
-                      />
-                    </div>
-                  ) : (
-                    <div>
-                      <label className="mb-2 block text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                        Valor Calculado (R$) *
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
-                          R$
-                        </span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={manualForm.amount || ""}
-                          onChange={(e) =>
-                            setManualForm({
-                              ...manualForm,
-                              amount: Number(e.target.value),
-                            })
-                          }
-                          className="w-full pl-12 pr-4 bg-white/5 border border-white/10 rounded-xl py-3 text-lg font-bold text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground/50"
-                          placeholder="0.00"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-4 pt-4 mt-2">
-                    <button
-                      onClick={() => setShowManual(false)}
-                      className="flex-1 px-6 py-3 rounded-xl border border-white/10 text-muted-foreground font-bold hover:bg-white/5 hover:text-foreground transition-all"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      onClick={handleManualSubmit}
-                      disabled={!manualForm.studentId}
-                      className="flex-1 px-6 py-3 rounded-xl bg-primary text-white font-bold shadow-[0_0_15px_rgba(116,61,245,0.4)] hover:opacity-90 disabled:opacity-50 transition-all"
-                    >
-                      Lançar Pagamento
-                    </button>
+                      className="w-full pl-12 pr-4 glass-input rounded-xl py-3 text-lg font-bold text-slate-200 outline-none transition-all"
+                      placeholder="0.00"
+                    />
                   </div>
                 </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  onClick={() => setShowManual(false)}
+                  className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleManualSubmit}
+                  disabled={!manualForm.studentId}
+                  className="w-full bg-primary py-3.5 rounded-xl text-white font-bold text-sm neon-glow hover:brightness-110 disabled:opacity-50 disabled:shadow-none transition-all"
+                >
+                  Lançar Pagamento
+                </button>
               </div>
             </div>
-          )}
+          </Modal>
 
           {/* Generate Confirmation MODAL */}
-          {showGenerate && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background-dark/80 backdrop-blur-md transition-all">
-              <div className="glass-panel rounded-2xl p-8 w-full max-w-md border border-white/10 shadow-2xl relative text-center">
-                <div className="mx-auto size-16 bg-primary/20 text-primary border border-primary/30 rounded-full flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(116,61,245,0.3)]">
-                  <Sparkles className="h-8 w-8" />
-                </div>
+          <Modal
+            isOpen={showGenerate}
+            onClose={() => setShowGenerate(false)}
+            title="Gerar Mensalidades"
+            size="md"
+          >
+            <div className="flex flex-col items-center text-center gap-6">
+              <div className="size-16 bg-primary/20 text-primary border border-primary/30 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(116,61,245,0.3)]">
+                <Sparkles className="h-8 w-8" />
+              </div>
 
-                <h3 className="text-2xl font-black text-foreground mb-2 tracking-tight">
-                  Gerar Mensalidades
-                </h3>
+              <p className="text-slate-400 text-sm font-medium">
+                Todas as faturas pendentes do mês de{" "}
+                <strong className="text-white">
+                  {months[month - 1]} de {year}
+                </strong>{" "}
+                para alunos ativos (Mensalidade e Por Hora) serão geradas no sistema.
+              </p>
 
-                <p className="text-muted-foreground text-sm mb-8 font-medium">
-                  Todas as faturas pendentes do mês de{" "}
-                  <strong className="text-foreground">
-                    {months[month - 1]} de {year}
-                  </strong>{" "}
-                  para alunos ativos (Mensalidade e Por Hora) serão geradas no
-                  sistema.
-                </p>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setShowGenerate(false)}
-                    className="flex-1 px-6 py-3 rounded-xl border border-white/10 text-muted-foreground font-bold hover:bg-white/5 hover:text-foreground transition-all"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleGeneratePayments}
-                    className="flex-1 px-6 py-3 rounded-xl bg-primary text-white font-bold shadow-[0_0_15px_rgba(116,61,245,0.4)] hover:opacity-90 transition-all"
-                  >
-                    Confirmar
-                  </button>
-                </div>
+              <div className="grid grid-cols-2 gap-3 w-full">
+                <button
+                  onClick={() => setShowGenerate(false)}
+                  className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleGeneratePayments}
+                  className="w-full bg-primary py-3.5 rounded-xl text-white font-bold text-sm neon-glow hover:brightness-110 transition-all"
+                >
+                  Confirmar
+                </button>
               </div>
             </div>
-          )}
+          </Modal>
 
           {/* Confirmation Modals */}
           <ConfirmModal
