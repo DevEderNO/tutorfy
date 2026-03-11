@@ -1,6 +1,7 @@
-import { Search, Bell, Plus, Menu } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Search, Bell, Plus, Settings, LogOut, ChevronDown } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { useState, useRef, useEffect } from "react";
 
 interface HeaderProps {
   title: string;
@@ -23,7 +24,25 @@ export function Header({
   createButtonLink = "/schedule",
   createButtonLabel = "Novo",
 }: HeaderProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 glass border-b border-primary/10 px-8 py-4 flex items-center justify-between backdrop-blur-md">
@@ -67,15 +86,57 @@ export function Header({
           <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-primary rounded-full neon-glow"></span>
         </button>
 
-        <div className="hidden sm:flex h-10 w-10 rounded-xl glass p-0.5 overflow-hidden border border-primary/20 justify-center items-center bg-primary/10 text-primary font-bold">
-          {user?.avatarUrl ? (
-            <img
-              className="w-full h-full object-cover rounded-lg"
-              src={user.avatarUrl}
-              alt="Avatar"
-            />
-          ) : (
-            user?.name?.charAt(0).toUpperCase()
+        {/* User menu */}
+        <div className="relative hidden sm:block" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex items-center gap-2 rounded-xl glass px-2 py-1 border border-primary/20 hover:border-primary/40 transition-colors"
+            aria-label="Menu do usuário"
+          >
+            <div className="flex h-8 w-8 rounded-lg overflow-hidden justify-center items-center bg-primary/10 text-primary font-bold text-sm">
+              {user?.avatarUrl ? (
+                <img
+                  className="w-full h-full object-cover"
+                  src={user.avatarUrl}
+                  alt="Avatar"
+                />
+              ) : (
+                user?.name?.charAt(0).toUpperCase()
+              )}
+            </div>
+            <div className="text-left">
+              <p className="text-xs font-bold text-foreground leading-none">{user?.name}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 leading-none mt-0.5">
+                Premium Plan
+              </p>
+            </div>
+            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${menuOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {menuOpen && (
+            <div className="absolute right-0 top-full mt-2 w-52 glass rounded-xl border border-primary/20 shadow-xl shadow-black/40 overflow-hidden">
+              <div className="px-4 py-3 border-b border-primary/10">
+                <p className="text-sm font-bold text-foreground truncate">{user?.name}</p>
+                <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+              </div>
+              <div className="p-1">
+                <Link
+                  to="/settings"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-primary/10 transition-colors"
+                >
+                  <Settings className="h-4 w-4" />
+                  Configurações
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-sm text-slate-300 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sair
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
