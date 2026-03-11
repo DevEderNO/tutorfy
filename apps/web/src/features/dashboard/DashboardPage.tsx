@@ -1,7 +1,8 @@
 import { useDashboard } from "./hooks/useDashboard";
 import { usePayments } from "../payments/hooks/usePayments";
-import { useClasses } from "../classes/hooks/useClasses";
+import { useClasses, useUpdateClass, useDeleteClass } from "../classes/hooks/useClasses";
 import { format, startOfWeek, addDays, isSameDay, addWeeks, parseISO } from "date-fns";
+import { ClassStatus } from "@tutorfy/types";
 import { ptBR } from "date-fns/locale";
 import {
   Search,
@@ -17,39 +18,53 @@ import {
   History,
   Zap,
   TrendingUp,
+  CheckCircle2,
+  XCircle,
+  UserX,
+  CalendarClock,
+  Trash2,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { Link } from "react-router-dom";
 import { getInitials } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 
 const statusConfig: Record<
   string,
-  { dot: string; text: string; bg: string; label: string }
+  { dot: string; text: string; bg: string; border: string; avatarBg: string; label: string }
 > = {
   SCHEDULED: {
     dot: "bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]",
-    text: "text-blue-500",
+    text: "text-blue-400",
     bg: "bg-blue-500/10",
+    border: "border-l-blue-500",
+    avatarBg: "bg-blue-500/15 text-blue-300",
     label: "Agendada",
   },
   COMPLETED: {
     dot: "bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]",
-    text: "text-emerald-500",
+    text: "text-emerald-400",
     bg: "bg-emerald-500/10",
+    border: "border-l-emerald-500",
+    avatarBg: "bg-emerald-500/15 text-emerald-300",
     label: "Concluída",
   },
   CANCELED: {
     dot: "bg-slate-500 shadow-[0_0_15px_rgba(100,116,139,0.4)]",
     text: "text-slate-400",
     bg: "bg-slate-500/10",
+    border: "border-l-slate-500",
+    avatarBg: "bg-slate-500/15 text-slate-300",
     label: "Cancelada",
   },
   MISSED: {
     dot: "bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.4)]",
-    text: "text-orange-500",
+    text: "text-orange-400",
     bg: "bg-orange-500/10",
+    border: "border-l-orange-500",
+    avatarBg: "bg-orange-500/15 text-orange-300",
     label: "Falta",
   },
 };
@@ -60,6 +75,48 @@ export function DashboardPage() {
   const [activeFilter, setActiveFilter] = useState("SCHEDULED");
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState<Date>(new Date());
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const { mutate: updateClass } = useUpdateClass();
+  const { mutate: deleteClass } = useDeleteClass();
+
+  const closeMenu = () => {
+    setOpenMenuId(null);
+    setMenuPos(null);
+    setConfirmDeleteId(null);
+  };
+
+  const handleMenuToggle = (e: React.MouseEvent<HTMLButtonElement>, id: string) => {
+    if (openMenuId === id) { closeMenu(); return; }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const menuWidth = 192;
+    const left = rect.right - menuWidth > 0 ? rect.right - menuWidth : rect.left;
+    setMenuPos({ top: rect.bottom + 6, left });
+    setOpenMenuId(id);
+  };
+
+  const handleStatusChange = (id: string, status: ClassStatus) => {
+    updateClass({ id, data: { status } });
+    closeMenu();
+  };
+
+  const handleDelete = (id: string) => {
+    deleteClass(id);
+    closeMenu();
+  };
+
+  useEffect(() => {
+    if (!openMenuId) return;
+    const handleScroll = () => closeMenu();
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", closeMenu);
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", closeMenu);
+    };
+  }, [openMenuId]);
 
   const now = new Date();
   const { data: payments, isLoading: isPaymentsLoading } = usePayments({
@@ -367,50 +424,59 @@ export function DashboardPage() {
           </div>
 
           {/* Classes list */}
-          <div className="space-y-3 pr-2 max-h-[320px] overflow-y-auto custom-scrollbar">
+          <div className="max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
             {isClassesLoading ? (
               <div className="flex justify-center py-8">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               </div>
             ) : filteredClasses.length > 0 ? (
-              filteredClasses.map((cls) => {
-                const config = statusConfig[cls.status] || statusConfig.SCHEDULED;
-                return (
-                  <div
-                    key={cls.id}
-                    className="flex items-center justify-between p-4 glass rounded-xl hover:bg-white/5 transition-colors cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`h-2.5 w-2.5 rounded-full ${config.dot}`} />
-                      <div>
-                        <h4 className="font-bold text-sm text-slate-100">
-                          Aula Particular
-                        </h4>
-                        <p className="text-xs text-slate-400 mt-1">
-                          {(cls as any).student?.name || "Desconhecido"}
-                        </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {filteredClasses.map((cls) => {
+                  const config = statusConfig[cls.status] || statusConfig.SCHEDULED;
+                  const isMenuOpen = openMenuId === cls.id;
+                  const studentName = (cls as any).student?.name || "Desconhecido";
+
+                  return (
+                    <div
+                      key={cls.id}
+                      className={`flex flex-col gap-3 p-4 glass rounded-xl border-l-[3px] hover:brightness-105 transition-all ${config.border}`}
+                    >
+                      {/* Header: avatar + info + menu */}
+                      <div className="flex items-center gap-3">
+                        <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${config.avatarBg}`}>
+                          {getInitials(studentName)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-sm text-white leading-tight truncate">Aula Particular</h4>
+                          <p className="text-xs text-slate-400 mt-0.5 truncate">{studentName}</p>
+                        </div>
+                        <button
+                          aria-label="Opções da aula"
+                          onClick={(e) => handleMenuToggle(e, cls.id)}
+                          className={`shrink-0 p-1 rounded-md transition-colors ${
+                            isMenuOpen
+                              ? "bg-primary/10 text-primary"
+                              : "text-slate-600 hover:text-slate-300 hover:bg-slate-800/60"
+                          }`}
+                        >
+                          <MoreVertical className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Footer: time + badge */}
+                      <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/5">
+                        <div className="flex items-center gap-1 text-slate-500 text-xs">
+                          <Clock className="h-3 w-3 shrink-0" />
+                          <span className="tabular-nums">{cls.startTime} - {cls.endTime}</span>
+                        </div>
+                        <span className={`shrink-0 px-2 py-0.5 ${config.bg} ${config.text} rounded-full text-[10px] font-bold uppercase tracking-wider`}>
+                          {config.label}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 sm:gap-6">
-                      <div className="hidden sm:flex items-center gap-2 text-slate-400 text-xs font-medium">
-                        <Clock className="h-4 w-4" />
-                        {cls.startTime} - {cls.endTime}
-                      </div>
-                      <span
-                        className={`px-3 py-1 ${config.bg} ${config.text} rounded-full text-[10px] font-bold uppercase tracking-wider`}
-                      >
-                        {config.label}
-                      </span>
-                      <button
-                        aria-label="Opções da aula"
-                        className="flex items-center justify-center p-1 rounded hover:bg-slate-800/50 transition-colors group-hover:text-primary"
-                      >
-                        <MoreVertical className="h-5 w-5 text-slate-500" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             ) : (
               <div className="text-center py-8 text-slate-500 text-sm">
                 Nenhuma aula {statusConfig[activeFilter]?.label.toLowerCase()} em{" "}
@@ -418,6 +484,77 @@ export function DashboardPage() {
               </div>
             )}
           </div>
+
+          {/* Context menu portal */}
+          {openMenuId && menuPos && ReactDOM.createPortal(
+            <>
+              <div className="fixed inset-0 z-[998]" onClick={closeMenu} />
+              <div
+                className="fixed z-[999] w-48 rounded-md border border-slate-700/70 bg-[#120e1e] shadow-lg shadow-black/50 py-1 animate-in fade-in-0 zoom-in-95 duration-100"
+                style={{ top: menuPos.top, left: menuPos.left }}
+              >
+                {(() => {
+                  const cls = filteredClasses.find((c) => c.id === openMenuId)!;
+                  if (!cls) return null;
+                  const isConfirming = confirmDeleteId === openMenuId;
+
+                  const statusActions: { status: ClassStatus; label: string; icon: React.ReactNode }[] = [
+                    { status: ClassStatus.COMPLETED, label: "Marcar como Concluída", icon: <CheckCircle2 className="h-4 w-4 text-emerald-400" /> },
+                    { status: ClassStatus.MISSED,    label: "Marcar como Falta",     icon: <UserX className="h-4 w-4 text-orange-400" /> },
+                    { status: ClassStatus.CANCELED,  label: "Cancelar Aula",         icon: <XCircle className="h-4 w-4 text-slate-400" /> },
+                    { status: ClassStatus.SCHEDULED, label: "Reagendar",             icon: <CalendarClock className="h-4 w-4 text-primary" /> },
+                  ].filter((a) => a.status !== cls.status);
+
+                  if (isConfirming) {
+                    return (
+                      <div className="px-3 py-2 space-y-2">
+                        <p className="text-xs font-semibold text-slate-200">Excluir aula?</p>
+                        <p className="text-[11px] text-slate-500">Esta ação não pode ser desfeita.</p>
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="flex-1 py-1.5 rounded-md text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            onClick={() => handleDelete(cls.id)}
+                            className="flex-1 py-1.5 rounded-md text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors"
+                          >
+                            Excluir
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <>
+                      {statusActions.map((action) => (
+                        <button
+                          key={action.status}
+                          onClick={() => handleStatusChange(cls.id, action.status)}
+                          className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800/80 transition-colors"
+                        >
+                          {action.icon}
+                          {action.label}
+                        </button>
+                      ))}
+                      <div className="h-px bg-slate-700/50 my-1" />
+                      <button
+                        onClick={() => setConfirmDeleteId(cls.id)}
+                        className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Excluir Aula
+                      </button>
+                    </>
+                  );
+                })()}
+              </div>
+            </>,
+            document.body
+          )}
         </section>
 
         {/* Bottom Layer */}
