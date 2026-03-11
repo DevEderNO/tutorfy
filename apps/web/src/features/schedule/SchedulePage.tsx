@@ -39,6 +39,7 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { Modal } from "@/components/Modal";
 import { Header } from "@/components/layout/Header";
 import { Search } from "lucide-react";
+import { MicButton } from "@/components/MicButton";
 
 const statusConfig: Record<
   string,
@@ -657,9 +658,19 @@ export function SchedulePage() {
                   </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                        Plano da Aula
-                      </label>
+                      <div className="flex items-center justify-between ml-1">
+                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                          Plano da Aula
+                        </label>
+                        <MicButton
+                          onAppend={(text) =>
+                            setNewClass((prev) => ({
+                              ...prev,
+                              content: prev.content + (prev.content.trim() ? " " : "") + text,
+                            }))
+                          }
+                        />
+                      </div>
                       <textarea
                         value={newClass.content}
                         onChange={(e) =>
@@ -923,9 +934,18 @@ export function SchedulePage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                  Plano da Aula
-                </label>
+                <div className="flex items-center justify-between ml-1">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                    Plano da Aula
+                  </label>
+                  <MicButton
+                    onAppend={(text) =>
+                      setEditingClass((prev) =>
+                        prev ? { ...prev, content: prev.content + (prev.content.trim() ? " " : "") + text } : prev
+                      )
+                    }
+                  />
+                </div>
                 <textarea
                   value={editingClass.content}
                   onChange={(e) => setEditingClass({ ...editingClass, content: e.target.value })}
@@ -963,9 +983,18 @@ export function SchedulePage() {
           {completingClass && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                  O que foi feito *
-                </label>
+                <div className="flex items-center justify-between ml-1">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                    O que foi feito *
+                  </label>
+                  <MicButton
+                    onAppend={(text) =>
+                      setCompletingClass((prev) =>
+                        prev ? { ...prev, content: prev.content + (prev.content.trim() ? " " : "") + text } : prev
+                      )
+                    }
+                  />
+                </div>
                 <textarea
                   value={completingClass.content}
                   onChange={(e) =>
@@ -978,9 +1007,18 @@ export function SchedulePage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                  Tarefa para próxima aula
-                </label>
+                <div className="flex items-center justify-between ml-1">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                    Tarefa para próxima aula
+                  </label>
+                  <MicButton
+                    onAppend={(text) =>
+                      setCompletingClass((prev) =>
+                        prev ? { ...prev, homework: prev.homework + (prev.homework.trim() ? " " : "") + text } : prev
+                      )
+                    }
+                  />
+                </div>
                 <textarea
                   value={completingClass.homework}
                   onChange={(e) =>

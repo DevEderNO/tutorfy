@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { X, Sparkles } from "lucide-react";
 import { useSkillCategories } from "../hooks/useSkillCategories";
 import type { SkillCategory } from "../hooks/useSkillCategories";
+import { MicButton } from "@/components/MicButton";
 
 interface EvolutionFormModalProps {
   isOpen: boolean;
@@ -88,9 +89,16 @@ export function EvolutionFormModal({
 
           {/* Description */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-300">
-              Observação *
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-semibold text-slate-300">
+                Observação *
+              </label>
+              <MicButton
+                onAppend={(text) =>
+                  setDescription((prev) => prev + (prev.trim() ? " " : "") + text)
+                }
+              />
+            </div>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
