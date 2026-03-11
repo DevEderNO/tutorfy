@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
-import { useForm, useWatch, useFieldArray } from "react-hook-form";
+import { useForm, useWatch, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useStudent,
@@ -9,7 +9,6 @@ import {
   useUpdateStudent,
 } from "./hooks/useStudents";
 import {
-  ChevronRight,
   Camera,
   User,
   Book,
@@ -39,7 +38,12 @@ const studentSchema = z
     grade: z.string().min(1, "Série é obrigatória"),
     school: z.string().min(1, "Escola é obrigatória"),
     responsibleName: z.string().min(2, "Nome do responsável é obrigatório"),
-    responsiblePhone: z.string().min(8, "Telefone inválido"),
+    responsiblePhone: z
+      .string()
+      .refine(
+        (v) => v.replace(/\D/g, "").length >= 10,
+        "Telefone inválido (mínimo 10 dígitos)",
+      ),
     billingType: z.enum(["MONTHLY", "HOURLY"] as const).default("MONTHLY"),
     monthlyFee: z.coerce
       .number()
@@ -56,7 +60,13 @@ const studentSchema = z
     // Dummy fields for UI completeness based on Stitch Design
     birthDate: z.string().optional(),
     shift: z.string().optional(),
-    cpf: z.string().optional(),
+    cpf: z
+      .string()
+      .optional()
+      .refine(
+        (v) => !v || v.replace(/\D/g, "").length === 0 || v.replace(/\D/g, "").length === 11,
+        "CPF inválido",
+      ),
     email: z.string().email("E-mail inválido").optional().or(z.literal("")),
     dueDate: z.string().optional(),
     schedulePreferences: z
@@ -87,6 +97,30 @@ const studentSchema = z
   );
 
 type StudentFormData = z.infer<typeof studentSchema>;
+
+function maskPhone(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 10) {
+    return digits
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+  }
+  return digits
+    .replace(/^(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+}
+
+function maskCpf(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  return digits
+    .replace(/^(\d{3})(\d)/, "$1.$2")
+    .replace(/^(\d{3}\.\d{3})(\d)/, "$1.$2")
+    .replace(/^(\d{3}\.\d{3}\.\d{3})(\d)/, "$1-$2");
+}
+
+function inputClass(hasError: boolean) {
+  return `glass-input rounded-lg px-4 py-3 w-full outline-none transition-all${hasError ? " !border-red-500/50" : ""}`;
+}
 
 export function StudentFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -317,7 +351,7 @@ export function StudentFormPage() {
                   </label>
                   <input
                     {...register("name")}
-                    className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
+                    className={inputClass(!!errors.name)}
                     placeholder="Ex: Lucas Gabriel Oliveira"
                     type="text"
                   />
@@ -356,7 +390,7 @@ export function StudentFormPage() {
                 </label>
                 <input
                   {...register("school")}
-                  className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
+                  className={inputClass(!!errors.school)}
                   placeholder="Nome da Instituição"
                   type="text"
                 />
@@ -372,7 +406,7 @@ export function StudentFormPage() {
                 </label>
                 <select
                   {...register("grade")}
-                  className="glass-input rounded-lg px-4 py-3 w-full outline-none appearance-none cursor-pointer transition-all"
+                  className={`${inputClass(!!errors.grade)} appearance-none cursor-pointer`}
                 >
                   <option value="" className="text-slate-900">
                     Selecione...
@@ -442,7 +476,7 @@ export function StudentFormPage() {
                 </label>
                 <input
                   {...register("responsibleName")}
-                  className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
+                  className={inputClass(!!errors.responsibleName)}
                   type="text"
                   placeholder="Nome completo"
                 />
@@ -456,22 +490,47 @@ export function StudentFormPage() {
                 <label className="text-sm font-semibold text-slate-300">
                   CPF
                 </label>
-                <input
-                  {...register("cpf")}
-                  className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
-                  placeholder="000.000.000-00"
-                  type="text"
+                <Controller
+                  name="cpf"
+                  control={control}
+                  render={({ field }) => (
+                    <input
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(maskCpf(e.target.value))
+                      }
+                      className={inputClass(!!errors.cpf)}
+                      placeholder="000.000.000-00"
+                      inputMode="numeric"
+                      type="text"
+                    />
+                  )}
                 />
+                {errors.cpf && (
+                  <p className="text-xs text-red-400 font-medium">
+                    {errors.cpf.message}
+                  </p>
+                )}
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-slate-300">
                   Telefone / WhatsApp *
                 </label>
-                <input
-                  {...register("responsiblePhone")}
-                  className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
-                  placeholder="(00) 00000-0000"
-                  type="tel"
+                <Controller
+                  name="responsiblePhone"
+                  control={control}
+                  render={({ field }) => (
+                    <input
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(maskPhone(e.target.value))
+                      }
+                      className={inputClass(!!errors.responsiblePhone)}
+                      placeholder="(00) 00000-0000"
+                      inputMode="tel"
+                      type="tel"
+                    />
+                  )}
                 />
                 {errors.responsiblePhone && (
                   <p className="text-xs text-red-400 font-medium">
@@ -485,7 +544,7 @@ export function StudentFormPage() {
                 </label>
                 <input
                   {...register("email")}
-                  className="glass-input rounded-lg px-4 py-3 w-full outline-none transition-all"
+                  className={inputClass(!!errors.email)}
                   placeholder="responsavel@email.com"
                   type="email"
                 />
@@ -583,10 +642,11 @@ export function StudentFormPage() {
                       </span>
                       <input
                         {...register("monthlyFee")}
-                        className="glass-input rounded-lg pl-12 pr-4 py-3 w-full outline-none transition-all font-bold text-lg"
+                        className={`${inputClass(!!errors.monthlyFee)} pl-12 font-bold text-lg`}
                         placeholder="450.00"
                         type="number"
                         step="0.01"
+                        inputMode="decimal"
                       />
                     </div>
                     {errors.monthlyFee && (
@@ -606,10 +666,11 @@ export function StudentFormPage() {
                       </span>
                       <input
                         {...register("hourlyRate")}
-                        className="glass-input rounded-lg pl-12 pr-4 py-3 w-full outline-none transition-all font-bold text-lg"
+                        className={`${inputClass(!!errors.hourlyRate)} pl-12 font-bold text-lg`}
                         placeholder="80.00"
                         type="number"
                         step="0.01"
+                        inputMode="decimal"
                       />
                     </div>
                     {errors.hourlyRate && (

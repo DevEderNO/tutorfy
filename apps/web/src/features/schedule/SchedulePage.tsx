@@ -197,49 +197,7 @@ export function SchedulePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header
-        title="Agenda"
-        searchPlaceholder="Buscar na agenda..."
-        onSearchChange={() => {}} // TODO: Implement search
-        showCreateButton
-        createButtonLabel="Nova Aula"
-        actions={
-          <div className="flex items-center gap-2 mr-2">
-            <div className="glass p-1 rounded-xl flex items-center">
-              <button
-                onClick={() => setViewMode("month")}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  viewMode === "month"
-                    ? "bg-primary text-white shadow-lg shadow-primary/30"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                Mês
-              </button>
-              <button
-                onClick={() => setViewMode("week")}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  viewMode === "week"
-                    ? "bg-primary text-white shadow-lg shadow-primary/30"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                Semana
-              </button>
-            </div>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`glass p-2.5 rounded-xl transition-all ${
-                showFilters || filters.studentId || filters.status
-                  ? "text-primary border-primary/30"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Filter className="h-5 w-5" />
-            </button>
-          </div>
-        }
-      />
+      <Header title="Agenda" />
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar (Aside) */}

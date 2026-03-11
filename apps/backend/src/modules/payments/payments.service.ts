@@ -56,7 +56,7 @@ export class PaymentsService {
         where: {
           userId,
           studentId: student.id,
-          status: 'COMPLETED',
+          status: { in: ['COMPLETED', 'SCHEDULED'] },
           date: { gte: startDate, lte: endDate },
         },
       });
