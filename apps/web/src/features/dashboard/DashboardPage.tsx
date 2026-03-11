@@ -1,6 +1,7 @@
 import { useDashboard } from "./hooks/useDashboard";
 import { usePayments } from "../payments/hooks/usePayments";
-import { format, startOfWeek, addDays, isSameDay } from "date-fns";
+import { useClasses } from "../classes/hooks/useClasses";
+import { format, startOfWeek, addDays, isSameDay, addWeeks, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   Search,
@@ -15,6 +16,7 @@ import {
   Clock,
   History,
   Zap,
+  TrendingUp,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { useState } from "react";
@@ -56,11 +58,23 @@ export function DashboardPage() {
   const { user } = useAuth();
   const { data, isLoading: isDashboardLoading } = useDashboard();
   const [activeFilter, setActiveFilter] = useState("SCHEDULED");
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [selectedDay, setSelectedDay] = useState<Date>(new Date());
 
   const now = new Date();
   const { data: payments, isLoading: isPaymentsLoading } = usePayments({
     month: now.getMonth() + 1,
     year: now.getFullYear(),
+  });
+
+  const today = new Date();
+  const weekStart = startOfWeek(addWeeks(today, weekOffset), { weekStartsOn: 1 });
+  const weekEnd = addDays(weekStart, 6);
+  const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
+
+  const { data: weekClasses, isLoading: isClassesLoading } = useClasses({
+    startDate: format(weekStart, "yyyy-MM-dd"),
+    endDate: format(weekEnd, "yyyy-MM-dd"),
   });
 
   if (isDashboardLoading || isPaymentsLoading) {
@@ -71,15 +85,9 @@ export function DashboardPage() {
     );
   }
 
-  const today = new Date();
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-  const weekDays = Array.from({ length: 7 }).map((_, i) =>
-    addDays(weekStart, i),
+  const filteredClasses = (weekClasses ?? []).filter(
+    (c) => c.status === activeFilter && isSameDay(parseISO(c.date), selectedDay),
   );
-
-  // For the actual filtered classes in UI, currently filtering by activeFilter
-  const filteredClasses =
-    data?.weekClasses?.filter((c) => c.status === activeFilter) || [];
 
   const paidCount = payments?.filter((p) => p.paid).length ?? 0;
   const pendingCount = payments?.filter((p) => !p.paid).length ?? 0;
@@ -105,176 +113,285 @@ export function DashboardPage() {
 
       <div className="p-8 space-y-8 flex-1 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {/* KPI Section */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass p-6 rounded-xl space-y-4 hover:border-primary/30 transition-colors">
-            <div className="flex justify-between items-start">
-              <div className="p-3 bg-emerald-500/10 rounded-lg text-emerald-500">
-                <CircleDollarSign className="h-6 w-6" />
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Card 1 — Receita Recebida */}
+          <div className="glass p-5 rounded-xl flex flex-col gap-3 hover:border-emerald-500/30 transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-emerald-500/15 rounded-lg text-emerald-400">
+                  <CircleDollarSign className="h-4 w-4" />
+                </div>
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  Receita Recebida
+                </span>
               </div>
-              <span className="text-xs font-bold text-emerald-500 uppercase">
-                {totalCount > 0 ? "Real" : "Pendente"}
+              <span className="text-[10px] font-bold tracking-widest text-emerald-400 uppercase bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                {totalCount > 0 ? "Recebida" : "Pendente"}
               </span>
             </div>
-            <div>
-              <p className="text-slate-400 text-sm font-medium">
-                Receita Recebida
-              </p>
-              <h3 className="text-3xl font-bold mt-1 tracking-tight">
-                R$ {totalReceived.toFixed(2)}
-              </h3>
-            </div>
-            <div className="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden">
-              <div
-                className="bg-emerald-500 h-full rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)] transition-all"
-                style={{
-                  width: `${
-                    totalCount > 0
-                      ? Math.round((paidCount / totalCount) * 100)
-                      : 0
-                  }%`,
-                }}
-              ></div>
+
+            <h3 className="text-2xl font-bold tracking-tight tabular-nums text-white">
+              {totalReceived.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
+            </h3>
+
+            <div className="space-y-1.5">
+              <div className="w-full bg-slate-800/80 h-1 rounded-full overflow-hidden">
+                <div
+                  className="bg-emerald-500 h-full rounded-full shadow-[0_0_6px_rgba(16,185,129,0.6)] transition-all duration-700"
+                  style={{
+                    width: `${totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0}%`,
+                  }}
+                />
+              </div>
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="text-slate-500">
+                  {paidCount} de {totalCount} pagamentos
+                </span>
+                <span className="text-emerald-400 font-bold">
+                  {totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0}%
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="glass p-6 rounded-xl space-y-4 hover:border-primary/30 transition-colors">
-            <div className="flex justify-between items-start">
-              <div className="p-3 bg-primary/10 rounded-lg text-primary">
-                <Users className="h-6 w-6" />
+          {/* Card 2 — Total de Alunos */}
+          <div className="glass p-5 rounded-xl flex flex-col gap-3 hover:border-primary/30 transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-primary/15 rounded-lg text-primary">
+                  <Users className="h-4 w-4" />
+                </div>
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  Total Alunos
+                </span>
               </div>
-              <span className="text-xs font-bold text-primary uppercase">
+              <span className="text-[10px] font-bold tracking-widest text-primary uppercase bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
                 Ativos
               </span>
             </div>
-            <div>
-              <p className="text-slate-400 text-sm font-medium">Total Alunos</p>
-              <h3 className="text-3xl font-bold mt-1 tracking-tight">
-                {data?.activeStudents || 0}
+
+            <div className="flex items-end gap-3">
+              <h3 className="text-2xl font-bold tracking-tight tabular-nums text-white">
+                {data?.activeStudents ?? 0}
               </h3>
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 mb-0.5">
+                <TrendingUp className="h-3 w-3" />
+                <span>+2 este mês</span>
+              </div>
             </div>
-            <div className="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden">
-              <div className="bg-primary h-full w-[100%] rounded-full shadow-[0_0_8px_rgba(137,90,246,0.4)]"></div>
+
+            <div className="flex items-center gap-1">
+              <div className="flex -space-x-2">
+                {Array.from({
+                  length: Math.min(3, data?.activeStudents ?? 0),
+                }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-6 h-6 rounded-full border-2 border-[#0c0816] flex items-center justify-center text-[9px] font-bold text-white"
+                    style={{
+                      background: `hsl(${260 + i * 20}, 65%, ${50 + i * 5}%)`,
+                    }}
+                  >
+                    {String.fromCharCode(65 + i)}
+                  </div>
+                ))}
+              </div>
+              {(data?.activeStudents ?? 0) > 3 && (
+                <span className="text-[11px] text-slate-500 ml-1">
+                  +{(data?.activeStudents ?? 0) - 3} mais
+                </span>
+              )}
             </div>
           </div>
 
-          <div className="glass p-6 rounded-xl space-y-4 hover:border-primary/30 transition-colors">
-            <div className="flex justify-between items-start">
-              <div className="p-3 bg-orange-500/10 rounded-lg text-orange-500">
-                <AlertTriangle className="h-6 w-6" />
+          {/* Card 3 — Inadimplência */}
+          <div className="glass p-5 rounded-xl flex flex-col gap-3 hover:border-orange-500/30 transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-orange-500/15 rounded-lg text-orange-400">
+                  <AlertTriangle className="h-4 w-4" />
+                </div>
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  Inadimplência
+                </span>
               </div>
-              <span className="text-xs font-bold text-orange-500 uppercase">
+              <span className="text-[10px] font-bold tracking-widest text-orange-400 uppercase bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full">
                 Mensal
               </span>
             </div>
-            <div>
-              <p className="text-slate-400 text-sm font-medium">
-                Inadimplência
-              </p>
-              <h3 className="text-3xl font-bold mt-1 tracking-tight">
+
+            <div className="flex items-end gap-3">
+              <h3 className="text-2xl font-bold tracking-tight tabular-nums text-white">
                 {inadimplenciaRate}%
               </h3>
+              {inadimplenciaRate > 20 && (
+                <span className="text-[11px] font-bold text-red-400 mb-0.5">
+                  Crítico
+                </span>
+              )}
             </div>
-            <div className="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden">
-              <div
-                className="bg-orange-500 h-full rounded-full shadow-[0_0_8px_rgba(249,115,22,0.4)] transition-all"
-                style={{ width: `${inadimplenciaRate}%` }}
-              ></div>
+
+            <div className="space-y-1.5">
+              <div className="w-full bg-slate-800/80 h-1 rounded-full overflow-hidden">
+                <div
+                  className="bg-orange-500 h-full rounded-full shadow-[0_0_6px_rgba(249,115,22,0.6)] transition-all duration-700"
+                  style={{ width: `${inadimplenciaRate}%` }}
+                />
+              </div>
+              <span className="text-[11px] text-slate-500">
+                {pendingCount} pendentes de {totalCount}
+              </span>
             </div>
           </div>
         </section>
 
         {/* Agenda Semanal */}
         <section className="glass p-8 rounded-xl overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <h2 className="text-lg font-bold">Agenda Semanal</h2>
-
-            {/* Filter Tabs matching Stitch's subtle glass look */}
-            <div className="flex items-center bg-slate-800/50 p-1 rounded-xl overflow-x-auto hide-scrollbar border border-slate-700/30">
-              {Object.entries(statusConfig).map(([key, config]) => (
-                <button
-                  key={key}
-                  onClick={() => setActiveFilter(key)}
-                  className={`px-4 py-1.5 text-sm font-bold rounded-lg whitespace-nowrap transition-all ${
-                    activeFilter === key
-                      ? "bg-slate-700/80 text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  {config.label}
-                </button>
-              ))}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-lg font-bold">Agenda Semanal</h2>
+              <p className="text-sm text-slate-400 mt-0.5 capitalize">
+                {format(weekStart, "MMMM yyyy", { locale: ptBR })}
+                {format(weekStart, "MM") !== format(weekEnd, "MM") &&
+                  ` — ${format(weekEnd, "MMMM", { locale: ptBR })}`}
+              </p>
             </div>
 
-            <div className="hidden md:flex gap-2">
-              <button
-                aria-label="Semana anterior"
-                className="glass h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors"
-              >
-                <ChevronLeft className="h-5 w-5 text-slate-300" />
-              </button>
-              <button
-                aria-label="Próxima semana"
-                className="glass h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors"
-              >
-                <ChevronRight className="h-5 w-5 text-slate-300" />
-              </button>
+            <div className="flex items-center gap-3">
+              {/* Filter Tabs */}
+              <div className="flex items-center bg-slate-800/50 p-1 rounded-xl overflow-x-auto hide-scrollbar border border-slate-700/30">
+                {Object.entries(statusConfig).map(([key, config]) => (
+                  <button
+                    key={key}
+                    onClick={() => setActiveFilter(key)}
+                    className={`px-4 py-1.5 text-sm font-bold rounded-lg whitespace-nowrap transition-all ${
+                      activeFilter === key
+                        ? "bg-slate-700/80 text-white shadow-sm"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    {config.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Week navigation */}
+              <div className="flex gap-1.5">
+                <button
+                  aria-label="Semana anterior"
+                  onClick={() => {
+                    setWeekOffset((o) => o - 1);
+                    setSelectedDay((d) => addWeeks(d, -1));
+                  }}
+                  className="glass h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-700 hover:text-primary transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4 text-slate-300" />
+                </button>
+                {weekOffset !== 0 && (
+                  <button
+                    onClick={() => {
+                      setWeekOffset(0);
+                      setSelectedDay(today);
+                    }}
+                    className="glass h-8 px-2 rounded-lg text-[10px] font-bold text-primary hover:bg-slate-700 transition-colors"
+                  >
+                    Hoje
+                  </button>
+                )}
+                <button
+                  aria-label="Próxima semana"
+                  onClick={() => {
+                    setWeekOffset((o) => o + 1);
+                    setSelectedDay((d) => addWeeks(d, 1));
+                  }}
+                  className="glass h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-700 hover:text-primary transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4 text-slate-300" />
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="flex justify-between mb-8 overflow-x-auto pb-4 gap-2">
+          {/* Day picker */}
+          <div className="flex justify-between mb-6 overflow-x-auto pb-2 gap-2">
             {weekDays.map((day) => {
-              const isActive = isSameDay(day, today);
+              const isToday = isSameDay(day, today);
+              const isSelected = isSameDay(day, selectedDay);
+              const dayClasses = (weekClasses ?? []).filter((c) =>
+                isSameDay(parseISO(c.date), day),
+              );
               return (
-                <div
+                <button
                   key={day.toISOString()}
-                  className="flex flex-col items-center gap-3 min-w-[60px]"
+                  onClick={() => setSelectedDay(day)}
+                  className="flex flex-col items-center gap-2 min-w-[52px] group"
                 >
                   <span
-                    className={`text-xs font-bold uppercase ${
-                      isActive ? "text-primary" : "text-slate-500"
+                    className={`text-[11px] font-bold uppercase transition-colors ${
+                      isSelected
+                        ? "text-primary"
+                        : isToday
+                          ? "text-slate-300"
+                          : "text-slate-500 group-hover:text-slate-300"
                     }`}
                   >
                     {format(day, "EEE", { locale: ptBR }).substring(0, 3)}
                   </span>
                   <div
-                    className={`h-12 w-12 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${
-                      isActive
-                        ? "bg-primary text-white neon-glow"
-                        : "glass hover:bg-slate-800/80"
+                    className={`h-10 w-10 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${
+                      isSelected
+                        ? "bg-primary text-white neon-glow scale-105"
+                        : isToday
+                          ? "glass border border-primary/40 text-primary"
+                          : "glass hover:bg-slate-800/80 text-slate-300"
                     }`}
                   >
                     {format(day, "d")}
                   </div>
-                </div>
+                  {/* dot indicator for days with classes */}
+                  <div
+                    className={`h-1 w-1 rounded-full transition-all ${
+                      dayClasses.length > 0
+                        ? isSelected
+                          ? "bg-primary"
+                          : "bg-slate-500"
+                        : "bg-transparent"
+                    }`}
+                  />
+                </button>
               );
             })}
           </div>
 
+          {/* Classes list */}
           <div className="space-y-3 pr-2 max-h-[320px] overflow-y-auto custom-scrollbar">
-            {filteredClasses.length > 0 ? (
+            {isClassesLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              </div>
+            ) : filteredClasses.length > 0 ? (
               filteredClasses.map((cls) => {
-                const config =
-                  statusConfig[cls.status] || statusConfig.SCHEDULED;
+                const config = statusConfig[cls.status] || statusConfig.SCHEDULED;
                 return (
                   <div
                     key={cls.id}
                     className="flex items-center justify-between p-4 glass rounded-xl hover:bg-white/5 transition-colors cursor-pointer group"
                   >
                     <div className="flex items-center gap-4">
-                      <div
-                        className={`h-2.5 w-2.5 rounded-full ${config.dot}`}
-                      ></div>
+                      <div className={`h-2.5 w-2.5 rounded-full ${config.dot}`} />
                       <div>
-                        {/* Assuming class subject is missing in payload, using fallback */}
                         <h4 className="font-bold text-sm text-slate-100">
                           Aula Particular
                         </h4>
                         <p className="text-xs text-slate-400 mt-1">
-                          Aluno: {(cls as any).student?.name || "Desconhecido"}
+                          {(cls as any).student?.name || "Desconhecido"}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 sm:gap-8">
+                    <div className="flex items-center gap-4 sm:gap-6">
                       <div className="hidden sm:flex items-center gap-2 text-slate-400 text-xs font-medium">
                         <Clock className="h-4 w-4" />
                         {cls.startTime} - {cls.endTime}
@@ -295,9 +412,9 @@ export function DashboardPage() {
                 );
               })
             ) : (
-              <div className="text-center py-8 text-slate-500">
-                Nenhuma aula {statusConfig[activeFilter]?.label.toLowerCase()}{" "}
-                encontrada para esta semana.
+              <div className="text-center py-8 text-slate-500 text-sm">
+                Nenhuma aula {statusConfig[activeFilter]?.label.toLowerCase()} em{" "}
+                {format(selectedDay, "EEEE, d 'de' MMMM", { locale: ptBR })}.
               </div>
             )}
           </div>
