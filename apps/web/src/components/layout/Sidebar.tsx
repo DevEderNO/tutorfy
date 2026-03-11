@@ -5,6 +5,8 @@ import {
   CalendarDays,
   DollarSign,
   GraduationCap,
+  Pin,
+  PinOff,
 } from "lucide-react";
 
 const navItems = [
@@ -14,42 +16,88 @@ const navItems = [
   { to: "/financial", icon: DollarSign, label: "Financeiro" },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  pinned: boolean;
+  expanded: boolean;
+  onTogglePin: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+}
+
+export function Sidebar({
+  pinned,
+  expanded,
+  onTogglePin,
+  onMouseEnter,
+  onMouseLeave,
+}: SidebarProps) {
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 glass-sidebar flex flex-col">
+    <aside
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className={`fixed left-0 top-0 z-40 h-screen glass-sidebar flex flex-col overflow-hidden transition-[width] duration-300 ease-in-out ${
+        expanded ? "w-64" : "w-16"
+      }`}
+    >
       {/* Logo */}
-      <div className="flex items-center gap-3 p-8">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary neon-glow">
-          <GraduationCap className="h-5 w-5 text-white" />
+      <div className="flex items-center h-[72px] border-b border-primary/10">
+        <div className="w-16 flex justify-center shrink-0">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary neon-glow">
+            <GraduationCap className="h-5 w-5 text-white" />
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold text-foreground tracking-tight">
+        <div className="flex-1 overflow-hidden">
+          <h1 className="text-lg font-bold text-foreground tracking-tight whitespace-nowrap">
             Tutorfy
           </h1>
-          <p className="text-xs text-primary/70 font-medium">Gestão de Aulas</p>
+          <p className="text-[11px] text-primary/70 font-medium whitespace-nowrap">
+            Gestão de Aulas
+          </p>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-2 px-4">
+      <nav className="flex-1 py-4 space-y-1">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.to === "/"}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-colors ${
+              `flex items-center py-3 text-sm transition-all rounded-lg ${
                 isActive
                   ? "sidebar-active text-primary font-semibold"
-                  : "text-slate-400 hover:text-white font-medium"
+                  : "text-slate-400 hover:text-white hover:bg-white/5 font-medium"
               }`
             }
           >
-            <item.icon className="h-5 w-5" />
-            {item.label}
+            <div className="w-16 flex justify-center shrink-0">
+              <item.icon className="h-5 w-5" />
+            </div>
+            <span className="whitespace-nowrap pr-4">{item.label}</span>
           </NavLink>
         ))}
       </nav>
+
+      {/* Pin / Unpin */}
+      <div className="border-t border-primary/10">
+        <button
+          onClick={onTogglePin}
+          title={pinned ? "Recolher sidebar" : "Fixar sidebar"}
+          className="flex items-center w-full py-4 text-slate-500 hover:text-primary transition-colors"
+        >
+          <div className="w-16 flex justify-center shrink-0">
+            {pinned ? (
+              <PinOff className="h-5 w-5" />
+            ) : (
+              <Pin className="h-5 w-5" />
+            )}
+          </div>
+          <span className="whitespace-nowrap text-sm font-medium pr-4">
+            {pinned ? "Recolher" : "Fixar sidebar"}
+          </span>
+        </button>
+      </div>
     </aside>
   );
 }
