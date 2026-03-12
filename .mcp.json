@@ -30,7 +30,7 @@
     },
     "Framelink MCP for Figma": {
       "command": "npx",
-      "args": ["-y", "figma-developer-mcp", "--stdio"],
+      "args": ["-y", "figma-developer-mcp"],
       "env": {
         "FIGMA_API_KEY": "${FIGMA_API_KEY}"
       }

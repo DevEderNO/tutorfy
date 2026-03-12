@@ -17,6 +17,7 @@ import {
 import { DatePicker, DateRangePicker, type DateRange } from '../../components/ui/date-picker'
 import { TimePicker } from '../../components/ui/time-picker'
 import { ImageUpload, FileUpload, type FileUploadItem } from '../../components/ui/upload'
+import { Textarea, TextareaField } from '../../components/ui/textarea'
 
 interface ComponentItem {
   name: string;
@@ -921,6 +922,62 @@ const molecules: ComponentItem[] = [
         <div className="flex flex-col gap-2">
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Desabilitado</span>
           <Input disabled placeholder="Campo desabilitado" leadingIcon={<Lock />} />
+        </div>
+      </div>
+    ),
+  },
+  {
+    name: 'Textarea',
+    description: 'Estados: default, error, success. Tamanhos: sm, md, lg. Resize: none, y, x, both. Compound: TextareaField.',
+    render: () => (
+      <div className="flex flex-col gap-4 w-full">
+        {/* Estados */}
+        <div className="flex flex-col gap-2">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estados</span>
+          <div className="flex flex-col gap-2">
+            <Textarea placeholder="Default" />
+            <Textarea state="error" defaultValue="valor inválido" />
+            <Textarea state="success" defaultValue="valor válido" />
+          </div>
+        </div>
+
+        {/* Tamanhos */}
+        <div className="flex flex-col gap-2">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tamanhos</span>
+          <div className="flex flex-col gap-2">
+            <Textarea size="sm" rows={2} placeholder="Small" />
+            <Textarea size="md" rows={2} placeholder="Medium" />
+            <Textarea size="lg" rows={2} placeholder="Large" />
+          </div>
+        </div>
+
+        {/* Resize */}
+        <div className="flex flex-col gap-2">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Resize</span>
+          <div className="flex flex-col gap-2">
+            <Textarea resize="none" rows={2} placeholder="resize: none" />
+            <Textarea resize="y" rows={2} placeholder="resize: y (padrão)" />
+            <Textarea resize="both" rows={2} placeholder="resize: both" />
+          </div>
+        </div>
+
+        {/* TextareaField compound */}
+        <div className="flex flex-col gap-2">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">TextareaField (compound)</span>
+          <div className="flex flex-col gap-3">
+            <TextareaField label="Bio Profissional" helperText="Máximo de 500 caracteres." htmlFor="bio-demo">
+              <Textarea id="bio-demo" placeholder="Fale um pouco sobre você..." />
+            </TextareaField>
+            <TextareaField label="Observações" error="Campo obrigatório." htmlFor="obs-demo" required>
+              <Textarea id="obs-demo" state="error" placeholder="Descreva as observações..." />
+            </TextareaField>
+          </div>
+        </div>
+
+        {/* Desabilitado */}
+        <div className="flex flex-col gap-2">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Desabilitado</span>
+          <Textarea disabled placeholder="Campo desabilitado" />
         </div>
       </div>
     ),

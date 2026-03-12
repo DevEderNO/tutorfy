@@ -1,24 +1,31 @@
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import {
-  Pencil,
   ShieldCheck,
   CreditCard,
   Wallet,
-  BookOpen,
-  Clock,
   AlertCircle,
   CheckCircle2,
+  Save,
+  Loader2,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { Header } from "@/components/layout/Header";
-import { Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input, InputField } from "@/components/ui/input";
+import { Textarea, TextareaField } from "@/components/ui/textarea";
+import { Select, SelectItem } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ImageUpload } from "@/components/ui/upload";
+import { Badge } from "@/components/ui/badge";
+import { StatusLabel } from "@/components/ui/status-label";
 
 export function SettingsPage() {
   const { user, updateUser } = useAuth();
 
-  // Local states
   const [name, setName] = useState(user?.name || "Dr. Ricardo Silva");
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
   const [email, setEmail] = useState(
@@ -45,15 +52,10 @@ export function SettingsPage() {
     title: string;
     description: string;
     variant: "primary" | "danger" | "success";
-    icon: any;
+    icon: LucideIcon;
   } | null>(null);
 
-  const handleAvatarUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const handleAvatarChange = async (file: File) => {
     try {
       setIsUploading(true);
       const formData = new FormData();
@@ -62,16 +64,11 @@ export function SettingsPage() {
       const response = await api.post<{ url: string }>(
         "/upload/avatar",
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        },
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
 
       if (response.data.url) {
         setAvatarUrl(response.data.url);
-        // Force the URL locally correctly proxying the port since it comes back as absolute path usually relative to domain
       }
     } catch (error) {
       console.error("Erro ao enviar imagem:", error);
@@ -91,10 +88,10 @@ export function SettingsPage() {
   const handleSaveSettings = async () => {
     try {
       setIsSaving(true);
-      const res = await api.put<{ data: any }>("/users/profile", {
-        name,
-        avatarUrl: avatarUrl || null,
-      });
+      const res = await api.put<{ data: Record<string, unknown> }>(
+        "/users/profile",
+        { name, avatarUrl: avatarUrl || null },
+      );
 
       if (res.data.data) {
         updateUser(res.data.data);
@@ -122,33 +119,20 @@ export function SettingsPage() {
     }
   };
 
-  const getInitials = (nameInput: string) => {
-    if (!nameInput) return "U";
-    return nameInput
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .substring(0, 2)
-      .toUpperCase();
-  };
-
   return (
     <div className="flex flex-col min-h-screen">
       <Header
         title="Configurações"
         actions={
-          <button
+          <Button
+            variant="primary"
+            size="lg"
             onClick={handleSaveSettings}
             disabled={isSaving}
-            className="gradient-primary hover:opacity-90 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
           >
-            {isSaving ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            <span>Salvar Alterações</span>
-          </button>
+            {isSaving ? <Loader2 className="animate-spin" /> : <Save />}
+            {isSaving ? "Salvando..." : "Salvar Alterações"}
+          </Button>
         }
       />
 
@@ -158,7 +142,7 @@ export function SettingsPage() {
           className="glass-panel rounded-2xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] overflow-hidden relative"
           id="perfil"
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-bl-full -mr-20 -mt-20 blur-3xl pointer-events-none"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-bl-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
           <div className="p-6 border-b border-white/10 bg-white/5 relative z-10">
             <h3 className="text-xl font-black text-foreground tracking-tight">
               1. Perfil do Professor
@@ -166,81 +150,42 @@ export function SettingsPage() {
           </div>
           <div className="p-8 space-y-8 relative z-10">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
-              <div className="relative group shrink-0">
-                <label
-                  htmlFor="avatar-upload"
-                  className="cursor-pointer block relative"
-                >
-                  <div className="size-32 rounded-full border-4 border-primary/30 bg-primary/10 flex items-center justify-center shadow-[0_0_20px_rgba(116,61,245,0.3)] overflow-hidden relative group-hover:border-primary/50 transition-colors duration-300">
-                    {isUploading ? (
-                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                    ) : avatarUrl ? (
-                      <img
-                        src={avatarUrl}
-                        alt={name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-4xl font-black text-primary drop-shadow-[0_0_10px_rgba(116,61,245,0.8)]">
-                        {getInitials(name)}
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    className="absolute bottom-0 right-0 bg-primary text-white p-2.5 rounded-full shadow-[0_0_15px_rgba(116,61,245,0.5)] border border-white/20 hover:scale-110 active:scale-95 transition-transform"
-                    title="Alterar foto"
-                    aria-label="Alterar foto de perfil"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </div>
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleAvatarUpload}
-                    disabled={isUploading}
-                  />
-                </label>
-              </div>
+              <ImageUpload
+                shape="circle"
+                size="lg"
+                value={avatarUrl}
+                onChange={handleAvatarChange}
+                onRemove={() => setAvatarUrl("")}
+                isLoading={isUploading}
+                className="shrink-0"
+              />
 
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wider">
-                    Nome Completo
-                  </label>
-                  <input
-                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/50 font-medium"
-                    type="text"
+                <InputField label="Nome Completo">
+                  <Input
+                    size="lg"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wider">
-                    Especialidades
-                  </label>
-                  <input
-                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/50 font-medium"
-                    type="text"
+                </InputField>
+                <InputField label="Especialidades">
+                  <Input
+                    size="lg"
                     value={specialties}
                     onChange={(e) => setSpecialties(e.target.value)}
                   />
-                </div>
+                </InputField>
               </div>
             </div>
 
-            <div className="space-y-2 pt-2">
-              <label className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wider">
-                Bio Profissional
-              </label>
-              <textarea
-                className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-y placeholder:text-muted-foreground/50 font-medium leading-relaxed"
+            <TextareaField label="Bio Profissional">
+              <Textarea
+                size="lg"
                 rows={4}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
               />
-            </div>
+            </TextareaField>
           </div>
         </section>
 
@@ -249,7 +194,7 @@ export function SettingsPage() {
           className="glass-panel rounded-2xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] overflow-hidden relative"
           id="conta"
         >
-          <div className="absolute top-0 left-0 w-48 h-48 bg-primary/5 rounded-br-full blur-2xl pointer-events-none"></div>
+          <div className="absolute top-0 left-0 w-48 h-48 bg-primary/5 rounded-br-full blur-2xl pointer-events-none" />
           <div className="p-6 border-b border-white/10 bg-white/5 relative z-10">
             <h3 className="text-xl font-black text-foreground tracking-tight">
               2. Configurações da Conta
@@ -257,21 +202,18 @@ export function SettingsPage() {
           </div>
           <div className="p-8 space-y-6 relative z-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wider">
-                  E-mail Principal
-                </label>
-                <input
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/50 font-medium"
+              <InputField label="E-mail Principal">
+                <Input
+                  size="lg"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
-              </div>
+              </InputField>
               <div className="flex items-end">
-                <button className="px-6 py-3 border border-primary/50 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary/20 hover:border-primary hover:shadow-[0_0_15px_rgba(116,61,245,0.2)] transition-all w-full md:w-auto">
+                <Button variant="glass" size="lg" className="w-full md:w-auto">
                   Alterar Senha
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -289,16 +231,12 @@ export function SettingsPage() {
                   </p>
                 </div>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer ml-17 sm:ml-0">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={twoFactor}
-                  onChange={() => setTwoFactor(!twoFactor)}
-                  aria-label="Ativar Autenticação de Dois Fatores"
-                />
-                <div className="w-14 h-7 bg-white/10 border border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-white/50 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary peer-checked:border-primary shadow-inner"></div>
-              </label>
+              <Switch
+                id="two-factor"
+                size="lg"
+                checked={twoFactor}
+                onCheckedChange={setTwoFactor}
+              />
             </div>
           </div>
         </section>
@@ -308,53 +246,34 @@ export function SettingsPage() {
           className="glass-panel rounded-2xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] overflow-hidden relative"
           id="cobranca"
         >
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30rem] h-[30rem] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
           <div className="p-6 border-b border-white/10 bg-white/5 flex flex-wrap gap-4 justify-between items-center relative z-10">
             <h3 className="text-xl font-black text-foreground tracking-tight">
               3. Configurações de Cobrança
             </h3>
-            <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_5px_rgba(16,185,129,0.8)]"></div>
-              Stripe Conectado
-            </span>
+            <StatusLabel status="active" label="Stripe Conectado" />
           </div>
           <div className="p-8 space-y-8 relative z-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wider">
-                  Valor padrão Hora-Aula
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                    R$
-                  </span>
-                  <input
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-white/10 bg-white/5 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/50 font-medium"
-                    type="text"
-                    value={hourlyRate}
-                    onChange={(e) => setHourlyRate(e.target.value)}
-                    title="Valor Hora-Aula"
-                    placeholder="0.00"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label
-                  className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wider"
-                  htmlFor="currency-select"
-                >
-                  Moeda de Recebimento
-                </label>
-                <select
-                  id="currency-select"
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#1e1a2e] text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none cursor-pointer"
-                  title="Sua moeda de recebimento preferida"
-                >
-                  <option>Real (BRL)</option>
-                  <option>Dólar (USD)</option>
-                  <option>Euro (EUR)</option>
-                </select>
-              </div>
+              <InputField label="Valor padrão Hora-Aula">
+                <Input
+                  size="lg"
+                  type="text"
+                  value={hourlyRate}
+                  onChange={(e) => setHourlyRate(e.target.value)}
+                  placeholder="0.00"
+                  leadingIcon={
+                    <span className="text-xs font-medium not-italic">R$</span>
+                  }
+                />
+              </InputField>
+              <InputField label="Moeda de Recebimento">
+                <Select defaultValue="BRL" size="lg">
+                  <SelectItem value="BRL">Real (BRL)</SelectItem>
+                  <SelectItem value="USD">Dólar (USD)</SelectItem>
+                  <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                </Select>
+              </InputField>
             </div>
 
             <div className="space-y-4 pt-2">
@@ -365,33 +284,33 @@ export function SettingsPage() {
                 <div className="p-5 border border-primary/50 bg-primary/10 rounded-xl flex flex-col items-center gap-3 relative overflow-hidden shadow-[inset_0_0_20px_rgba(116,61,245,0.05),0_4px_15px_rgba(116,61,245,0.1)] group">
                   <CreditCard className="h-8 w-8 text-primary drop-shadow-[0_0_8px_rgba(116,61,245,0.5)] group-hover:scale-110 transition-transform" />
                   <span className="font-bold text-foreground">Stripe</span>
-                  <button className="text-xs text-primary font-bold hover:underline">
+                  <Button variant="ghost" size="sm">
                     Configurar
-                  </button>
+                  </Button>
                   <div className="absolute top-3 right-3 flex size-4 items-center justify-center bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
                   </div>
                 </div>
                 <div className="p-5 border border-white/10 bg-white/5 rounded-xl flex flex-col items-center gap-3 opacity-60 hover:opacity-100 hover:bg-white/10 transition-all cursor-pointer">
-                  <br className="h-8 w-8 text-muted-foreground" />
+                  <span className="h-8 w-8" />
                   <span className="font-bold text-foreground">Pix Direto</span>
-                  <button className="text-xs text-muted-foreground font-bold hover:text-primary transition-colors">
+                  <Button variant="ghost" size="sm">
                     Habilitar
-                  </button>
+                  </Button>
                 </div>
                 <div className="p-5 border border-white/10 bg-white/5 rounded-xl flex flex-col items-center gap-3 opacity-60 hover:opacity-100 hover:bg-white/10 transition-all cursor-pointer">
                   <Wallet className="h-8 w-8 text-muted-foreground" />
                   <span className="font-bold text-foreground">PayPal</span>
-                  <button className="text-xs text-muted-foreground font-bold hover:text-primary transition-colors">
+                  <Button variant="ghost" size="sm">
                     Habilitar
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Section: Preferências */}
+        {/* Section: Preferências do Sistema */}
         <section
           className="glass-panel rounded-2xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] overflow-hidden relative"
           id="preferencias"
@@ -403,40 +322,26 @@ export function SettingsPage() {
           </div>
           <div className="p-8 space-y-6 relative z-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label
-                  className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wider"
-                  htmlFor="language-select"
-                >
-                  Idioma
-                </label>
-                <select
-                  id="language-select"
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#1e1a2e] text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none cursor-pointer"
-                  title="Selecione o seu idioma"
-                >
-                  <option>Português (Brasil)</option>
-                  <option>English (US)</option>
-                  <option>Español</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label
-                  className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wider"
-                  htmlFor="timezone-select"
-                >
-                  Fuso Horário
-                </label>
-                <select
-                  id="timezone-select"
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#1e1a2e] text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all appearance-none cursor-pointer"
-                  title="Selecione o fuso horário para suas aulas"
-                >
-                  <option>(GMT-03:00) São Paulo</option>
-                  <option>(GMT-04:00) Manaus</option>
-                  <option>(GMT-00:00) London</option>
-                </select>
-              </div>
+              <InputField label="Idioma">
+                <Select defaultValue="pt-BR" size="lg">
+                  <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                  <SelectItem value="en-US">English (US)</SelectItem>
+                  <SelectItem value="es">Español</SelectItem>
+                </Select>
+              </InputField>
+              <InputField label="Fuso Horário">
+                <Select defaultValue="America/Sao_Paulo" size="lg">
+                  <SelectItem value="America/Sao_Paulo">
+                    (GMT-03:00) São Paulo
+                  </SelectItem>
+                  <SelectItem value="America/Manaus">
+                    (GMT-04:00) Manaus
+                  </SelectItem>
+                  <SelectItem value="Europe/London">
+                    (GMT-00:00) London
+                  </SelectItem>
+                </Select>
+              </InputField>
             </div>
 
             <div className="space-y-4 pt-6 border-t border-white/10">
@@ -444,57 +349,39 @@ export function SettingsPage() {
                 Canais de Notificação
               </p>
               <div className="space-y-4 pl-1">
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    className="rounded-md text-primary focus:ring-primary focus:ring-offset-0 w-6 h-6 border-white/20 bg-white/5 group-hover:border-primary group-hover:bg-primary/10 transition-all checked:border-primary"
-                    checked={notifications.email}
-                    onChange={(e) =>
-                      setNotifications({
-                        ...notifications,
-                        email: e.target.checked,
-                      })
-                    }
-                    title="Receber e-mails"
-                  />
-                  <span className="text-sm font-medium text-foreground select-none group-active:scale-[0.98] transition-transform">
-                    Notificações por E-mail (Aulas, Cancelamentos)
-                  </span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    className="rounded-md text-primary focus:ring-primary focus:ring-offset-0 w-6 h-6 border-white/20 bg-white/5 group-hover:border-primary group-hover:bg-primary/10 transition-all checked:border-primary"
-                    checked={notifications.whatsapp}
-                    onChange={(e) =>
-                      setNotifications({
-                        ...notifications,
-                        whatsapp: e.target.checked,
-                      })
-                    }
-                    title="Receber WhatsApps"
-                  />
-                  <span className="text-sm font-medium text-foreground select-none group-active:scale-[0.98] transition-transform">
-                    Lembretes via WhatsApp (1 hora antes da aula)
-                  </span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    className="rounded-md text-primary focus:ring-primary focus:ring-offset-0 w-6 h-6 border-white/20 bg-white/5 group-hover:border-primary group-hover:bg-primary/10 transition-all checked:border-primary"
-                    checked={notifications.reports}
-                    onChange={(e) =>
-                      setNotifications({
-                        ...notifications,
-                        reports: e.target.checked,
-                      })
-                    }
-                    title="Receber relatórios"
-                  />
-                  <span className="text-sm font-medium text-foreground select-none group-active:scale-[0.98] transition-transform">
-                    Relatório mensal de ganhos
-                  </span>
-                </label>
+                <Checkbox
+                  id="notif-email"
+                  label="Notificações por E-mail (Aulas, Cancelamentos)"
+                  checked={notifications.email}
+                  onCheckedChange={(checked) =>
+                    setNotifications({
+                      ...notifications,
+                      email: checked === true,
+                    })
+                  }
+                />
+                <Checkbox
+                  id="notif-whatsapp"
+                  label="Lembretes via WhatsApp (1 hora antes da aula)"
+                  checked={notifications.whatsapp}
+                  onCheckedChange={(checked) =>
+                    setNotifications({
+                      ...notifications,
+                      whatsapp: checked === true,
+                    })
+                  }
+                />
+                <Checkbox
+                  id="notif-reports"
+                  label="Relatório mensal de ganhos"
+                  checked={notifications.reports}
+                  onCheckedChange={(checked) =>
+                    setNotifications({
+                      ...notifications,
+                      reports: checked === true,
+                    })
+                  }
+                />
               </div>
             </div>
           </div>
@@ -505,7 +392,7 @@ export function SettingsPage() {
           className="glass-panel rounded-2xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] overflow-hidden relative"
           id="assinatura"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
           <div className="p-6 border-b border-white/10 bg-white/5 relative z-10">
             <div className="flex flex-wrap gap-4 justify-between items-center">
               <div>
@@ -516,9 +403,7 @@ export function SettingsPage() {
                   Gerencie seu plano e visualize faturas anteriores.
                 </p>
               </div>
-              <span className="bg-primary/20 text-primary border border-primary/30 text-xs font-black px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(116,61,245,0.3)]">
-                PLANO PRO
-              </span>
+              <Badge variant="primary">PLANO PRO</Badge>
             </div>
           </div>
           <div className="p-8 relative z-10">
@@ -537,12 +422,20 @@ export function SettingsPage() {
                 </div>
               </div>
               <div className="flex gap-3 w-full md:w-auto">
-                <button className="flex-1 md:flex-none px-6 py-3 rounded-xl border border-white/20 bg-white/5 text-foreground font-bold hover:bg-white/10 hover:border-white/30 transition-all text-sm shadow-sm">
+                <Button
+                  variant="glass"
+                  size="lg"
+                  className="flex-1 md:flex-none"
+                >
                   Alterar Plano
-                </button>
-                <button className="flex-1 md:flex-none px-6 py-3 rounded-xl bg-destructive/10 text-destructive font-bold hover:bg-destructive/20 border border-destructive/20 hover:border-destructive/40 transition-all text-sm hover:shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="lg"
+                  className="flex-1 md:flex-none"
+                >
                   Cancelar
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -567,15 +460,12 @@ export function SettingsPage() {
                         R$ 49,90
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]"></div>
-                          Pago
-                        </span>
+                        <StatusLabel status="active" label="Pago" />
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button className="text-primary font-bold hover:text-primary/80 transition-colors bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg border border-primary/20">
+                        <Button variant="ghost" size="sm">
                           Baixar PDF
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                     <tr className="hover:bg-white/10 transition-colors group">
@@ -584,15 +474,12 @@ export function SettingsPage() {
                         R$ 49,90
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]"></div>
-                          Pago
-                        </span>
+                        <StatusLabel status="active" label="Pago" />
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button className="text-primary font-bold hover:text-primary/80 transition-colors bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg border border-primary/20">
+                        <Button variant="ghost" size="sm">
                           Baixar PDF
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   </tbody>
@@ -602,18 +489,20 @@ export function SettingsPage() {
           </div>
         </section>
 
-        {/* Floating Action Bar / Footer */}
+        {/* Footer */}
         <div className="flex justify-end gap-4 py-8">
-          <button className="px-8 py-3 rounded-xl border border-white/20 bg-white/5 font-bold hover:bg-white/10 transition-colors text-foreground shadow-sm hover:border-white/30 backdrop-blur-md">
+          <Button variant="glass" size="lg">
             Descartar
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
+            size="lg"
             onClick={handleSaveSettings}
             disabled={isSaving}
-            className="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-[0_0_20px_rgba(116,61,245,0.4)] hover:shadow-[0_0_30px_rgba(116,61,245,0.6)] hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 border border-white/10"
           >
+            {isSaving && <Loader2 className="animate-spin" />}
             {isSaving ? "Salvando..." : "Salvar Alterações"}
-          </button>
+          </Button>
         </div>
 
         <ConfirmModal
