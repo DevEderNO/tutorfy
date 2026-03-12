@@ -36,10 +36,11 @@ function getInitials(name: string): string {
 
 export const avatarVariants = tv({
   slots: {
-    root: 'relative inline-flex shrink-0 items-center justify-center border font-semibold select-none overflow-hidden',
+    root: 'relative inline-flex shrink-0 items-center justify-center border font-semibold select-none',
+    inner: 'size-full overflow-hidden rounded-[inherit] flex items-center justify-center',
     image: 'size-full object-cover',
     fallback: 'flex items-center justify-center size-full',
-    statusDot: 'absolute bottom-0 right-0 rounded-full border-2 border-background',
+    statusDot: 'absolute -bottom-0.5 -right-0.5 rounded-full border-2 border-background',
   },
   variants: {
     size: {
@@ -84,7 +85,7 @@ export function Avatar({
   ...props
 }: AvatarProps) {
   const [imgError, setImgError] = useState(false)
-  const { root, image, fallback, statusDot } = avatarVariants({ size, shape, status })
+  const { root, inner, image, fallback, statusDot } = avatarVariants({ size, shape, status })
   const colorClass = name ? getColorFromName(name) : AVATAR_COLORS[0]
   const showImage = src && !imgError
 
@@ -94,22 +95,24 @@ export function Avatar({
       className={twMerge(root(), !showImage && colorClass, className)}
       {...props}
     >
-      {showImage ? (
-        <img
-          data-slot="avatar-image"
-          src={src}
-          alt={alt ?? name ?? 'avatar'}
-          className={image()}
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        <span data-slot="avatar-fallback" className={fallback()}>
-          {name
-            ? getInitials(name)
-            : <UserRound className="size-[45%] opacity-60" />
-          }
-        </span>
-      )}
+      <span data-slot="avatar-inner" className={inner()}>
+        {showImage ? (
+          <img
+            data-slot="avatar-image"
+            src={src}
+            alt={alt ?? name ?? 'avatar'}
+            className={image()}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <span data-slot="avatar-fallback" className={fallback()}>
+            {name
+              ? getInitials(name)
+              : <UserRound className="size-[45%] opacity-60" />
+            }
+          </span>
+        )}
+      </span>
 
       {status && (
         <span

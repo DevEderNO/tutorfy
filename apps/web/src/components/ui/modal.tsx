@@ -11,8 +11,8 @@ const contentVariants = tv({
     'fixed left-1/2 top-1/2 z-[51] w-[calc(100%-2rem)]',
     '-translate-x-1/2 -translate-y-1/2',
     'flex flex-col gap-0',
-    'bg-[rgba(15,23,42,0.92)] backdrop-blur-xl',
-    'border border-white/10 rounded-2xl shadow-2xl',
+    'bg-[#0c0816] backdrop-blur-xl',
+    'border border-white/10 rounded-3xl shadow-2xl',
     'transition-opacity duration-200',
   ],
   variants: {
@@ -43,7 +43,7 @@ export function ModalContent({ className, size, children, ...props }: ModalConte
     <Dialog.Portal>
       <Dialog.Overlay
         data-slot="modal-overlay"
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-50 bg-[#0c0816]/80 backdrop-blur-md"
       />
       <Dialog.Content
         data-slot="modal-content"
@@ -75,7 +75,7 @@ export function ModalHeader({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       data-slot="modal-header"
-      className={twMerge('flex flex-col gap-1 px-6 pt-6 pb-4 border-b border-white/5', className)}
+      className={twMerge('flex flex-col gap-1 px-6 pt-6 pb-4', className)}
       {...props}
     />
   )
@@ -87,7 +87,7 @@ export function ModalTitle({ className, ...props }: ComponentProps<typeof Dialog
   return (
     <Dialog.Title
       data-slot="modal-title"
-      className={twMerge('text-base font-bold text-foreground pr-6', className)}
+      className={twMerge('text-xl font-bold text-foreground pr-6', className)}
       {...props}
     />
   )
@@ -124,7 +124,7 @@ export function ModalFooter({ className, ...props }: ComponentProps<'div'>) {
     <div
       data-slot="modal-footer"
       className={twMerge(
-        'flex items-center justify-end gap-2 px-6 py-4 border-t border-white/5',
+        'grid grid-cols-2 gap-3 px-6 pb-6 pt-2',
         className,
       )}
       {...props}

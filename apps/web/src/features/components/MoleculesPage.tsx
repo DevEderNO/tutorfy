@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Plus, Trash2, Download, ArrowRight, Settings, Bell, Check, Search, Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input, InputField } from '../../components/ui/input'
@@ -14,6 +14,8 @@ import {
   Modal, ModalTrigger, ModalContent, ModalHeader, ModalTitle,
   ModalDescription, ModalBody, ModalFooter, ModalClose,
 } from '../../components/ui/modal'
+import { DatePicker, DateRangePicker, type DateRange } from '../../components/ui/date-picker'
+import { TimePicker } from '../../components/ui/time-picker'
 
 interface ComponentItem {
   name: string;
@@ -21,7 +23,124 @@ interface ComponentItem {
   render: () => React.ReactNode;
 }
 
+function TimePickerShowcase() {
+  const [basic, setBasic]       = useState<string | undefined>()
+  const [step5, setStep5]       = useState<string | undefined>()
+  const [step15, setStep15]     = useState<string | undefined>()
+  const [withSec, setWithSec]   = useState<string | undefined>()
+
+  return (
+    <div className="flex flex-col gap-4 w-full">
+
+      {/* Estados */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estados</span>
+        <div className="flex flex-col gap-2">
+          <TimePicker value={basic} onChange={setBasic} placeholder="Selecione um horário" />
+          <TimePicker value={basic} onChange={setBasic} state="error" placeholder="Horário inválido" />
+          <TimePicker value={basic} onChange={setBasic} state="success" placeholder="Horário confirmado" />
+        </div>
+      </div>
+
+      {/* Tamanhos */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tamanhos</span>
+        <div className="flex flex-col gap-2">
+          <TimePicker size="sm" value={basic} onChange={setBasic} placeholder="Small" />
+          <TimePicker size="md" value={basic} onChange={setBasic} placeholder="Medium" />
+          <TimePicker size="lg" value={basic} onChange={setBasic} placeholder="Large" />
+        </div>
+      </div>
+
+      {/* Passo de minutos */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Passo de minutos</span>
+        <div className="flex flex-col gap-2">
+          <TimePicker step={5}  value={step5}  onChange={setStep5}  placeholder="Passo de 5 min" />
+          <TimePicker step={15} value={step15} onChange={setStep15} placeholder="Passo de 15 min" />
+          <TimePicker step={30} value={step15} onChange={setStep15} placeholder="Passo de 30 min" />
+        </div>
+      </div>
+
+      {/* Com segundos */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Com segundos</span>
+        <TimePicker withSeconds value={withSec} onChange={setWithSec} placeholder="HH:mm:ss" />
+      </div>
+
+      {/* Desabilitado */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Desabilitado</span>
+        <TimePicker disabled placeholder="Campo desabilitado" />
+      </div>
+
+    </div>
+  )
+}
+
+function DatePickerShowcase() {
+  const [single, setSingle]           = useState<Date | undefined>()
+  const [withMin, setWithMin]         = useState<Date | undefined>()
+  const [range, setRange]             = useState<DateRange>({})
+  const today = new Date()
+  const minDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+
+  return (
+    <div className="flex flex-col gap-4 w-full">
+
+      {/* Single */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Seleção única</span>
+        <div className="flex flex-col gap-2">
+          <DatePicker value={single} onChange={setSingle} placeholder="Selecione uma data" />
+          <DatePicker value={single} onChange={setSingle} state="error" placeholder="Data inválida" />
+          <DatePicker value={single} onChange={setSingle} state="success" placeholder="Data confirmada" />
+        </div>
+      </div>
+
+      {/* Tamanhos */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tamanhos</span>
+        <div className="flex flex-col gap-2">
+          <DatePicker size="sm" value={single} onChange={setSingle} placeholder="Small" />
+          <DatePicker size="md" value={single} onChange={setSingle} placeholder="Medium" />
+          <DatePicker size="lg" value={single} onChange={setSingle} placeholder="Large" />
+        </div>
+      </div>
+
+      {/* Com data mínima */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data mínima (hoje)</span>
+        <DatePicker value={withMin} onChange={setWithMin} min={minDate} placeholder="Apenas datas futuras" />
+      </div>
+
+      {/* Range picker */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Seleção de intervalo</span>
+        <DateRangePicker value={range} onChange={setRange} placeholder="Selecione um período" />
+      </div>
+
+      {/* Desabilitado */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Desabilitado</span>
+        <DatePicker disabled placeholder="Campo desabilitado" />
+      </div>
+
+    </div>
+  )
+}
+
 const molecules: ComponentItem[] = [
+  {
+    name: 'TimePicker',
+    description: 'Seleção de hora com colunas roláveis. Passo configurável (1/5/10/15/30 min). Suporte a segundos. Estados: default/error/success. Tamanhos: sm/md/lg.',
+    render: () => <TimePickerShowcase />,
+  },
+  {
+    name: 'DatePicker',
+    description: 'Seleção de data com calendário popover. Variantes: single e range. Estados: default/error/success. Tamanhos: sm/md/lg.',
+    render: () => <DatePickerShowcase />,
+  },
   {
     name: 'Modal',
     description: 'Compound com Header, Body e Footer. Tamanhos: sm, md, lg, xl. Baseado em Radix Dialog.',

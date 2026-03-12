@@ -87,6 +87,8 @@ Prompt base: `apps/web/src/features/components/COMPONENT_PROMPT.md`
 | `avatar.tsx` | `Avatar`, `AvatarGroup` | size: xs/sm/md/lg/xl · shape: circle/square · status: online/offline/busy/away |
 | `tabs.tsx` | `Tabs`, `TabsList`, `TabsTrigger`, `TabsPanel` | variant: underline/pill/glass |
 | `modal.tsx` | `Modal`, `ModalTrigger`, `ModalContent`, `ModalHeader`, `ModalTitle`, `ModalDescription`, `ModalBody`, `ModalFooter`, `ModalClose` | size: sm/md/lg/xl |
+| `date-picker.tsx` | `DatePicker`, `DateRangePicker` | size: sm/md/lg · state: default/error/success · min/max · dateFormat |
+| `time-picker.tsx` | `TimePicker` | size: sm/md/lg · state: default/error/success · step (1/5/10/15/30) · withSeconds |
 
 ### Padrão obrigatório de novo componente
 
