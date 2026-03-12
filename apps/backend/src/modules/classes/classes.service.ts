@@ -2,12 +2,14 @@ import { ClassesRepository } from './classes.repository.js';
 import type { CreateClassInput, UpdateClassInput } from './classes.schema.js';
 import { PaymentsService } from '../payments/payments.service.js';
 import { NotificationService } from '../../lib/notifications/notification.service.js';
+import { StudentEvolutionAiService } from '../ai/services/student-evolution/student-evolution.service.js';
 import { prisma } from '../../lib/prisma.js';
 import { env } from '../../env.js';
 
 const repository = new ClassesRepository();
 const paymentsService = new PaymentsService();
 const notificationService = new NotificationService();
+const studentEvolutionAiService = new StudentEvolutionAiService();
 
 export class ClassesService {
   async list(userId: string, filters?: { studentId?: string; startDate?: string; endDate?: string }) {
@@ -38,9 +40,12 @@ export class ClassesService {
     const date = new Date(classSession.date);
     await paymentsService.syncStudentInvoice(userId, classSession.studentId, date.getMonth() + 1, date.getFullYear());
 
-    // Trigger notifications when transitioning to COMPLETED
+    // Trigger side effects when transitioning to COMPLETED
     if (data.status === 'COMPLETED' && previous.status !== 'COMPLETED') {
-      await this.#notifyClassCompleted(classSession);
+      await Promise.allSettled([
+        this.#notifyClassCompleted(classSession),
+        studentEvolutionAiService.generateFromSession(id, userId).catch(() => {}),
+      ]);
     }
 
     return classSession;

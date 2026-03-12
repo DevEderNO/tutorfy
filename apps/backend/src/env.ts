@@ -8,6 +8,7 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
   PUBLIC_URL: z.string().url().default('http://localhost:3000'),
+  OPENAI_API_KEY: z.string().min(1),
 });
 
 const _env = envSchema.safeParse(process.env);

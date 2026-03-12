@@ -16,8 +16,9 @@ model User {
   password  String?
   googleId  String?  @unique @map("google_id")
   name      String
-  avatarUrl String?  @map("avatar_url")
-  createdAt DateTime @default(now()) @map("created_at")
+  avatarUrl        String?         @map("avatar_url")
+  evolutionAiMode  EvolutionAiMode @default(AUTO) @map("evolution_ai_mode")
+  createdAt        DateTime        @default(now()) @map("created_at")
 
   students     Student[]
   classSessions ClassSession[]
@@ -75,6 +76,11 @@ model StudentShareToken {
 enum BillingType {
   MONTHLY
   HOURLY
+}
+
+enum EvolutionAiMode {
+  AUTO
+  REVIEW
 }
 
 enum ClassSessionStatus {

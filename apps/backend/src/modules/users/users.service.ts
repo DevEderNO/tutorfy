@@ -1,5 +1,5 @@
 import { prisma } from '../../lib/prisma.js';
-import type { UpdateProfileInput } from './users.schema.js';
+import type { UpdateProfileInput, UpdateAiSettingsInput } from './users.schema.js';
 
 export class UsersService {
   async updateProfile(userId: string, data: UpdateProfileInput) {
@@ -18,5 +18,14 @@ export class UsersService {
        avatarUrl: user.avatarUrl,
        createdAt: user.createdAt
     };
+  }
+
+  async updateAiSettings(userId: string, data: UpdateAiSettingsInput) {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { evolutionAiMode: data.evolutionAiMode },
+      select: { id: true, evolutionAiMode: true },
+    });
+    return user;
   }
 }
