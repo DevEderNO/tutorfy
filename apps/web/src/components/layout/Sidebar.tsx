@@ -5,6 +5,7 @@ import {
   CalendarDays,
   DollarSign,
   GraduationCap,
+  Layers,
   Pin,
   PinOff,
 } from "lucide-react";
@@ -14,6 +15,7 @@ const navItems = [
   { to: "/students", icon: Users, label: "Alunos" },
   { to: "/schedule", icon: CalendarDays, label: "Agenda" },
   { to: "/financial", icon: DollarSign, label: "Financeiro" },
+  ...(import.meta.env.DEV ? [{ to: "/components", icon: Layers, label: "Components" }] : []),
 ];
 
 interface SidebarProps {

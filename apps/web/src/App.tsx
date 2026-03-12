@@ -15,6 +15,9 @@ import { SchedulePage } from "@/features/schedule/SchedulePage";
 import { FinancialPage } from "@/features/financial/FinancialPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { StudentPortalPage } from "@/features/portal/StudentPortalPage";
+import { ComponentsLayout } from "@/features/components/ComponentsLayout";
+import { AtomsPage } from "@/features/components/AtomsPage";
+import { MoleculesPage } from "@/features/components/MoleculesPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -78,6 +81,13 @@ export default function App() {
                 <Route path="/schedule" element={<SchedulePage />} />
                 <Route path="/financial" element={<FinancialPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                {import.meta.env.DEV && (
+                  <Route path="/components" element={<ComponentsLayout />}>
+                    <Route index element={<Navigate to="/components/atoms" replace />} />
+                    <Route path="atoms" element={<AtomsPage />} />
+                    <Route path="molecules" element={<MoleculesPage />} />
+                  </Route>
+                )}
               </Route>
             </Routes>
           </AuthProvider>

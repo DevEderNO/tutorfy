@@ -25,7 +25,14 @@
       "type": "http",
       "url": "https://stitch.googleapis.com/mcp",
       "headers": {
-        "X-Goog-Api-Key": "AQ.Ab8RN6IAilsF8M7lpG0ARgQbNfYU7BYSNPiJpRIU1Z7xK_L04A"
+        "X-Goog-Api-Key": "${STITCH_API_KEY}"
+      }
+    },
+    "Framelink MCP for Figma": {
+      "command": "npx",
+      "args": ["-y", "figma-developer-mcp", "--stdio"],
+      "env": {
+        "FIGMA_API_KEY": "${FIGMA_API_KEY}"
       }
     }
   }
