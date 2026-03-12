@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm, useWatch, useFieldArray, Controller } from "react-hook-form";
@@ -9,7 +9,6 @@ import {
   useUpdateStudent,
 } from "./hooks/useStudents";
 import {
-  Camera,
   User,
   Book,
   Users as Family,
@@ -20,135 +19,121 @@ import {
   Plus,
   Trash2,
   AlertCircle,
+  Mail,
+  Phone,
 } from "lucide-react";
 import type { BillingType } from "@tutorfy/types";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { Header } from "@/components/layout/Header";
+import { Input, InputField } from "@/components/ui/input";
+import { Select, SelectItem } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import { TimePicker } from "@/components/ui/time-picker";
+import { ImageUpload } from "@/components/ui/upload";
+import { format as fmtDate } from "date-fns";
+
+// ─── Schema ───────────────────────────────────────────────────────────────────
 
 const schedulePreferenceSchema = z.object({
   dayOfWeek: z.coerce.number().min(0).max(6),
   startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Horário inválido"),
-  endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Horário inválido"),
+  endTime:   z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Horário inválido"),
 });
 
 const studentSchema = z
   .object({
-    name: z.string().min(2, "Nome deve ter ao menos 2 caracteres"),
-    avatarUrl: z.string().optional().nullable(),
-    grade: z.string().min(1, "Série é obrigatória"),
-    school: z.string().min(1, "Escola é obrigatória"),
-    responsibleName: z.string().min(2, "Nome do responsável é obrigatório"),
-    responsiblePhone: z
-      .string()
-      .refine(
-        (v) => v.replace(/\D/g, "").length >= 10,
-        "Telefone inválido (mínimo 10 dígitos)",
-      ),
+    name:             z.string().min(2, "Nome deve ter ao menos 2 caracteres"),
+    avatarUrl:        z.string().optional().nullable(),
+    grade:            z.string().min(1, "Série é obrigatória"),
+    school:           z.string().min(1, "Escola é obrigatória"),
+    responsibleName:  z.string().min(2, "Nome do responsável é obrigatório"),
+    responsiblePhone: z.string().refine(
+      (v) => v.replace(/\D/g, "").length >= 10,
+      "Telefone inválido (mínimo 10 dígitos)",
+    ),
     billingType: z.enum(["MONTHLY", "HOURLY"] as const).default("MONTHLY"),
-    monthlyFee: z.coerce
-      .number()
-      .min(0, "Valor não pode ser negativo")
-      .optional()
-      .default(0),
-    hourlyRate: z.coerce
-      .number()
-      .positive("Valor deve ser positivo")
-      .optional()
-      .or(z.literal(0))
-      .nullable(),
-
-    // Dummy fields for UI completeness based on Stitch Design
-    birthDate: z.string().optional(),
-    shift: z.string().optional(),
-    cpf: z
-      .string()
-      .optional()
-      .refine(
-        (v) => !v || v.replace(/\D/g, "").length === 0 || v.replace(/\D/g, "").length === 11,
-        "CPF inválido",
-      ),
-    email: z.string().email("E-mail inválido").optional().or(z.literal("")),
-    dueDate: z.string().optional(),
-    schedulePreferences: z
-      .array(schedulePreferenceSchema)
-      .optional()
-      .default([]),
+    monthlyFee:  z.coerce.number().min(0).optional().default(0),
+    hourlyRate:  z.coerce.number().positive("Valor deve ser positivo").optional().or(z.literal(0)).nullable(),
+    birthDate:   z.string().optional(),
+    shift:       z.string().optional(),
+    cpf: z.string().optional().refine(
+      (v) => !v || v.replace(/\D/g, "").length === 0 || v.replace(/\D/g, "").length === 11,
+      "CPF inválido",
+    ),
+    email:               z.string().email("E-mail inválido").optional().or(z.literal("")),
+    dueDate:             z.string().optional(),
+    schedulePreferences: z.array(schedulePreferenceSchema).optional().default([]),
   })
   .refine(
-    (data) => {
-      if (data.billingType === "MONTHLY") return (data.monthlyFee ?? 0) > 0;
-      return true;
-    },
-    {
-      message: "Mensalidade é obrigatória no plano mensal",
-      path: ["monthlyFee"],
-    },
+    (d) => d.billingType !== "MONTHLY" || (d.monthlyFee ?? 0) > 0,
+    { message: "Mensalidade é obrigatória no plano mensal", path: ["monthlyFee"] },
   )
   .refine(
-    (data) => {
-      if (data.billingType === "HOURLY")
-        return data.hourlyRate != null && data.hourlyRate > 0;
-      return true;
-    },
-    {
-      message: "Valor por hora é obrigatório no plano por hora",
-      path: ["hourlyRate"],
-    },
+    (d) => d.billingType !== "HOURLY" || (d.hourlyRate != null && d.hourlyRate > 0),
+    { message: "Valor por hora é obrigatório no plano por hora", path: ["hourlyRate"] },
   );
 
 type StudentFormData = z.infer<typeof studentSchema>;
 
+// ─── Masks ────────────────────────────────────────────────────────────────────
+
 function maskPhone(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 10) {
-    return digits
-      .replace(/^(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{4})(\d{1,4})$/, "$1-$2");
-  }
-  return digits
-    .replace(/^(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+  const d = value.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 10)
+    return d.replace(/^(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+  return d.replace(/^(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d{1,4})$/, "$1-$2");
 }
 
 function maskCpf(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-  return digits
+  const d = value.replace(/\D/g, "").slice(0, 11);
+  return d
     .replace(/^(\d{3})(\d)/, "$1.$2")
     .replace(/^(\d{3}\.\d{3})(\d)/, "$1.$2")
     .replace(/^(\d{3}\.\d{3}\.\d{3})(\d)/, "$1-$2");
 }
 
-function inputClass(hasError: boolean) {
-  return `glass-input rounded-lg px-4 py-3 w-full outline-none transition-all${hasError ? " !border-red-500/50" : ""}`;
-}
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const GRADES = [
+  "1º Ano Ensino Fundamental",
+  "2º Ano Ensino Fundamental",
+  "3º Ano Ensino Fundamental",
+  "4º Ano Ensino Fundamental",
+  "5º Ano Ensino Fundamental",
+  "6º Ano Ensino Fundamental",
+  "7º Ano Ensino Fundamental",
+  "8º Ano Ensino Fundamental",
+  "9º Ano Ensino Fundamental",
+  "1º Ano Ensino Médio",
+  "2º Ano Ensino Médio",
+  "3º Ano Ensino Médio",
+  "Outro",
+]
+
+const WEEK_DAYS = [
+  { value: "0", label: "Domingo" },
+  { value: "1", label: "Segunda-feira" },
+  { value: "2", label: "Terça-feira" },
+  { value: "3", label: "Quarta-feira" },
+  { value: "4", label: "Quinta-feira" },
+  { value: "5", label: "Sexta-feira" },
+  { value: "6", label: "Sábado" },
+]
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function StudentFormPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const isEditing = !!id;
+  const { id }      = useParams<{ id: string }>();
+  const navigate    = useNavigate();
+  const isEditing   = !!id;
 
   const { data: student, isLoading } = useStudent(id);
   const createStudent = useCreateStudent();
   const updateStudent = useUpdateStudent();
 
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploading,    setIsUploading]    = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [grades, setGrades] = useState<string[]>([
-    "1º Ano Ensino Fundamental",
-    "2º Ano Ensino Fundamental",
-    "3º Ano Ensino Fundamental",
-    "4º Ano Ensino Fundamental",
-    "5º Ano Ensino Fundamental",
-    "6º Ano Ensino Fundamental",
-    "7º Ano Ensino Fundamental",
-    "8º Ano Ensino Fundamental",
-    "9º Ano Ensino Fundamental",
-    "1º Ano Ensino Médio",
-    "2º Ano Ensino Médio",
-    "3º Ano Ensino Médio",
-    "Outro",
-  ]);
 
   const {
     register,
@@ -160,98 +145,72 @@ export function StudentFormPage() {
   } = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
     defaultValues: {
-      billingType: "MONTHLY",
-      monthlyFee: 0,
-      hourlyRate: null,
-      shift: "morning",
-      dueDate: "10",
+      billingType:         "MONTHLY",
+      monthlyFee:          0,
+      hourlyRate:          null,
+      shift:               "morning",
+      dueDate:             "10",
       schedulePreferences: [],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "schedulePreferences",
-  });
+  const { fields, append, remove } = useFieldArray({ control, name: "schedulePreferences" });
 
   const billingType = useWatch({ control, name: "billingType" });
-  const avatarUrl = useWatch({ control, name: "avatarUrl" });
+  const avatarUrl   = useWatch({ control, name: "avatarUrl" });
 
   useEffect(() => {
     if (student) {
       reset({
-        name: student.name,
-        avatarUrl: student.avatarUrl,
-        grade: student.grade,
-        school: student.school,
-        responsibleName: student.responsibleName,
+        name:             student.name,
+        avatarUrl:        student.avatarUrl,
+        grade:            student.grade,
+        school:           student.school,
+        responsibleName:  student.responsibleName,
         responsiblePhone: student.responsiblePhone,
-        billingType: student.billingType as BillingType,
-        monthlyFee: student.monthlyFee,
-        hourlyRate: student.hourlyRate,
-
-        // Dummy mappings to not break UI continuity if switching to server data
-        birthDate: "2010-01-01",
-        shift: "morning",
-        cpf: "",
-        email: "",
-        dueDate: "10",
+        billingType:      student.billingType as BillingType,
+        monthlyFee:       student.monthlyFee,
+        hourlyRate:       student.hourlyRate,
+        birthDate:        "2010-01-01",
+        shift:            "morning",
+        cpf:              "",
+        email:            "",
+        dueDate:          "10",
         schedulePreferences: student.schedulePreferences || [],
       });
     }
   }, [student, reset]);
 
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const handleAvatarUpload = async (file: File) => {
     try {
       setIsUploading(true);
       const formData = new FormData();
       formData.append("file", file);
-
-      const response = await fetch("/api/upload/avatar", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to upload image");
-      }
-
-      const uploadResult = await response.json();
-      setValue("avatarUrl", uploadResult.url, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-    } catch (error) {
-      console.error("Error uploading image:", error);
+      const res = await fetch("/api/upload/avatar", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const { url } = await res.json();
+      setValue("avatarUrl", url, { shouldValidate: true, shouldDirty: true });
+    } catch {
       setShowErrorModal(true);
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     }
   };
 
   const onSubmit = async (data: StudentFormData) => {
     try {
       const payload = {
-        name: data.name,
-        avatarUrl: data.avatarUrl ?? undefined,
-        grade: data.grade,
-        school: data.school,
-        responsibleName: data.responsibleName,
-        responsiblePhone: data.responsiblePhone,
-        billingType: data.billingType,
-        monthlyFee: data.monthlyFee,
-        hourlyRate: data.hourlyRate ?? undefined,
+        name:                data.name,
+        avatarUrl:           data.avatarUrl ?? undefined,
+        grade:               data.grade,
+        school:              data.school,
+        responsibleName:     data.responsibleName,
+        responsiblePhone:    data.responsiblePhone,
+        billingType:         data.billingType,
+        monthlyFee:          data.monthlyFee,
+        hourlyRate:          data.hourlyRate ?? undefined,
         schedulePreferences: data.schedulePreferences,
       };
-
       if (isEditing) {
         await updateStudent.mutateAsync({ id, data: payload });
       } else {
@@ -277,29 +236,21 @@ export function StudentFormPage() {
         title={isEditing ? `Editar: ${student?.name || "Aluno"}` : "Novo Aluno"}
         actions={
           <div className="flex items-center gap-3 mr-2">
-            <button
+            <Button
               type="submit"
               form="student-form"
               disabled={isUploading || isSubmitting}
-              className="gradient-primary hover:opacity-90 text-white px-8 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
             >
-              {isSubmitting
-                ? "Salvando..."
-                : isEditing
-                  ? "Salvar Alterações"
-                  : "Cadastrar Aluno"}
-            </button>
+              {isSubmitting ? "Salvando..." : isEditing ? "Salvar Alterações" : "Cadastrar Aluno"}
+            </Button>
           </div>
         }
       />
 
       <div className="flex-1 w-full max-w-4xl mx-auto px-2 py-8 sm:px-6 sm:py-10">
-        <form
-          id="student-form"
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-8"
-        >
-          {/* Section 1: Informações Pessoais */}
+        <form id="student-form" onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+
+          {/* ── Seção 1: Informações Pessoais ── */}
           <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
               <User className="h-6 w-6 text-primary" />
@@ -307,75 +258,54 @@ export function StudentFormPage() {
                 Informações Pessoais
               </h3>
             </div>
+
             <div className="flex flex-col md:flex-row gap-10 items-start">
-              <div className="flex flex-col items-center gap-4 mx-auto md:mx-0">
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`w-32 h-32 rounded-full border-2 border-dashed border-primary/40 flex flex-col items-center justify-center cursor-pointer hover:bg-primary/5 transition-colors group relative overflow-hidden bg-slate-800 ${isUploading ? "opacity-50" : ""}`}
-                >
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt="Avatar"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <>
-                      <Camera className="h-10 w-10 text-slate-500 group-hover:text-primary transition-colors" />
-                      <p className="text-[10px] text-slate-500 mt-2 font-medium group-hover:text-primary transition-colors">
-                        UPLOAD FOTO
-                      </p>
-                    </>
-                  )}
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  aria-label="Fazer upload de foto"
-                  className="hidden"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  disabled={isUploading}
+              {/* Avatar upload */}
+              <div className="flex flex-col items-center gap-3 mx-auto md:mx-0">
+                <ImageUpload
+                  size="lg"
+                  shape="circle"
+                  value={avatarUrl ?? undefined}
+                  onChange={handleAvatarUpload}
+                  onRemove={() => setValue("avatarUrl", null, { shouldDirty: true })}
+                  isLoading={isUploading}
+                  accept="image/png,image/jpeg,image/webp"
                 />
                 <p className="text-xs text-slate-500 italic text-center">
-                  Tamanho máx: 5MB
-                  <br />
-                  PNG, JPG
+                  Máx: 5MB · PNG, JPG
                 </p>
               </div>
 
-              <div className="flex-1 grid grid-cols-1 gap-6 w-full">
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-slate-300">
-                    Nome Completo *
-                  </label>
-                  <input
+              <div className="flex-1 grid grid-cols-1 gap-5 w-full">
+                <InputField label="Nome Completo" required error={errors.name?.message} htmlFor="name">
+                  <Input
+                    id="name"
                     {...register("name")}
-                    className={inputClass(!!errors.name)}
+                    state={errors.name ? "error" : "default"}
+                    size="lg"
                     placeholder="Ex: Lucas Gabriel Oliveira"
-                    type="text"
                   />
-                  {errors.name && (
-                    <p className="text-xs text-red-400 font-medium">
-                      {errors.name.message}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-slate-300">
-                    Data de Nascimento
-                  </label>
-                  <input
-                    {...register("birthDate")}
-                    className="glass-input rounded-lg px-4 py-3 w-full outline-none appearance-none transition-all text-slate-300"
-                    type="date"
+                </InputField>
+
+                <InputField label="Data de Nascimento" htmlFor="birthDate">
+                  <Controller
+                    name="birthDate"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        size="lg"
+                        value={field.value ? new Date(field.value + "T12:00:00") : undefined}
+                        onChange={(date) => field.onChange(fmtDate(date, "yyyy-MM-dd"))}
+                        placeholder="Selecione a data"
+                      />
+                    )}
                   />
-                </div>
+                </InputField>
               </div>
             </div>
           </section>
 
-          {/* Section 2: Informações Acadêmicas */}
+          {/* ── Seção 2: Informações Acadêmicas ── */}
           <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
               <Book className="h-6 w-6 text-primary" />
@@ -383,85 +313,63 @@ export function StudentFormPage() {
                 Informações Acadêmicas
               </h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-slate-300">
-                  Colégio *
-                </label>
-                <input
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <InputField label="Colégio" required error={errors.school?.message} htmlFor="school">
+                <Input
+                  id="school"
                   {...register("school")}
-                  className={inputClass(!!errors.school)}
+                  state={errors.school ? "error" : "default"}
+                  size="lg"
                   placeholder="Nome da Instituição"
-                  type="text"
                 />
-                {errors.school && (
-                  <p className="text-xs text-red-400 font-medium">
-                    {errors.school.message}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-slate-300">
-                  Série *
-                </label>
-                <select
-                  {...register("grade")}
-                  className={`${inputClass(!!errors.grade)} appearance-none cursor-pointer`}
-                >
-                  <option value="" className="text-slate-900">
-                    Selecione...
-                  </option>
-                  {grades.map((grade) => (
-                    <option
-                      key={grade}
-                      value={grade}
-                      className="text-slate-900"
+              </InputField>
+
+              <InputField label="Série" required error={errors.grade?.message}>
+                <Controller
+                  name="grade"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      state={errors.grade ? "error" : "default"}
+                      size="lg"
+                      placeholder="Selecione..."
                     >
-                      {grade}
-                    </option>
-                  ))}
-                </select>
-                {errors.grade && (
-                  <p className="text-xs text-red-400 font-medium">
-                    {errors.grade.message}
-                  </p>
-                )}
-              </div>
+                      {GRADES.map((g) => (
+                        <SelectItem key={g} value={g}>{g}</SelectItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+              </InputField>
+
               <div className="md:col-span-2 flex flex-col gap-3">
-                <label className="text-sm font-semibold text-slate-300">
-                  Turno Escolar
-                </label>
+                <span className="text-sm font-semibold text-slate-300">Turno Escolar</span>
                 <div className="flex p-1.5 glass-panel bg-slate-900/40 rounded-xl w-fit">
-                  <label className="cursor-pointer">
-                    <input
-                      {...register("shift")}
-                      value="morning"
-                      className="peer sr-only"
-                      name="shift"
-                      type="radio"
-                    />
-                    <div className="px-8 py-2 rounded-lg text-sm font-bold text-slate-400 peer-checked:bg-primary peer-checked:text-white transition-all shadow-none peer-checked:shadow-lg">
-                      Manhã
-                    </div>
-                  </label>
-                  <label className="cursor-pointer">
-                    <input
-                      {...register("shift")}
-                      value="afternoon"
-                      className="peer sr-only"
-                      name="shift"
-                      type="radio"
-                    />
-                    <div className="px-8 py-2 rounded-lg text-sm font-bold text-slate-400 peer-checked:bg-primary peer-checked:text-white transition-all shadow-none peer-checked:shadow-lg">
-                      Tarde
-                    </div>
-                  </label>
+                  {[
+                    { value: "morning",   label: "Manhã" },
+                    { value: "afternoon", label: "Tarde" },
+                  ].map((opt) => (
+                    <label key={opt.value} className="cursor-pointer">
+                      <input
+                        {...register("shift")}
+                        value={opt.value}
+                        className="peer sr-only"
+                        type="radio"
+                      />
+                      <div className="px-8 py-2 rounded-lg text-sm font-bold text-slate-400 peer-checked:bg-primary peer-checked:text-white transition-all peer-checked:shadow-lg">
+                        {opt.label}
+                      </div>
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Section 3: Responsáveis */}
+          {/* ── Seção 3: Responsáveis ── */}
           <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
               <Family className="h-6 w-6 text-primary" />
@@ -469,95 +377,69 @@ export function StudentFormPage() {
                 Responsáveis
               </h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-slate-300">
-                  Nome do Responsável *
-                </label>
-                <input
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <InputField label="Nome do Responsável" required error={errors.responsibleName?.message} htmlFor="responsibleName">
+                <Input
+                  id="responsibleName"
                   {...register("responsibleName")}
-                  className={inputClass(!!errors.responsibleName)}
-                  type="text"
+                  state={errors.responsibleName ? "error" : "default"}
+                  size="lg"
                   placeholder="Nome completo"
                 />
-                {errors.responsibleName && (
-                  <p className="text-xs text-red-400 font-medium">
-                    {errors.responsibleName.message}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-slate-300">
-                  CPF
-                </label>
+              </InputField>
+
+              <InputField label="CPF" error={errors.cpf?.message}>
                 <Controller
                   name="cpf"
                   control={control}
                   render={({ field }) => (
-                    <input
+                    <Input
                       value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(maskCpf(e.target.value))
-                      }
-                      className={inputClass(!!errors.cpf)}
+                      onChange={(e) => field.onChange(maskCpf(e.target.value))}
+                      state={errors.cpf ? "error" : "default"}
+                      size="lg"
                       placeholder="000.000.000-00"
                       inputMode="numeric"
-                      type="text"
                     />
                   )}
                 />
-                {errors.cpf && (
-                  <p className="text-xs text-red-400 font-medium">
-                    {errors.cpf.message}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-slate-300">
-                  Telefone / WhatsApp *
-                </label>
+              </InputField>
+
+              <InputField label="Telefone / WhatsApp" required error={errors.responsiblePhone?.message}>
                 <Controller
                   name="responsiblePhone"
                   control={control}
                   render={({ field }) => (
-                    <input
+                    <Input
                       value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(maskPhone(e.target.value))
-                      }
-                      className={inputClass(!!errors.responsiblePhone)}
+                      onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                      state={errors.responsiblePhone ? "error" : "default"}
+                      size="lg"
+                      leadingIcon={<Phone />}
                       placeholder="(00) 00000-0000"
                       inputMode="tel"
                       type="tel"
                     />
                   )}
                 />
-                {errors.responsiblePhone && (
-                  <p className="text-xs text-red-400 font-medium">
-                    {errors.responsiblePhone.message}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-slate-300">
-                  E-mail
-                </label>
-                <input
+              </InputField>
+
+              <InputField label="E-mail" error={errors.email?.message} htmlFor="email">
+                <Input
+                  id="email"
                   {...register("email")}
-                  className={inputClass(!!errors.email)}
+                  state={errors.email ? "error" : "default"}
+                  size="lg"
+                  leadingIcon={<Mail />}
                   placeholder="responsavel@email.com"
                   type="email"
                 />
-                {errors.email && (
-                  <p className="text-xs text-red-400 font-medium">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
+              </InputField>
             </div>
           </section>
 
-          {/* Section 4: Cobrança */}
+          {/* ── Seção 4: Cobrança ── */}
           <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
               <CreditCard className="h-6 w-6 text-primary" />
@@ -565,258 +447,238 @@ export function StudentFormPage() {
                 Cobrança
               </h3>
             </div>
+
+            {/* Billing type cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              <label className="cursor-pointer relative">
-                <input
-                  {...register("billingType")}
-                  value="MONTHLY"
-                  className="peer sr-only"
-                  name="billingType"
-                  type="radio"
-                />
-                <div className="h-full p-6 rounded-xl glass-panel border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 transition-all flex flex-col gap-2 peer-checked:purple-glow">
-                  <CalendarSync className="h-6 w-6 text-primary peer-checked:text-primary transition-colors" />
-                  <h4 className="text-white font-bold text-lg">
-                    Mensalidade Fixa
-                  </h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    Ideal para planos recorrentes com valor fechado todo mês.
-                  </p>
-                </div>
-              </label>
-              <label className="cursor-pointer relative">
-                <input
-                  {...register("billingType")}
-                  value="HOURLY"
-                  className="peer sr-only"
-                  name="billingType"
-                  type="radio"
-                />
-                <div className="h-full p-6 rounded-xl glass-panel border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 transition-all flex flex-col gap-2 peer-checked:purple-glow">
-                  <Clock className="h-6 w-6 text-slate-400 peer-checked:text-primary transition-colors" />
-                  <h4 className="text-white font-bold text-lg">
-                    Valor por Hora
-                  </h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    Cobrança baseada no tempo real de tutoria realizado.
-                  </p>
-                </div>
-              </label>
+              {[
+                {
+                  value:       "MONTHLY",
+                  icon:        <CalendarSync className="h-6 w-6 text-primary" />,
+                  title:       "Mensalidade Fixa",
+                  description: "Ideal para planos recorrentes com valor fechado todo mês.",
+                },
+                {
+                  value:       "HOURLY",
+                  icon:        <Clock className="h-6 w-6 text-slate-400 peer-checked:text-primary transition-colors" />,
+                  title:       "Valor por Hora",
+                  description: "Cobrança baseada no tempo real de tutoria realizado.",
+                },
+              ].map((opt) => (
+                <label key={opt.value} className="cursor-pointer relative">
+                  <input
+                    {...register("billingType")}
+                    value={opt.value}
+                    className="peer sr-only"
+                    type="radio"
+                  />
+                  <div className="h-full p-6 rounded-xl glass-panel border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 transition-all flex flex-col gap-2 peer-checked:purple-glow">
+                    {opt.icon}
+                    <h4 className="text-white font-bold text-lg">{opt.title}</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">{opt.description}</p>
+                  </div>
+                </label>
+              ))}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-slate-300">
-                  Vencimento
-                </label>
-                <select
-                  {...register("dueDate")}
-                  className="glass-input rounded-lg px-4 py-3 w-full outline-none appearance-none cursor-pointer text-slate-300 transition-all"
-                >
-                  <option value="05" className="text-slate-900">
-                    Dia 05
-                  </option>
-                  <option value="10" className="text-slate-900">
-                    Dia 10
-                  </option>
-                  <option value="15" className="text-slate-900">
-                    Dia 15
-                  </option>
-                  <option value="20" className="text-slate-900">
-                    Dia 20
-                  </option>
-                  <option value="25" className="text-slate-900">
-                    Dia 25
-                  </option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <InputField label="Vencimento">
+                <Controller
+                  name="dueDate"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      size="lg"
+                      placeholder="Selecione..."
+                    >
+                      {["05", "10", "15", "20", "25"].map((d) => (
+                        <SelectItem key={d} value={d}>Dia {d}</SelectItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+              </InputField>
+
+              <div>
                 {billingType === "MONTHLY" ? (
-                  <>
-                    <label className="text-sm font-semibold text-slate-300">
-                      Valor da Mensalidade *
-                    </label>
+                  <InputField label="Valor da Mensalidade" required error={errors.monthlyFee?.message}>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold text-sm z-10 pointer-events-none">
                         R$
                       </span>
-                      <input
+                      <Input
                         {...register("monthlyFee")}
-                        className={`${inputClass(!!errors.monthlyFee)} pl-12 font-bold text-lg`}
+                        className="pl-10 font-bold text-lg"
+                        state={errors.monthlyFee ? "error" : "default"}
+                        size="lg"
                         placeholder="450.00"
                         type="number"
                         step="0.01"
                         inputMode="decimal"
                       />
                     </div>
-                    {errors.monthlyFee && (
-                      <p className="text-xs text-red-400 font-medium">
-                        {errors.monthlyFee.message}
-                      </p>
-                    )}
-                  </>
+                  </InputField>
                 ) : (
-                  <>
-                    <label className="text-sm font-semibold text-slate-300">
-                      Valor Base Hora-Aula *
-                    </label>
+                  <InputField label="Valor Base Hora-Aula" required error={errors.hourlyRate?.message}>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold text-sm z-10 pointer-events-none">
                         R$
                       </span>
-                      <input
+                      <Input
                         {...register("hourlyRate")}
-                        className={`${inputClass(!!errors.hourlyRate)} pl-12 font-bold text-lg`}
+                        className="pl-10 font-bold text-lg"
+                        state={errors.hourlyRate ? "error" : "default"}
+                        size="lg"
                         placeholder="80.00"
                         type="number"
                         step="0.01"
                         inputMode="decimal"
                       />
                     </div>
-                    {errors.hourlyRate && (
-                      <p className="text-xs text-red-400 font-medium">
-                        {errors.hourlyRate.message}
-                      </p>
-                    )}
-                  </>
+                  </InputField>
                 )}
               </div>
             </div>
           </section>
 
-          {/* Section 5: Horários */}
+          {/* ── Seção 5: Horários ── */}
           <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <Calendar className="h-6 w-6 text-primary" />
-                <h3 className="text-white text-xl font-bold uppercase tracking-wider">
-                  Horários
-                </h3>
+                <h3 className="text-white text-xl font-bold uppercase tracking-wider">Horários</h3>
               </div>
-              <button
+              <Button
                 type="button"
-                onClick={() =>
-                  append({ dayOfWeek: 1, startTime: "14:00", endTime: "15:00" })
-                }
-                className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel hover:bg-white/10 transition-colors text-primary text-sm font-bold"
+                variant="secondary"
+                size="sm"
+                onClick={() => append({ dayOfWeek: 1, startTime: "14:00", endTime: "15:00" })}
               >
-                <Plus className="h-4 w-4" />
+                <Plus />
                 <span className="hidden sm:inline">Adicionar Horário</span>
-              </button>
+              </Button>
             </div>
 
-            {/* Time Slots */}
             {fields.length === 0 ? (
               <div className="text-center py-8 glass-panel bg-slate-900/30 rounded-xl border border-dashed border-white/10">
-                <p className="text-sm text-slate-400">
-                  Nenhum horário de preferência cadastrado.
-                </p>
+                <p className="text-sm text-slate-400">Nenhum horário de preferência cadastrado.</p>
                 <button
                   type="button"
-                  onClick={() =>
-                    append({
-                      dayOfWeek: 1,
-                      startTime: "14:00",
-                      endTime: "15:00",
-                    })
-                  }
+                  onClick={() => append({ dayOfWeek: 1, startTime: "14:00", endTime: "15:00" })}
                   className="mt-2 text-sm text-primary font-bold hover:text-primary/80 transition-colors"
                 >
                   Adicionar um agora
                 </button>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {fields.map((field, index) => (
                   <div
                     key={field.id}
-                    className="flex flex-col md:flex-row items-center gap-4 p-4 glass-input rounded-xl bg-slate-900/30"
+                    className="flex flex-col md:flex-row items-center gap-3 p-4 glass-input rounded-xl bg-slate-900/30"
                   >
-                    <div className="w-full md:flex-1 md:min-w-[120px]">
-                      <select
-                        {...register(`schedulePreferences.${index}.dayOfWeek`)}
-                        className="bg-transparent border-none text-white text-sm w-full focus:ring-0 appearance-none cursor-pointer"
-                      >
-                        <option value={0} className="text-slate-900">
-                          Domingo
-                        </option>
-                        <option value={1} className="text-slate-900">
-                          Segunda-feira
-                        </option>
-                        <option value={2} className="text-slate-900">
-                          Terça-feira
-                        </option>
-                        <option value={3} className="text-slate-900">
-                          Quarta-feira
-                        </option>
-                        <option value={4} className="text-slate-900">
-                          Quinta-feira
-                        </option>
-                        <option value={5} className="text-slate-900">
-                          Sexta-feira
-                        </option>
-                        <option value={6} className="text-slate-900">
-                          Sábado
-                        </option>
-                      </select>
-                    </div>
-                    <div className="flex w-full md:w-auto items-center gap-2 justify-between md:justify-center">
-                      <input
-                        {...register(`schedulePreferences.${index}.startTime`)}
-                        className="bg-transparent border-none text-white text-sm focus:ring-0 placeholder-slate-500 w-full md:w-24 text-center"
-                        type="time"
-                      />
-                      <span className="text-slate-500 text-sm">até</span>
-                      <input
-                        {...register(`schedulePreferences.${index}.endTime`)}
-                        className="bg-transparent border-none text-white text-sm focus:ring-0 placeholder-slate-500 w-full md:w-24 text-center"
-                        type="time"
+                    {/* Dia da semana */}
+                    <div className="w-full md:w-48">
+                      <Controller
+                        name={`schedulePreferences.${index}.dayOfWeek`}
+                        control={control}
+                        render={({ field: f }) => (
+                          <Select
+                            value={String(f.value)}
+                            onValueChange={(v) => f.onChange(Number(v))}
+                            size="sm"
+                          >
+                            {WEEK_DAYS.map((d) => (
+                              <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                            ))}
+                          </Select>
+                        )}
                       />
                     </div>
-                    <button
+
+                    {/* Horários */}
+                    <div className="flex w-full md:w-auto items-center gap-2 flex-1">
+                      <Controller
+                        name={`schedulePreferences.${index}.startTime`}
+                        control={control}
+                        render={({ field: f }) => (
+                          <TimePicker
+                            value={f.value}
+                            onChange={f.onChange}
+                            step={5}
+                            size="sm"
+                            placeholder="Início"
+                            className="flex-1"
+                          />
+                        )}
+                      />
+                      <span className="text-slate-500 text-sm shrink-0">até</span>
+                      <Controller
+                        name={`schedulePreferences.${index}.endTime`}
+                        control={control}
+                        render={({ field: f }) => (
+                          <TimePicker
+                            value={f.value}
+                            onChange={f.onChange}
+                            step={5}
+                            size="sm"
+                            placeholder="Fim"
+                            className="flex-1"
+                          />
+                        )}
+                      />
+                    </div>
+
+                    {/* Remover */}
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Remover horário"
                       onClick={() => remove(index)}
-                      aria-label="Deletar horário"
-                      className="w-full md:w-auto flex justify-center text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-400/10 transition-colors mt-2 md:mt-0 md:ml-auto"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
                     >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                      <Trash2 />
+                    </Button>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Tip */}
             <div className="mt-8 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 flex gap-4">
               <span className="text-blue-400 text-2xl">💡</span>
               <p className="text-sm text-blue-100/80 leading-relaxed">
-                <strong className="text-blue-300">Dica:</strong> Defina os
-                horários base para automatizar a agenda semanal. O sistema
-                enviará lembretes 30 minutos antes de cada sessão.
+                <strong className="text-blue-300">Dica:</strong> Defina os horários base para
+                automatizar a agenda semanal. O sistema enviará lembretes 30 minutos antes de cada
+                sessão.
               </p>
             </div>
           </section>
 
-          {/* Form Actions */}
+          {/* ── Footer ── */}
           <footer className="flex flex-col-reverse sm:flex-row items-center justify-end gap-4 sm:gap-6 pt-6 pb-20">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="lg"
               onClick={() => navigate("/students")}
-              className="w-full sm:w-auto px-8 py-3 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              className="w-full sm:w-auto"
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              size="lg"
               disabled={isSubmitting || isUploading}
-              className="w-full sm:w-auto px-10 py-3 rounded-xl bg-gradient-to-r from-primary to-[#9333ea] text-white font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full sm:w-auto"
             >
               {isSubmitting
                 ? "Salvando..."
                 : isEditing
                   ? "Atualizar Aluno"
                   : "Salvar Aluno"}
-            </button>
+            </Button>
           </footer>
         </form>
 

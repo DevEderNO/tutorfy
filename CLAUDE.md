@@ -89,6 +89,7 @@ Prompt base: `apps/web/src/features/components/COMPONENT_PROMPT.md`
 | `modal.tsx` | `Modal`, `ModalTrigger`, `ModalContent`, `ModalHeader`, `ModalTitle`, `ModalDescription`, `ModalBody`, `ModalFooter`, `ModalClose` | size: sm/md/lg/xl |
 | `date-picker.tsx` | `DatePicker`, `DateRangePicker` | size: sm/md/lg · state: default/error/success · min/max · dateFormat |
 | `time-picker.tsx` | `TimePicker` | size: sm/md/lg · state: default/error/success · step (1/5/10/15/30) · withSeconds |
+| `upload.tsx` | `ImageUpload`, `FileUpload` | ImageUpload: shape circle/square · size sm/md/lg/xl · isLoading · onRemove. FileUpload: multiple · accept · maxSize · maxFiles · state · FileUploadItem[] |
 
 ### Padrão obrigatório de novo componente
 

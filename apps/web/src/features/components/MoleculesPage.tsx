@@ -16,11 +16,127 @@ import {
 } from '../../components/ui/modal'
 import { DatePicker, DateRangePicker, type DateRange } from '../../components/ui/date-picker'
 import { TimePicker } from '../../components/ui/time-picker'
+import { ImageUpload, FileUpload, type FileUploadItem } from '../../components/ui/upload'
 
 interface ComponentItem {
   name: string;
   description: string;
   render: () => React.ReactNode;
+}
+
+function UploadShowcase() {
+  const [avatarCircle, setAvatarCircle] = useState<string | undefined>()
+  const [avatarSquare, setAvatarSquare] = useState<string | undefined>()
+  const [loadingImg,   setLoadingImg]   = useState(false)
+  const [files, setFiles] = useState<FileUploadItem[]>([
+    { id: '1', name: 'relatorio-mensal.pdf',  size: 204800,  status: 'success' },
+    { id: '2', name: 'foto-turma.jpg',        size: 1572864, status: 'loading' },
+    { id: '3', name: 'contrato-erro.docx',    size: 51200,   status: 'error', error: 'Falha no envio' },
+  ])
+
+  function handleImageChange(file: File) {
+    setLoadingImg(true)
+    const url = URL.createObjectURL(file)
+    setTimeout(() => { setAvatarCircle(url); setLoadingImg(false) }, 1200)
+  }
+
+  function handleFilesChange(newFiles: File[]) {
+    const items: FileUploadItem[] = newFiles.map((f) => ({
+      id:     crypto.randomUUID(),
+      name:   f.name,
+      size:   f.size,
+      status: 'loading',
+    }))
+    setFiles((prev) => [...prev, ...items])
+    // Simulate upload completion
+    items.forEach((item) => {
+      setTimeout(() => {
+        setFiles((prev) =>
+          prev.map((f) => f.id === item.id ? { ...f, status: 'success' } : f)
+        )
+      }, 1500)
+    })
+  }
+
+  return (
+    <div className="flex flex-col gap-6 w-full">
+
+      {/* ImageUpload — formas */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ImageUpload — formas e tamanhos</span>
+        <div className="flex flex-wrap items-end gap-5">
+          <div className="flex flex-col items-center gap-2">
+            <ImageUpload size="sm" value={avatarCircle} onChange={handleImageChange} onRemove={() => setAvatarCircle(undefined)} isLoading={loadingImg} />
+            <span className="text-[10px] text-slate-500">sm · circle</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <ImageUpload size="md" value={avatarCircle} onChange={handleImageChange} onRemove={() => setAvatarCircle(undefined)} isLoading={loadingImg} />
+            <span className="text-[10px] text-slate-500">md · circle</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <ImageUpload size="lg" value={avatarCircle} onChange={handleImageChange} onRemove={() => setAvatarCircle(undefined)} isLoading={loadingImg} />
+            <span className="text-[10px] text-slate-500">lg · circle</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <ImageUpload size="lg" shape="square" value={avatarSquare} onChange={(f) => setAvatarSquare(URL.createObjectURL(f))} onRemove={() => setAvatarSquare(undefined)} />
+            <span className="text-[10px] text-slate-500">lg · square</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <ImageUpload size="xl" shape="square" value={avatarSquare} onChange={(f) => setAvatarSquare(URL.createObjectURL(f))} onRemove={() => setAvatarSquare(undefined)} />
+            <span className="text-[10px] text-slate-500">xl · square</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ImageUpload — estados */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ImageUpload — estados</span>
+        <div className="flex flex-wrap items-end gap-5">
+          <div className="flex flex-col items-center gap-2">
+            <ImageUpload size="md" />
+            <span className="text-[10px] text-slate-500">vazio</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <ImageUpload size="md" isLoading />
+            <span className="text-[10px] text-slate-500">loading</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <ImageUpload size="md" value="https://i.pravatar.cc/150?img=3" onRemove={() => {}} />
+            <span className="text-[10px] text-slate-500">com valor</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <ImageUpload size="md" disabled />
+            <span className="text-[10px] text-slate-500">disabled</span>
+          </div>
+        </div>
+      </div>
+
+      {/* FileUpload */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">FileUpload — drop zone</span>
+        <FileUpload
+          multiple
+          accept=".pdf,.doc,.docx,.jpg,.png"
+          maxSize={10 * 1024 * 1024}
+          maxFiles={5}
+          files={files}
+          onChange={handleFilesChange}
+          onRemove={(id) => setFiles((prev) => prev.filter((f) => f.id !== id))}
+        />
+      </div>
+
+      {/* FileUpload — estado de erro */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">FileUpload — estado de erro</span>
+        <FileUpload
+          state="error"
+          errorMessage="Envio obrigatório. Selecione ao menos um arquivo."
+          placeholder="Clique para selecionar"
+        />
+      </div>
+
+    </div>
+  )
 }
 
 function TimePickerShowcase() {
@@ -131,6 +247,11 @@ function DatePickerShowcase() {
 }
 
 const molecules: ComponentItem[] = [
+  {
+    name: 'Upload',
+    description: 'ImageUpload: preview com overlay de câmera, formas circle/square, tamanhos sm–xl. FileUpload: drop zone + lista de arquivos com status loading/success/error.',
+    render: () => <UploadShowcase />,
+  },
   {
     name: 'TimePicker',
     description: 'Seleção de hora com colunas roláveis. Passo configurável (1/5/10/15/30 min). Suporte a segundos. Estados: default/error/success. Tamanhos: sm/md/lg.',
