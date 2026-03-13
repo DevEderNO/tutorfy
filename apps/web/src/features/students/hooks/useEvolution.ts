@@ -9,10 +9,9 @@ interface EvolutionEntry {
   createdAt: string;
   updatedAt: string;
   categories: {
-    id: string;
-    evolutionEntryId: string;
-    skillCategoryId: string;
-    skillCategory: {
+    entryId: string;
+    categoryId: string;
+    category: {
       id: string;
       name: string;
       color: string | null;

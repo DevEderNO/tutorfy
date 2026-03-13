@@ -77,7 +77,7 @@ export function EvolutionTab({ studentId }: EvolutionTabProps) {
     setEditingEntry({
       id: entry.id,
       description: entry.description,
-      categoryIds: entry.categories.map((c) => c.skillCategoryId),
+      categoryIds: entry.categories.map((c) => c.categoryId),
     });
   };
 
@@ -187,10 +187,10 @@ export function EvolutionTab({ studentId }: EvolutionTabProps) {
                                 className="size-2 rounded-full"
                                 style={{
                                   backgroundColor:
-                                    cat.skillCategory.color || "#8b5cf6",
+                                    cat.category.color || "#8b5cf6",
                                 }}
                               />
-                              {cat.skillCategory.name}
+                              {cat.category.name}
                             </span>
                           ))}
                         </div>
