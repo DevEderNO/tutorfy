@@ -30,8 +30,6 @@ export function AppLayout() {
         pinned={pinned}
         expanded={expanded}
         onTogglePin={togglePin}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
       />
       <div
         className={`flex-1 flex flex-col min-h-screen relative transition-[margin] duration-300 ease-in-out ${
