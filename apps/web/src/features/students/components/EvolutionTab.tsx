@@ -180,7 +180,7 @@ export function EvolutionTab({ studentId }: EvolutionTabProps) {
                         <div className="flex flex-wrap gap-1.5 mt-3">
                           {entry.categories.map((cat) => (
                             <span
-                              key={cat.id}
+                              key={cat.categoryId}
                               className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-white/10 bg-white/5"
                             >
                               <span

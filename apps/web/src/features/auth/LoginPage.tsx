@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
+import { GoogleSignInButton } from "./components/GoogleSignInButton";
 import {
   Mail,
   Lock,
@@ -43,18 +43,15 @@ export function LoginPage() {
 
   const { googleLogin } = useAuth();
 
-  const handleGoogleSuccess = async (
-    credentialResponse: CredentialResponse,
-  ) => {
-    if (!credentialResponse.credential) return;
+  const handleGoogleSuccess = async (accessToken: string) => {
     setError("");
     setLoading(true);
-
     try {
-      await googleLogin(credentialResponse.credential);
+      await googleLogin(accessToken);
       navigate("/");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Erro ao conectar com Google");
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      setError(e.response?.data?.message || "Erro ao conectar com Google");
     } finally {
       setLoading(false);
     }
@@ -218,20 +215,11 @@ export function LoginPage() {
                 <div className="h-[1px] flex-1 bg-white/10" />
               </div>
 
-              <div className="flex justify-center w-full group">
-                <div className="w-full bg-white rounded-2xl p-[1px] group-hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all">
-                  <div className="w-full overflow-hidden rounded-2xl">
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={() => setError("Erro ao iniciar com Google")}
-                      useOneTap
-                      theme="filled_black"
-                      shape="rectangular"
-                      width="100%"
-                    />
-                  </div>
-                </div>
-              </div>
+              <GoogleSignInButton
+                disabled={loading}
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError("Erro ao iniciar com Google")}
+              />
             </form>
           </div>
 
