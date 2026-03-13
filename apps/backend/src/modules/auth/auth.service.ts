@@ -1,8 +1,11 @@
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../../lib/prisma.js';
 import type { RegisterInput, LoginInput, RequestResetInput, ResetPasswordInput, GoogleLoginInput } from './auth.schema.js';
 import { env } from '../../env.js';
+
+const googleClient = new OAuth2Client();
 
 const RESET_TOKEN_EXPIRY_HOURS = 1;
 
@@ -73,22 +76,22 @@ export class AuthService {
   }
 
   async googleLogin(data: GoogleLoginInput) {
-    const res = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, {
-      headers: { Authorization: `Bearer ${data.token}` },
-    });
+    if (!env.GOOGLE_CLIENT_ID) {
+      throw { statusCode: 503, message: 'Login com Google não configurado' };
+    }
 
-    if (!res.ok) {
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: data.token,
+        audience: env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch {
       throw { statusCode: 401, message: 'Token do Google inválido' };
     }
 
-    const payload = await res.json() as {
-      sub: string;
-      email: string;
-      name?: string;
-      picture?: string;
-    };
-
-    if (!payload.email) {
+    if (!payload || !payload.email) {
       throw { statusCode: 401, message: 'Não foi possível verificar a conta do Google' };
     }
 

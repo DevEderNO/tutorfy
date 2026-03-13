@@ -50,6 +50,10 @@ export class StudentEvolutionAiService {
       categories,
     })
 
+    if (!openai) {
+      throw { statusCode: 503, message: 'Serviço de IA não configurado (OPENAI_API_KEY ausente)' }
+    }
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],

@@ -35,7 +35,7 @@ export function AuthHero({ title, description, features }: AuthHeroProps) {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-2xl">
+      <div className="relative z-10 w-full max-w-3xl">
         <h2 className="text-4xl xl:text-6xl font-black text-white leading-[1.1] mb-6 xl:mb-10 tracking-tight">
           {title}
         </h2>
@@ -44,22 +44,22 @@ export function AuthHero({ title, description, features }: AuthHeroProps) {
         </p>
 
         {/* Feature Cards */}
-        <div className="grid gap-4 xl:gap-6">
+        <div className="grid grid-cols-3 gap-4 xl:gap-6 w-full">
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`glass-panel p-5 xl:p-6 rounded-[2rem] flex items-start gap-4 xl:gap-6 border-l-4 ${feature.borderColor} bg-white/5 border border-white/5 hover:bg-white/10 transition-all hover:scale-[1.02] cursor-default shadow-lg`}
+              className={`glass-panel p-5 xl:p-6 rounded-[2rem] flex flex-col gap-4 xl:gap-5 border-t-4 ${feature.borderColor} bg-white/5 border border-white/5 hover:bg-white/10 transition-all hover:scale-[1.02] cursor-default shadow-lg`}
             >
               <div
-                className={`${feature.iconBg} p-2.5 xl:p-3 rounded-2xl shadow-inner`}
+                className={`${feature.iconBg} p-2.5 xl:p-3 rounded-2xl shadow-inner self-start`}
               >
                 {feature.icon}
               </div>
-              <div className="pt-0.5 xl:pt-1">
-                <h3 className="font-black text-white text-base xl:text-lg tracking-tight mb-0.5 xl:mb-1">
+              <div>
+                <h3 className="font-black text-white text-sm xl:text-base tracking-tight mb-0.5 xl:mb-1">
                   {feature.title}
                 </h3>
-                <p className="text-muted-foreground text-sm xl:text-base font-medium leading-relaxed">
+                <p className="text-muted-foreground text-xs xl:text-sm font-medium leading-relaxed">
                   {feature.description}
                 </p>
               </div>

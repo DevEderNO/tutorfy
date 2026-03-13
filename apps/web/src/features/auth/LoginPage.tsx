@@ -24,7 +24,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -43,11 +43,11 @@ export function LoginPage() {
 
   const { googleLogin } = useAuth();
 
-  const handleGoogleSuccess = async (accessToken: string) => {
+  const handleGoogleSuccess = async (credential: string) => {
     setError("");
     setLoading(true);
     try {
-      await googleLogin(accessToken);
+      await googleLogin(credential);
       navigate("/");
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
