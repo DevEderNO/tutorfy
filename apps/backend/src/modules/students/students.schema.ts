@@ -61,3 +61,15 @@ export const updateStudentSchema = z.object({
 
 export type CreateStudentInput = z.infer<typeof createStudentSchema>;
 export type UpdateStudentInput = z.infer<typeof updateStudentSchema>;
+
+export const listStudentsQuerySchema = z.object({
+  page:        z.coerce.number().min(1).default(1),
+  limit:       z.coerce.number().min(1).max(100).default(10),
+  search:      z.string().optional(),
+  active:      z.enum(['true', 'false']).optional(),
+  billingType: z.enum(['MONTHLY', 'HOURLY']).optional(),
+  sortBy:      z.enum(['name', 'school', 'grade', 'monthlyFee', 'createdAt']).default('name'),
+  sortDir:     z.enum(['asc', 'desc']).default('asc'),
+});
+
+export type ListStudentsQuery = z.infer<typeof listStudentsQuerySchema>;

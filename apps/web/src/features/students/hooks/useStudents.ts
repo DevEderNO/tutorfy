@@ -1,12 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { Student, CreateStudentDTO, UpdateStudentDTO } from '@tutorfy/types';
+import type {
+  Student,
+  CreateStudentDTO,
+  UpdateStudentDTO,
+  StudentsListParams,
+  PaginatedResponse,
+} from '@tutorfy/types';
 
-export function useStudents() {
+export function useStudents(params: StudentsListParams = {}) {
   return useQuery({
-    queryKey: ['students'],
-    queryFn: async (): Promise<Student[]> => {
-      const res = await api.get('/students');
+    queryKey: ['students', params],
+    queryFn: async (): Promise<PaginatedResponse<Student>> => {
+      const res = await api.get('/students', { params });
       return res.data.data;
     },
   });

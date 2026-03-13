@@ -125,7 +125,8 @@ export function SchedulePage() {
     startDate: format(calendarStart, "yyyy-MM-dd"),
     endDate: format(calendarEnd, "yyyy-MM-dd"),
   });
-  const { data: students } = useStudents();
+  const { data: studentsResult } = useStudents();
+  const students = studentsResult?.data ?? [];
   const createClass = useCreateClass();
   const updateClass = useUpdateClass();
   const deleteClass = useDeleteClass();

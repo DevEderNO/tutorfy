@@ -1,11 +1,11 @@
 import { StudentsRepository } from './students.repository.js';
-import type { CreateStudentInput, UpdateStudentInput } from './students.schema.js';
+import type { CreateStudentInput, UpdateStudentInput, ListStudentsQuery } from './students.schema.js';
 
 const repository = new StudentsRepository();
 
 export class StudentsService {
-  async list(userId: string) {
-    return repository.findAll(userId);
+  async list(userId: string, params: ListStudentsQuery) {
+    return repository.findAll(userId, params);
   }
 
   async getById(id: string, userId: string) {

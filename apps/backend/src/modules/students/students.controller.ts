@@ -1,15 +1,19 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { StudentsService } from './students.service.js';
-import { createStudentSchema, updateStudentSchema } from './students.schema.js';
+import { createStudentSchema, updateStudentSchema, listStudentsQuerySchema } from './students.schema.js';
 import { getUserId } from '../../lib/auth.js';
 
 const service = new StudentsService();
 
 export class StudentsController {
   async list(request: FastifyRequest, reply: FastifyReply) {
+    const parsed = listStudentsQuerySchema.safeParse(request.query);
+    if (!parsed.success) {
+      return reply.status(400).send({ message: 'Parâmetros inválidos', errors: parsed.error.flatten().fieldErrors });
+    }
     const userId = getUserId(request);
-    const students = await service.list(userId);
-    return reply.send({ data: students });
+    const result = await service.list(userId, parsed.data);
+    return reply.send({ data: result });
   }
 
   async getById(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {

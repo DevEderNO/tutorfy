@@ -1,14 +1,36 @@
 import { prisma } from '../../lib/prisma.js';
-import type { CreateStudentInput, UpdateStudentInput } from './students.schema.js';
+import type { CreateStudentInput, UpdateStudentInput, ListStudentsQuery } from './students.schema.js';
 import { Prisma } from '@prisma/client';
 
 export class StudentsRepository {
-  async findAll(userId: string) {
-    return prisma.student.findMany({
-      where: { userId },
-      orderBy: { name: 'asc' },
-      include: { schedulePreferences: true },
-    });
+  async findAll(userId: string, params: ListStudentsQuery) {
+    const { page, limit, search, active, billingType, sortBy, sortDir } = params;
+
+    const where: Prisma.StudentWhereInput = {
+      userId,
+      ...(search && {
+        OR: [
+          { name:   { contains: search, mode: 'insensitive' } },
+          { school: { contains: search, mode: 'insensitive' } },
+          { grade:  { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+      ...(active      !== undefined && { active: active === 'true' }),
+      ...(billingType !== undefined && { billingType }),
+    };
+
+    const [data, total] = await Promise.all([
+      prisma.student.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { [sortBy]: sortDir },
+        include: { schedulePreferences: true },
+      }),
+      prisma.student.count({ where }),
+    ]);
+
+    return { data, total, page, limit };
   }
 
   async findById(id: string, userId: string) {

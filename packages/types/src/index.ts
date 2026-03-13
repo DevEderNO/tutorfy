@@ -27,6 +27,25 @@ export const BillingType = {
 
 export type BillingType = (typeof BillingType)[keyof typeof BillingType];
 
+// --- List params / responses ---
+
+export interface StudentsListParams {
+  page?:        number;
+  limit?:       number;
+  search?:      string;
+  active?:      'true' | 'false';
+  billingType?: 'MONTHLY' | 'HOURLY';
+  sortBy?:      'name' | 'school' | 'grade' | 'monthlyFee' | 'createdAt';
+  sortDir?:     'asc' | 'desc';
+}
+
+export interface PaginatedResponse<T> {
+  data:  T[];
+  total: number;
+  page:  number;
+  limit: number;
+}
+
 // --- Entities ---
 
 export interface User {

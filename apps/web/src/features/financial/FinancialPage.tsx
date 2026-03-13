@@ -43,7 +43,8 @@ export function FinancialPage() {
   );
 
   const { data: payments, isLoading } = usePayments({ month, year });
-  const { data: students } = useStudents();
+  const { data: studentsResult } = useStudents();
+  const students = studentsResult?.data ?? [];
   const markPaid = useMarkPaid();
   const generatePayments = useGeneratePayments();
   const createPayment = useCreatePayment();
