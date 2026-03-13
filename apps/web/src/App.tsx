@@ -19,6 +19,7 @@ import { ComponentsLayout } from "@/features/components/ComponentsLayout";
 import { AtomsPage } from "@/features/components/AtomsPage";
 import { MoleculesPage } from "@/features/components/MoleculesPage";
 import { OrganismsPage } from "@/features/components/OrganismsPage";
+import { Toaster } from "@/components/ui/toast";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +96,7 @@ export default function App() {
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>
+      <Toaster />
     </GoogleOAuthProvider>
   );
 }

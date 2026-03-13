@@ -563,13 +563,15 @@ export function StudentFormPage() {
             {fields.length === 0 ? (
               <div className="text-center py-8 glass-panel bg-slate-900/30 rounded-xl border border-dashed border-white/10">
                 <p className="text-sm text-slate-400">Nenhum horário de preferência cadastrado.</p>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => append({ dayOfWeek: 1, startTime: "14:00", endTime: "15:00" })}
-                  className="mt-2 text-sm text-primary font-bold hover:text-primary/80 transition-colors"
+                  className="mt-2 text-primary hover:text-primary/80"
                 >
                   Adicionar um agora
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="space-y-3">

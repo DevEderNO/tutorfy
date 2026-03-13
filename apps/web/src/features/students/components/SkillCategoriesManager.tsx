@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { X, Plus, Pencil, Trash2, Palette } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   useSkillCategories,
   useCreateSkillCategory,
@@ -73,25 +75,21 @@ export function SkillCategoriesManager() {
           Categorias de Habilidades
         </h4>
         {!isAdding && (
-          <button
-            onClick={() => setIsAdding(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass-panel text-primary text-xs font-bold hover:bg-white/10 transition-colors"
-          >
+          <Button variant="ghost" size="sm" onClick={() => setIsAdding(true)}>
             <Plus className="h-3.5 w-3.5" />
             Nova
-          </button>
+          </Button>
         )}
       </div>
 
       {/* Form */}
       {isAdding && (
         <div className="glass-panel rounded-xl p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-          <input
+          <Input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Nome da categoria (ex: Leitura, Raciocínio Lógico)"
-            className="glass-input rounded-lg px-4 py-2.5 w-full outline-none text-sm transition-all"
             autoFocus
             onKeyDown={(e) => e.key === "Enter" && handleSave()}
           />
@@ -107,19 +105,17 @@ export function SkillCategoriesManager() {
             ))}
           </div>
           <div className="flex justify-end gap-2">
-            <button
-              onClick={resetForm}
-              className="px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-colors"
-            >
+            <Button variant="ghost" size="sm" onClick={resetForm}>
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
               onClick={handleSave}
               disabled={!name.trim() || createCategory.isPending || updateCategory.isPending}
-              className="px-4 py-2 rounded-lg gradient-primary text-white text-xs font-bold disabled:opacity-50 transition-all hover:opacity-90"
             >
               {editingId ? "Atualizar" : "Criar"}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -142,20 +138,24 @@ export function SkillCategoriesManager() {
               />
               <span className="text-slate-300 font-medium">{cat.name}</span>
               <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={() => handleEdit(cat)}
-                  className="p-0.5 text-slate-500 hover:text-primary transition-colors"
-                  title="Editar"
+                  aria-label="Editar categoria"
+                  className="size-5"
                 >
                   <Pencil className="h-3 w-3" />
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={() => handleDelete(cat.id)}
-                  className="p-0.5 text-slate-500 hover:text-red-400 transition-colors"
-                  title="Remover"
+                  aria-label="Remover categoria"
+                  className="size-5 hover:text-red-400 hover:bg-red-400/10"
                 >
                   <Trash2 className="h-3 w-3" />
-                </button>
+                </Button>
               </div>
             </div>
           ))}

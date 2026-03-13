@@ -8,6 +8,8 @@ import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { Header } from "@/components/layout/Header";
 import { EvolutionTab } from "./components/EvolutionTab";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const statusColors: Record<string, string> = {
   SCHEDULED: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
@@ -107,14 +109,14 @@ export function StudentDetailPage() {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-              <button onClick={() => navigate(`/students/${id}/edit`)} className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl glass-panel text-slate-100 font-bold text-sm hover:bg-white/5 transition-all">
+              <Button variant="secondary" onClick={() => navigate(`/students/${id}/edit`)}>
                 <Pencil className="h-4 w-4" />
                 Editar Perfil
-              </button>
-              <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold text-sm hover:opacity-90 transition-all neon-shadow">
+              </Button>
+              <Button variant="primary">
                 <CreditCard className="h-4 w-4" />
                 Adicionar Pagamento
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -168,29 +170,27 @@ export function StudentDetailPage() {
 
         {/* Tabs and Content Section */}
         <div className="glass-panel rounded-xl overflow-hidden flex flex-col min-h-[500px] mb-8 relative z-10">
-          <div className="flex border-b border-white/10 px-6 gap-8 bg-white/5 overflow-x-auto hide-scrollbar relative z-20">
-            <button
-              onClick={() => setActiveTab("evolution")}
-              className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "evolution" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300"}`}
-            >
-              <TrendingUp className="h-5 w-5" />
-              Evolução
-            </button>
-            <button
-              onClick={() => setActiveTab("billing")}
-              className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "billing" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300"}`}
-            >
-              <Receipt className="h-5 w-5" />
-              Histórico de Cobrança
-            </button>
-            <button
-              onClick={() => setActiveTab("classes")}
-              className={`relative flex items-center gap-2 py-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${activeTab === "classes" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300"}`}
-            >
-              <CalendarDays className="h-5 w-5" />
-              Log de Aulas
-            </button>
-          </div>
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as "evolution" | "billing" | "classes")}
+            variant="underline"
+            className="relative z-20"
+          >
+            <TabsList className="w-full px-6 gap-6 bg-white/5 border-b border-white/10 rounded-none overflow-x-auto hide-scrollbar">
+              <TabsTrigger value="evolution" className="py-4 font-bold">
+                <TrendingUp className="h-5 w-5" />
+                Evolução
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="py-4 font-bold">
+                <Receipt className="h-5 w-5" />
+                Histórico de Cobrança
+              </TabsTrigger>
+              <TabsTrigger value="classes" className="py-4 font-bold">
+                <CalendarDays className="h-5 w-5" />
+                Log de Aulas
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
           <div className="p-6 relative z-20">
             {activeTab === "billing" && (
@@ -201,12 +201,12 @@ export function StudentDetailPage() {
                     Faturas Recentes
                   </h3>
                   <div className="flex gap-2">
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
+                    <Button variant="secondary" size="sm">
                       <Filter className="h-4 w-4" /> Filtrar
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
+                    </Button>
+                    <Button variant="secondary" size="sm">
                       <Download className="h-4 w-4" /> Exportar PDF
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -239,9 +239,9 @@ export function StudentDetailPage() {
                               </span>
                             </td>
                             <td className="px-6 py-5 text-right">
-                              <button className="text-slate-500 hover:text-slate-300 transition-colors" aria-label="Mais ações relativas à fatura" title="Mais opções">
-                                <MoreHorizontal className="h-5 w-5 ml-auto" />
-                              </button>
+                              <Button variant="ghost" size="icon-sm" aria-label="Mais ações relativas à fatura" className="ml-auto">
+                                <MoreHorizontal className="h-5 w-5" />
+                              </Button>
                             </td>
                           </tr>
                         ))
@@ -266,9 +266,9 @@ export function StudentDetailPage() {
                     Aulas Registradas
                   </h3>
                   <div className="flex gap-2">
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold">
+                    <Button variant="secondary" size="sm">
                       <Filter className="h-4 w-4" /> Filtrar
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -304,16 +304,15 @@ export function StudentDetailPage() {
                               </span>
                             </td>
                             <td className="px-6 py-5 text-right">
-                              <button
-                                onClick={() => {
-                                  setDeletingClassId(cls.id);
-                                }}
-                                className="text-slate-500 hover:text-red-400 transition-colors ml-auto p-1"
-                                title="Remover aula"
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => setDeletingClassId(cls.id)}
                                 aria-label="Remover aula"
+                                className="ml-auto hover:text-red-400 hover:bg-red-400/10"
                               >
-                                <Trash2 className="h-5 w-5" />
-                              </button>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </td>
                           </tr>
                         ))
@@ -337,13 +336,13 @@ export function StudentDetailPage() {
               <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/10 bg-white/5 px-6 -mx-6 -mb-6 pb-6">
                 <p className="text-sm text-slate-500">Exibindo registros recentes</p>
                 <div className="flex gap-2">
-                  <button className="size-8 rounded flex items-center justify-center glass-panel text-slate-400 opacity-50 cursor-not-allowed" disabled aria-label="Página anterior" title="Página anterior">
+                  <Button variant="ghost" size="icon-sm" disabled aria-label="Página anterior">
                     <ChevronLeft className="h-5 w-5" />
-                  </button>
-                  <button className="size-8 rounded flex items-center justify-center glass-panel text-slate-100 bg-primary/20 border-primary/30 font-medium">1</button>
-                  <button className="size-8 rounded flex items-center justify-center glass-panel text-slate-400 hover:text-slate-100 transition-colors" aria-label="Próxima página" title="Próxima página">
+                  </Button>
+                  <Button variant="secondary" size="icon-sm" aria-label="Página 1" className="bg-primary/20 border-primary/30 text-foreground">1</Button>
+                  <Button variant="ghost" size="icon-sm" aria-label="Próxima página">
                     <ChevronRight className="h-5 w-5" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

@@ -12,14 +12,23 @@ import {
   Plus,
   Check,
   Trash2,
-  CalendarDays,
-  Filter,
   TrendingUp,
   Sparkles,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { ConfirmModal } from "@/components/ConfirmModal";
-import { Modal } from "@/components/Modal";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { Select, SelectItem } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Header } from "@/components/layout/Header";
 
 export function FinancialPage() {
@@ -141,47 +150,39 @@ export function FinancialPage() {
         actions={
           <div className="flex items-center gap-4 mr-2">
             <div className="flex items-center gap-2 glass p-1 rounded-xl">
-              <select
-                value={month}
-                onChange={(e) => setMonth(Number(e.target.value))}
-                className="bg-transparent border-none text-xs font-bold text-slate-200 focus:ring-0 outline-none px-2 cursor-pointer"
+              <Select
+                size="sm"
+                value={String(month)}
+                onValueChange={(v) => setMonth(Number(v))}
               >
                 {months.map((m, i) => (
-                  <option key={m} value={i + 1} className="bg-slate-900">
+                  <SelectItem key={m} value={String(i + 1)}>
                     {m}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </Select>
               <div className="w-px h-4 bg-white/10" />
-              <select
-                value={year}
-                onChange={(e) => setYear(Number(e.target.value))}
-                className="bg-transparent border-none text-xs font-bold text-slate-200 focus:ring-0 outline-none px-2 cursor-pointer"
+              <Select
+                size="sm"
+                value={String(year)}
+                onValueChange={(v) => setYear(Number(v))}
               >
                 {[2024, 2025, 2026].map((y) => (
-                  <option key={y} value={y} className="bg-slate-900">
+                  <SelectItem key={y} value={String(y)}>
                     {y}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </Select>
             </div>
 
-            <button
-              onClick={() => setShowGenerate(true)}
-              className="glass p-2.5 rounded-xl text-primary hover:bg-primary/10 transition-colors flex items-center gap-2 font-bold text-xs"
-              title="Gerar Mensalidades"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setShowGenerate(true)} title="Gerar Mensalidades">
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline">Gerar</span>
-            </button>
-            <button
-              onClick={() => setShowManual(true)}
-              className="gradient-primary text-white p-2.5 rounded-xl transition-all shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 flex items-center gap-2 font-bold text-xs"
-              title="Lançamento Avulso"
-            >
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => setShowManual(true)} title="Lançamento Avulso">
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Avulso</span>
-            </button>
+            </Button>
           </div>
         }
       />
@@ -264,13 +265,14 @@ export function FinancialPage() {
 
             {/* Generate / Manual Blocks */}
             <div className="flex flex-col gap-3 mt-auto border-t border-border pt-6">
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => setShowManual(true)}
-                className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/10 glass-panel px-4 py-3.5 text-sm font-bold text-foreground hover:bg-white/5 transition-all shadow-sm group"
+                className="w-full"
               >
-                <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform" />
+                <Plus className="h-4 w-4" />
                 Lançamento Avulso
-              </button>
+              </Button>
             </div>
           </aside>
 
@@ -286,73 +288,56 @@ export function FinancialPage() {
                 </p>
               </div>
 
-              <button
-                onClick={() => setShowGenerate(true)}
-                className="flex items-center gap-3 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-[0_0_15px_rgba(116,61,245,0.4)] hover:opacity-90 transition-all hover:scale-[1.02] active:scale-95 shrink-0"
-              >
+              <Button variant="primary" onClick={() => setShowGenerate(true)} className="shrink-0">
                 <Sparkles className="h-5 w-5" />
                 <span>Gerar Faturas do Mês</span>
-              </button>
+              </Button>
             </div>
 
             {/* Filters Bar */}
             <section className="glass-panel rounded-2xl p-4 flex flex-col lg:flex-row items-center justify-between gap-4 border border-white/10">
               <div className="flex items-center p-1 bg-black/20 dark:bg-white/5 rounded-lg border border-white/5 w-full lg:w-auto overflow-x-auto">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setActiveTab("MONTHLY")}
-                  className={`px-4 py-2 rounded-md text-sm font-semibold transition-all whitespace-nowrap flex-1 lg:flex-none ${
-                    activeTab === "MONTHLY"
-                      ? "bg-white/10 text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                  }`}
+                  className={`flex-1 lg:flex-none whitespace-nowrap ${activeTab === "MONTHLY" ? "bg-white/10 text-foreground shadow-sm hover:bg-white/10" : ""}`}
                 >
                   Mensalidade Fixa
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setActiveTab("HOURLY")}
-                  className={`px-4 py-2 rounded-md text-sm font-semibold transition-all whitespace-nowrap flex-1 lg:flex-none ${
-                    activeTab === "HOURLY"
-                      ? "bg-white/10 text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                  }`}
+                  className={`flex-1 lg:flex-none whitespace-nowrap ${activeTab === "HOURLY" ? "bg-white/10 text-foreground shadow-sm hover:bg-white/10" : ""}`}
                 >
                   Valor por Hora
-                </button>
+                </Button>
               </div>
 
               <div className="flex gap-4 w-full lg:w-auto items-center justify-end">
-                <div className="relative w-full lg:w-auto">
-                  <select
-                    value={month}
-                    onChange={(e) => setMonth(Number(e.target.value))}
-                    className="w-full lg:w-auto appearance-none bg-black/5 dark:bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none backdrop-blur-md pr-10 cursor-pointer"
-                    aria-label="Mês"
-                    title="Mês"
-                  >
-                    {months.map((m, i) => (
-                      <option key={i} value={i + 1}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
-                  <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                </div>
-                <div className="relative w-full lg:w-auto">
-                  <select
-                    value={year}
-                    onChange={(e) => setYear(Number(e.target.value))}
-                    className="w-full lg:w-auto appearance-none bg-black/5 dark:bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-medium text-foreground focus:ring-2 focus:ring-primary focus:outline-none backdrop-blur-md pr-10 cursor-pointer"
-                    aria-label="Ano"
-                    title="Ano"
-                  >
-                    {[2024, 2025, 2026, 2027].map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                  <Filter className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                </div>
+                <Select
+                  value={String(month)}
+                  onValueChange={(v) => setMonth(Number(v))}
+                  size="sm"
+                >
+                  {months.map((m, i) => (
+                    <SelectItem key={i} value={String(i + 1)}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </Select>
+                <Select
+                  value={String(year)}
+                  onValueChange={(v) => setYear(Number(v))}
+                  size="sm"
+                >
+                  {[2024, 2025, 2026, 2027].map((y) => (
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </Select>
               </div>
             </section>
 
@@ -469,28 +454,23 @@ export function FinancialPage() {
                             </td>
                             <td className="px-6 py-5 text-right">
                               <div className="flex items-center justify-end gap-2">
-                                <button
-                                  onClick={() =>
-                                    handleTogglePaid(payment.id, payment.paid)
-                                  }
-                                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap truncate ${
-                                    payment.paid
-                                      ? "text-muted-foreground hover:bg-white/10"
-                                      : "text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20"
-                                  }`}
+                                <Button
+                                  variant={payment.paid ? "ghost" : "secondary"}
+                                  size="sm"
+                                  onClick={() => handleTogglePaid(payment.id, payment.paid)}
+                                  className={!payment.paid ? "text-primary border-primary/20" : ""}
                                 >
                                   {payment.paid ? "Desfazer" : "Marcar Pago"}
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setDeletingPaymentId(payment.id);
-                                  }}
-                                  className="p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors shrink-0"
-                                  title="Apagar"
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  onClick={() => setDeletingPaymentId(payment.id)}
                                   aria-label="Apagar"
+                                  className="hover:bg-destructive/10 hover:text-destructive shrink-0"
                                 >
                                   <Trash2 className="h-4 w-4" />
-                                </button>
+                                </Button>
                               </div>
                             </td>
                           </tr>
@@ -584,151 +564,148 @@ export function FinancialPage() {
           </div>
 
           {/* Manual Payment MODAL Form */}
-          <Modal
-            isOpen={showManual}
-            onClose={() => setShowManual(false)}
-            title="Novo Lançamento"
-            size="lg"
-          >
-            <p className="text-slate-400 text-sm mb-6 font-medium -mt-2">
-              {months[month - 1]}/{year} — Preencha os dados para registrar uma entrada financeira avulsa.
-            </p>
+          <Modal open={showManual} onOpenChange={setShowManual}>
+            <ModalContent size="lg">
+              <ModalHeader>
+                <ModalTitle>Novo Lançamento</ModalTitle>
+                <ModalDescription>
+                  {months[month - 1]}/{year} — Preencha os dados para registrar uma entrada financeira avulsa.
+                </ModalDescription>
+              </ModalHeader>
 
-            <div className="flex flex-col gap-5">
-              <div>
-                <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                  Aluno *
-                </label>
-                <select
-                  title="Aluno"
-                  aria-label="Aluno"
-                  value={manualForm.studentId}
-                  onChange={(e) =>
-                    setManualForm({ ...manualForm, studentId: e.target.value })
-                  }
-                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none"
-                >
-                  <option value="" className="bg-slate-900">
-                    Selecione um aluno...
-                  </option>
-                  {students?.filter((s) => s.active).map((s) => (
-                    <option key={s.id} value={s.id} className="bg-slate-900">
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                  Tipo de Cobrança *
-                </label>
-                <select
-                  title="Tipo de Cobrança"
-                  aria-label="Tipo de Cobrança"
-                  value={manualForm.billingType}
-                  onChange={(e) =>
-                    setManualForm({ ...manualForm, billingType: e.target.value as any })
-                  }
-                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none"
-                >
-                  <option value="MONTHLY" className="bg-slate-900">Mensalidade Fixa</option>
-                  <option value="HOURLY" className="bg-slate-900">Por Hora-Aula</option>
-                </select>
-              </div>
-
-              {manualForm.billingType === "HOURLY" ? (
-                <div>
-                  <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                    Quantidade de Horas *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    value={manualForm.classHours || ""}
-                    onChange={(e) =>
-                      setManualForm({ ...manualForm, classHours: Number(e.target.value) })
-                    }
-                    className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none"
-                    placeholder="Ex: 10"
-                  />
-                </div>
-              ) : (
-                <div>
-                  <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                    Valor Calculado (R$) *
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
-                      R$
-                    </span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={manualForm.amount || ""}
-                      onChange={(e) =>
-                        setManualForm({ ...manualForm, amount: Number(e.target.value) })
+              <ModalBody>
+                <div className="flex flex-col gap-5">
+                  <div>
+                    <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                      Aluno *
+                    </label>
+                    <Select
+                      value={manualForm.studentId || undefined}
+                      onValueChange={(v) =>
+                        setManualForm({ ...manualForm, studentId: v })
                       }
-                      className="w-full pl-12 pr-4 glass-input rounded-xl py-3 text-lg font-bold text-slate-200 outline-none transition-all"
-                      placeholder="0.00"
-                    />
+                      placeholder="Selecione um aluno..."
+                    >
+                      {students?.filter((s) => s.active).map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </Select>
                   </div>
-                </div>
-              )}
 
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                  onClick={() => setShowManual(false)}
-                  className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-                >
+                  <div>
+                    <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                      Tipo de Cobrança *
+                    </label>
+                    <Select
+                      value={manualForm.billingType}
+                      onValueChange={(v) =>
+                        setManualForm({
+                          ...manualForm,
+                          billingType: v as "MONTHLY" | "HOURLY",
+                        })
+                      }
+                    >
+                      <SelectItem value="MONTHLY">Mensalidade Fixa</SelectItem>
+                      <SelectItem value="HOURLY">Por Hora-Aula</SelectItem>
+                    </Select>
+                  </div>
+
+                  {manualForm.billingType === "HOURLY" ? (
+                    <div>
+                      <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Quantidade de Horas *
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.5"
+                        value={manualForm.classHours || ""}
+                        onChange={(e) =>
+                          setManualForm({
+                            ...manualForm,
+                            classHours: Number(e.target.value),
+                          })
+                        }
+                        placeholder="Ex: 10"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="mb-2 block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Valor Calculado (R$) *
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={manualForm.amount || ""}
+                        onChange={(e) =>
+                          setManualForm({
+                            ...manualForm,
+                            amount: Number(e.target.value),
+                          })
+                        }
+                        placeholder="0.00"
+                        leadingIcon={
+                          <span className="text-muted-foreground font-bold text-sm">
+                            R$
+                          </span>
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              </ModalBody>
+
+              <ModalFooter>
+                <Button variant="ghost" onClick={() => setShowManual(false)}>
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleManualSubmit}
                   disabled={!manualForm.studentId}
-                  className="w-full bg-primary py-3.5 rounded-xl text-white font-bold text-sm neon-glow hover:brightness-110 disabled:opacity-50 disabled:shadow-none transition-all"
                 >
                   Lançar Pagamento
-                </button>
-              </div>
-            </div>
+                </Button>
+              </ModalFooter>
+            </ModalContent>
           </Modal>
 
           {/* Generate Confirmation MODAL */}
-          <Modal
-            isOpen={showGenerate}
-            onClose={() => setShowGenerate(false)}
-            title="Gerar Mensalidades"
-            size="md"
-          >
-            <div className="flex flex-col items-center text-center gap-6">
-              <div className="size-16 bg-primary/20 text-primary border border-primary/30 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(116,61,245,0.3)]">
-                <Sparkles className="h-8 w-8" />
-              </div>
+          <Modal open={showGenerate} onOpenChange={setShowGenerate}>
+            <ModalContent size="md">
+              <ModalHeader>
+                <ModalTitle>Gerar Mensalidades</ModalTitle>
+              </ModalHeader>
 
-              <p className="text-slate-400 text-sm font-medium">
-                Todas as faturas pendentes do mês de{" "}
-                <strong className="text-white">
-                  {months[month - 1]} de {year}
-                </strong>{" "}
-                para alunos ativos (Mensalidade e Por Hora) serão geradas no sistema.
-              </p>
+              <ModalBody>
+                <div className="flex flex-col items-center text-center gap-6">
+                  <div className="size-16 bg-primary/20 text-primary border border-primary/30 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(116,61,245,0.3)]">
+                    <Sparkles className="h-8 w-8" />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-3 w-full">
-                <button
-                  onClick={() => setShowGenerate(false)}
-                  className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-                >
+                  <p className="text-slate-400 text-sm font-medium">
+                    Todas as faturas pendentes do mês de{" "}
+                    <strong className="text-white">
+                      {months[month - 1]} de {year}
+                    </strong>{" "}
+                    para alunos ativos (Mensalidade e Por Hora) serão geradas no sistema.
+                  </p>
+                </div>
+              </ModalBody>
+
+              <ModalFooter>
+                <Button variant="ghost" onClick={() => setShowGenerate(false)}>
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleGeneratePayments}
-                  className="w-full bg-primary py-3.5 rounded-xl text-white font-bold text-sm neon-glow hover:brightness-110 transition-all"
+                  disabled={generatePayments.isPending}
                 >
-                  Confirmar
-                </button>
-              </div>
-            </div>
+                  {generatePayments.isPending ? "Gerando..." : "Confirmar e Gerar"}
+                </Button>
+              </ModalFooter>
+            </ModalContent>
           </Modal>
 
           {/* Confirmation Modals */}

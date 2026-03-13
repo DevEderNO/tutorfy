@@ -36,7 +36,14 @@ import {
 import type { ClassStatus } from "@tutorfy/types";
 import { getInitials } from "@/lib/utils";
 import { ConfirmModal } from "@/components/ConfirmModal";
-import { Modal } from "@/components/Modal";
+import {
+  Modal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter,
+} from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectItem } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Header } from "@/components/layout/Header";
 import { Search } from "lucide-react";
 import { MicButton } from "@/components/MicButton";
@@ -360,54 +367,58 @@ export function SchedulePage() {
                 {formattedMonthName}
               </h1>
               <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={navigatePrevious}
-                  className="p-1 hover:bg-white/10 rounded-md transition-all text-slate-400 hover:text-white"
-                  aria-label="Múltiplos"
+                  aria-label="Mês anterior"
                 >
-                  <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-                </button>
-                <button
+                  <ChevronLeft className="sm:!size-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={navigateToday}
-                  className="px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-bold hover:bg-white/10 rounded-md transition-all text-slate-200 uppercase tracking-wider"
+                  className="text-[10px] sm:text-xs uppercase tracking-wider"
                 >
                   Hoje
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={navigateNext}
-                  className="p-1 hover:bg-white/10 rounded-md transition-all text-slate-400 hover:text-white"
                   aria-label="Próximo"
                 >
-                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                </button>
+                  <ChevronRight className="sm:!size-5" />
+                </Button>
               </div>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-3">
-              <button
+              <Button
+                variant={showFilters || filters.studentId || filters.status ? "primary" : "glass"}
+                size="sm"
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-xs font-bold ${
-                  showFilters || filters.studentId || filters.status
-                    ? "bg-primary/20 border-primary/50 text-white shadow-[0_0_10px_rgba(116,61,245,0.2)]"
-                    : "border-white/10 text-slate-300 hover:bg-white/5 glass-btn"
-                }`}
+                className={showFilters || filters.studentId || filters.status ? "bg-primary/20 border-primary/50 shadow-[0_0_10px_rgba(116,61,245,0.2)]" : ""}
               >
                 <Filter className="h-3.5 w-3.5" />
                 <span>Filtrar</span>
                 {(filters.studentId || filters.status) && (
                   <span className="ml-1 flex h-1.5 w-1.5 rounded-full bg-primary neon-glow" />
                 )}
-              </button>
-              <button className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-300 glass-btn">
+              </Button>
+              <Button variant="glass" size="sm" className="hidden sm:flex">
                 <Download className="h-3.5 w-3.5" /> Exportar
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={() => setShowNewClass(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white neon-glow hover:brightness-110 transition-all sm:ml-2"
+                className="neon-glow sm:ml-2"
               >
-                <Plus className="h-4 w-4" />{" "}
+                <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">Nova Aula</span>
                 <span className="sm:hidden">Aula</span>
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -419,290 +430,160 @@ export function SchedulePage() {
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 ml-1">
                     Filtrar por Aluno
                   </label>
-                  <select
-                    value={filters.studentId}
-                    onChange={(e) =>
-                      setFilters({ ...filters, studentId: e.target.value })
-                    }
-                    aria-label="Filtrar por Aluno"
-                    className="w-full rounded-lg glass-input px-3 py-2 text-xs font-bold text-slate-200 outline-none transition-all"
+                  <Select
+                    value={filters.studentId || undefined}
+                    onValueChange={(v) => setFilters({ ...filters, studentId: v })}
+                    placeholder="Todos os Alunos"
+                    size="sm"
                   >
-                    <option value="" className="bg-slate-900 text-slate-200">
-                      Todos os Alunos
-                    </option>
-                    {students?.map((s) => (
-                      <option
-                        key={s.id}
-                        value={s.id}
-                        className="bg-slate-900 text-slate-200"
-                      >
+                    {students.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
                         {s.name} {s.active ? "" : "(Inativo)"}
-                      </option>
+                      </SelectItem>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="w-48">
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5 ml-1">
                     Status da Aula
                   </label>
-                  <select
-                    value={filters.status}
-                    onChange={(e) =>
-                      setFilters({ ...filters, status: e.target.value })
-                    }
-                    aria-label="Status da Aula"
-                    className="w-full rounded-lg glass-input px-3 py-2 text-xs font-bold text-slate-200 outline-none transition-all"
+                  <Select
+                    value={filters.status || undefined}
+                    onValueChange={(v) => setFilters({ ...filters, status: v })}
+                    placeholder="Todos Status"
+                    size="sm"
                   >
-                    <option value="" className="bg-slate-900 text-slate-200">
-                      Todos Status
-                    </option>
                     {Object.entries(statusConfig).map(([key, val]) => (
-                      <option
-                        key={key}
-                        value={key}
-                        className="bg-slate-900 text-slate-200"
-                      >
-                        {val.label}
-                      </option>
+                      <SelectItem key={key} value={key}>{val.label}</SelectItem>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {(filters.studentId || filters.status) && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setFilters({ studentId: "", status: "" })}
-                    className="px-3 py-2 text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-1 mb-0.5"
+                    className="text-destructive hover:text-destructive mb-0.5"
                   >
                     <X className="h-3.5 w-3.5" /> Limpar
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
           )}
 
-          <Modal
-            isOpen={showNewClass}
-            onClose={() => setShowNewClass(false)}
-            title="Nova Aula"
-          >
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                        Aluno *
-                      </label>
-                      <select
-                        value={newClass.studentId}
-                        onChange={(e) =>
-                          setNewClass({
-                            ...newClass,
-                            studentId: e.target.value,
-                          })
-                        }
-                        aria-label="Selecione o aluno"
-                        className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 focus:ring-primary focus:border-primary transition-all font-medium outline-none"
-                      >
-                        <option
-                          value=""
-                          className="bg-slate-900 text-slate-200"
-                        >
-                          Selecione o aluno
-                        </option>
-                        {students
-                          ?.filter((s) => s.active)
-                          .map((s) => (
-                            <option
-                              key={s.id}
-                              value={s.id}
-                              className="bg-slate-900 text-slate-200"
-                            >
-                              {s.name}
-                            </option>
-                          ))}
-                      </select>
+          <Modal open={showNewClass} onOpenChange={setShowNewClass}>
+            <ModalContent size="md">
+              <ModalHeader>
+                <ModalTitle>Nova Aula</ModalTitle>
+              </ModalHeader>
+              <ModalBody>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                    Aluno *
+                  </label>
+                  <Select
+                    value={newClass.studentId}
+                    onValueChange={(v) => setNewClass({ ...newClass, studentId: v })}
+                    placeholder="Selecione o aluno"
+                  >
+                    {students.filter((s) => s.active).map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </Select>
 
-                      {/* Student Schedule Preferences Chips */}
-                      {newClass.studentId && (
-                        <div className="mt-3">
-                          {(() => {
-                            const selectedStudent = students?.find(
-                              (s) => s.id === newClass.studentId,
-                            );
-                            const preferences =
-                              (selectedStudent as any)?.schedulePreferences ||
-                              [];
-
-                            if (preferences.length === 0) return null;
-
-                            const dayNames = [
-                              "Dom",
-                              "Seg",
-                              "Ter",
-                              "Qua",
-                              "Qui",
-                              "Sex",
-                              "Sáb",
-                            ];
-
+                  {newClass.studentId && (() => {
+                    const selectedStudent = students.find((s) => s.id === newClass.studentId);
+                    const preferences = (selectedStudent as any)?.schedulePreferences || [];
+                    if (preferences.length === 0) return null;
+                    const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+                    return (
+                      <div className="space-y-2 mt-3">
+                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1 flex items-center gap-1">
+                          <Clock className="h-3 w-3" /> Sugestões de Horário
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {preferences.map((pref: any, idx: number) => {
+                            const label = `${dayNames[pref.dayOfWeek]} ${pref.startTime}`;
+                            const today = new Date();
+                            const targetDate = getDay(today) === pref.dayOfWeek ? today : nextDay(today, pref.dayOfWeek as any);
+                            const targetDateStr = format(targetDate, "yyyy-MM-dd");
+                            const isSelected = newClass.date === targetDateStr && newClass.startTime === pref.startTime;
                             return (
-                              <div className="space-y-2 mt-4">
-                                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1 flex items-center gap-1">
-                                  <Clock className="h-3 w-3" /> Sugestões de
-                                  Horário
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                  {preferences.map((pref: any, idx: number) => {
-                                    const label = `${dayNames[pref.dayOfWeek]} ${pref.startTime}`;
-                                    const today = new Date();
-                                    const targetDate =
-                                      getDay(today) === pref.dayOfWeek
-                                        ? today
-                                        : nextDay(today, pref.dayOfWeek as any);
-                                    const targetDateStr = format(
-                                      targetDate,
-                                      "yyyy-MM-dd",
-                                    );
-                                    const isSelected =
-                                      newClass.date === targetDateStr &&
-                                      newClass.startTime === pref.startTime;
-
-                                    return (
-                                      <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={() => {
-                                          setNewClass((prev) => ({
-                                            ...prev,
-                                            date: targetDateStr,
-                                            startTime: pref.startTime,
-                                            endTime: pref.endTime,
-                                          }));
-                                        }}
-                                        className={`text-[10px] px-3 py-1.5 rounded-full font-semibold transition-all hover:scale-105 active:scale-95 ${
-                                          isSelected
-                                            ? "bg-primary/20 text-primary border border-primary/50 neon-glow"
-                                            : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/30"
-                                        }`}
-                                      >
-                                        {label}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => setNewClass((prev) => ({ ...prev, date: targetDateStr, startTime: pref.startTime, endTime: pref.endTime }))}
+                                className={`text-[10px] px-3 py-1.5 rounded-full font-semibold transition-all hover:scale-105 active:scale-95 ${isSelected ? "bg-primary/20 text-primary border border-primary/50 neon-glow" : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/30"}`}
+                              >
+                                {label}
+                              </button>
                             );
-                          })()}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                          Data *
-                        </label>
-                        <input
-                          type="date"
-                          value={newClass.date}
-                          onChange={(e) =>
-                            setNewClass({ ...newClass, date: e.target.value })
-                          }
-                          aria-label="Data da aula"
-                          className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 focus:ring-primary focus:border-primary transition-all font-medium outline-none [color-scheme:dark]"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 col-span-2">
-                        <div className="space-y-2">
-                          <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                            Início *
-                          </label>
-                          <input
-                            type="time"
-                            value={newClass.startTime}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const end =
-                                newClass.endTime ||
-                                (val
-                                  ? `${String((parseInt(val.split(":")[0]) + 1) % 24).padStart(2, "0")}:${val.split(":")[1]}`
-                                  : "");
-                              setNewClass({
-                                ...newClass,
-                                startTime: val,
-                                endTime: end,
-                              });
-                            }}
-                            aria-label="Horário de início"
-                            className="w-full glass-input rounded-xl px-3 py-3 text-sm text-slate-200 focus:ring-primary focus:border-primary transition-all font-medium outline-none [color-scheme:dark]"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                            Fim *
-                          </label>
-                          <input
-                            type="time"
-                            value={newClass.endTime}
-                            onChange={(e) =>
-                              setNewClass({
-                                ...newClass,
-                                endTime: e.target.value,
-                              })
-                            }
-                            aria-label="Horário de fim"
-                            className="w-full glass-input rounded-xl px-3 py-3 text-sm text-slate-200 focus:ring-primary focus:border-primary transition-all font-medium outline-none [color-scheme:dark]"
-                          />
+                          })}
                         </div>
                       </div>
-                    </div>
+                    );
+                  })()}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Data *</label>
+                  <DatePicker
+                    value={newClass.date ? new Date(newClass.date + "T12:00:00") : undefined}
+                    onChange={(d) => setNewClass({ ...newClass, date: format(d, "yyyy-MM-dd") })}
+                    placeholder="Selecione a data"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Início *</label>
+                    <TimePicker
+                      value={newClass.startTime}
+                      onChange={(val) => {
+                        const end = newClass.endTime || (val ? `${String((parseInt(val.split(":")[0]) + 1) % 24).padStart(2, "0")}:${val.split(":")[1]}` : "");
+                        setNewClass({ ...newClass, startTime: val, endTime: end });
+                      }}
+                      step={15}
+                      placeholder="Início"
+                    />
                   </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between ml-1">
-                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
-                          Plano da Aula
-                        </label>
-                        <MicButton
-                          onAppend={(text) =>
-                            setNewClass((prev) => ({
-                              ...prev,
-                              content: prev.content + (prev.content.trim() ? " " : "") + text,
-                            }))
-                          }
-                        />
-                      </div>
-                      <textarea
-                        value={newClass.content}
-                        onChange={(e) =>
-                          setNewClass({ ...newClass, content: e.target.value })
-                        }
-                        placeholder="O que será trabalhado nesta aula..."
-                        rows={2}
-                        className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 focus:ring-primary focus:border-primary transition-all font-medium outline-none resize-none"
-                      />
-                    </div>
-
-                  <div className="grid grid-cols-2 gap-3 mt-6">
-                    <button
-                      onClick={() => setShowNewClass(false)}
-                      className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      onClick={handleCreateClass}
-                      disabled={
-                        !newClass.studentId ||
-                        !newClass.date ||
-                        !newClass.startTime ||
-                        !newClass.endTime
-                      }
-                      className="w-full bg-primary py-3.5 rounded-xl text-white font-bold text-sm neon-glow hover:brightness-110 disabled:opacity-50 disabled:shadow-none transition-all"
-                    >
-                      Agendar
-                    </button>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Fim *</label>
+                    <TimePicker
+                      value={newClass.endTime}
+                      onChange={(val) => setNewClass({ ...newClass, endTime: val })}
+                      step={15}
+                      placeholder="Fim"
+                    />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between ml-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Plano da Aula</label>
+                    <MicButton onAppend={(text) => setNewClass((prev) => ({ ...prev, content: prev.content + (prev.content.trim() ? " " : "") + text }))} />
+                  </div>
+                  <Textarea
+                    value={newClass.content}
+                    onChange={(e) => setNewClass({ ...newClass, content: e.target.value })}
+                    placeholder="O que será trabalhado nesta aula..."
+                    rows={5}
+                  />
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="ghost" onClick={() => setShowNewClass(false)}>Cancelar</Button>
+                <Button
+                  onClick={handleCreateClass}
+                  disabled={!newClass.studentId || !newClass.date || !newClass.startTime || !newClass.endTime}
+                >
+                  Agendar
+                </Button>
+              </ModalFooter>
+            </ModalContent>
           </Modal>
 
           <div className="flex-1 overflow-auto p-4 sm:p-6 custom-scrollbar relative z-0">
@@ -806,30 +687,15 @@ export function SchedulePage() {
                                   >
                                     <Pencil className="h-3.5 w-3.5" />
                                   </button>
-                                  <select
-                                    value={cls.status}
-                                    onChange={(e) =>
-                                      handleStatusChange(
-                                        cls.id,
-                                        e.target.value as ClassStatus,
-                                      )
-                                    }
-                                    aria-label="Status da aula"
-                                    className="h-full py-0 pl-1 pr-6 text-[10px] bg-transparent border-0 focus:ring-0 mr-1 text-slate-300 font-medium cursor-pointer outline-none"
-                                    title="Alterar status"
+                                  <Select
+                                    value={cls.status ?? "SCHEDULED"}
+                                    onValueChange={(v) => handleStatusChange(cls.id, v as ClassStatus)}
+                                    size="sm"
                                   >
-                                    {Object.entries(statusConfig).map(
-                                      ([k, v]) => (
-                                        <option
-                                          key={k}
-                                          value={k}
-                                          className="bg-slate-800 text-slate-200"
-                                        >
-                                          {v.label}
-                                        </option>
-                                      ),
-                                    )}
-                                  </select>
+                                    {Object.entries(statusConfig).map(([k, v]) => (
+                                      <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                                    ))}
+                                  </Select>
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -869,185 +735,131 @@ export function SchedulePage() {
         </button>
 
         {/* Edit Class Modal */}
-        <Modal
-          isOpen={!!editingClass}
-          onClose={() => setEditingClass(null)}
-          title="Editar Aula"
-        >
-          {editingClass && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                  Aluno
-                </label>
-                <select
-                  value={editingClass.studentId}
-                  onChange={(e) => setEditingClass({ ...editingClass, studentId: e.target.value })}
-                  aria-label="Selecione o aluno"
-                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none"
-                >
-                  {students?.filter((s) => s.active).map((s) => (
-                    <option key={s.id} value={s.id} className="bg-slate-900 text-slate-200">
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        <Modal open={!!editingClass} onOpenChange={(open) => { if (!open) setEditingClass(null); }}>
+          <ModalContent size="md">
+            <ModalHeader>
+              <ModalTitle>Editar Aula</ModalTitle>
+            </ModalHeader>
+            {editingClass && (
+              <>
+                <ModalBody>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Aluno</label>
+                    <Select
+                      value={editingClass.studentId}
+                      onValueChange={(v) => setEditingClass({ ...editingClass, studentId: v })}
+                    >
+                      {students.filter((s) => s.active).map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      ))}
+                    </Select>
+                  </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                  Data
-                </label>
-                <input
-                  type="date"
-                  value={editingClass.date}
-                  onChange={(e) => setEditingClass({ ...editingClass, date: e.target.value })}
-                  aria-label="Data da aula"
-                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
-                />
-              </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Data</label>
+                    <DatePicker
+                      value={editingClass.date ? new Date(editingClass.date + "T12:00:00") : undefined}
+                      onChange={(d) => setEditingClass({ ...editingClass, date: format(d, "yyyy-MM-dd") })}
+                      placeholder="Selecione a data"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                    Início
-                  </label>
-                  <input
-                    type="time"
-                    value={editingClass.startTime}
-                    onChange={(e) => setEditingClass({ ...editingClass, startTime: e.target.value })}
-                    aria-label="Horário de início"
-                    className="w-full glass-input rounded-xl px-3 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                    Fim
-                  </label>
-                  <input
-                    type="time"
-                    value={editingClass.endTime}
-                    onChange={(e) => setEditingClass({ ...editingClass, endTime: e.target.value })}
-                    aria-label="Horário de fim"
-                    className="w-full glass-input rounded-xl px-3 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Início</label>
+                      <TimePicker
+                        value={editingClass.startTime}
+                        onChange={(val) => setEditingClass({ ...editingClass, startTime: val })}
+                        step={15}
+                        placeholder="Início"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Fim</label>
+                      <TimePicker
+                        value={editingClass.endTime}
+                        onChange={(val) => setEditingClass({ ...editingClass, endTime: val })}
+                        step={15}
+                        placeholder="Fim"
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between ml-1">
-                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
-                    Plano da Aula
-                  </label>
-                  <MicButton
-                    onAppend={(text) =>
-                      setEditingClass((prev) =>
-                        prev ? { ...prev, content: prev.content + (prev.content.trim() ? " " : "") + text } : prev
-                      )
-                    }
-                  />
-                </div>
-                <textarea
-                  value={editingClass.content}
-                  onChange={(e) => setEditingClass({ ...editingClass, content: e.target.value })}
-                  placeholder="O que será trabalhado nesta aula..."
-                  rows={2}
-                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                <button
-                  onClick={() => setEditingClass(null)}
-                  className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleSaveEdit}
-                  disabled={!editingClass.date || !editingClass.startTime || !editingClass.endTime || updateClass.isPending}
-                  className="w-full bg-primary py-3.5 rounded-xl text-white font-bold text-sm neon-glow hover:brightness-110 disabled:opacity-50 disabled:shadow-none transition-all"
-                >
-                  {updateClass.isPending ? "Salvando..." : "Salvar"}
-                </button>
-              </div>
-            </div>
-          )}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between ml-1">
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Plano da Aula</label>
+                      <MicButton onAppend={(text) => setEditingClass((prev) => prev ? { ...prev, content: prev.content + (prev.content.trim() ? " " : "") + text } : prev)} />
+                    </div>
+                    <Textarea
+                      value={editingClass.content}
+                      onChange={(e) => setEditingClass({ ...editingClass, content: e.target.value })}
+                      placeholder="O que será trabalhado nesta aula..."
+                      rows={2}
+                    />
+                  </div>
+                </ModalBody>
+                <ModalFooter>
+                  <Button variant="ghost" onClick={() => setEditingClass(null)}>Cancelar</Button>
+                  <Button
+                    onClick={handleSaveEdit}
+                    disabled={!editingClass.date || !editingClass.startTime || !editingClass.endTime || updateClass.isPending}
+                  >
+                    {updateClass.isPending ? "Salvando..." : "Salvar"}
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
         </Modal>
 
         {/* Complete Class Modal */}
-        <Modal
-          isOpen={!!completingClass}
-          onClose={() => setCompletingClass(null)}
-          title="Registrar Aula Concluída"
-        >
-          {completingClass && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between ml-1">
-                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
-                    O que foi feito *
-                  </label>
-                  <MicButton
-                    onAppend={(text) =>
-                      setCompletingClass((prev) =>
-                        prev ? { ...prev, content: prev.content + (prev.content.trim() ? " " : "") + text } : prev
-                      )
-                    }
-                  />
-                </div>
-                <textarea
-                  value={completingClass.content}
-                  onChange={(e) =>
-                    setCompletingClass({ ...completingClass, content: e.target.value })
-                  }
-                  placeholder="Descreva o conteúdo trabalhado na aula..."
-                  rows={3}
-                  autoFocus
-                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between ml-1">
-                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
-                    Tarefa para próxima aula
-                  </label>
-                  <MicButton
-                    onAppend={(text) =>
-                      setCompletingClass((prev) =>
-                        prev ? { ...prev, homework: prev.homework + (prev.homework.trim() ? " " : "") + text } : prev
-                      )
-                    }
-                  />
-                </div>
-                <textarea
-                  value={completingClass.homework}
-                  onChange={(e) =>
-                    setCompletingClass({ ...completingClass, homework: e.target.value })
-                  }
-                  placeholder="Ex: Exercícios pág. 34-36..."
-                  rows={2}
-                  className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                <button
-                  onClick={() => setCompletingClass(null)}
-                  className="w-full py-3 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleConfirmComplete}
-                  disabled={!completingClass.content.trim()}
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl text-white font-bold text-sm disabled:opacity-50 disabled:pointer-events-none transition-all"
-                >
-                  Concluir e Notificar
-                </button>
-              </div>
-            </div>
-          )}
+        <Modal open={!!completingClass} onOpenChange={(open) => { if (!open) setCompletingClass(null); }}>
+          <ModalContent size="md">
+            <ModalHeader>
+              <ModalTitle>Registrar Aula Concluída</ModalTitle>
+            </ModalHeader>
+            {completingClass && (
+              <>
+                <ModalBody>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between ml-1">
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">O que foi feito *</label>
+                      <MicButton onAppend={(text) => setCompletingClass((prev) => prev ? { ...prev, content: prev.content + (prev.content.trim() ? " " : "") + text } : prev)} />
+                    </div>
+                    <Textarea
+                      value={completingClass.content}
+                      onChange={(e) => setCompletingClass({ ...completingClass, content: e.target.value })}
+                      placeholder="Descreva o conteúdo trabalhado na aula..."
+                      rows={3}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between ml-1">
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Tarefa para próxima aula</label>
+                      <MicButton onAppend={(text) => setCompletingClass((prev) => prev ? { ...prev, homework: prev.homework + (prev.homework.trim() ? " " : "") + text } : prev)} />
+                    </div>
+                    <Textarea
+                      value={completingClass.homework}
+                      onChange={(e) => setCompletingClass({ ...completingClass, homework: e.target.value })}
+                      placeholder="Ex: Exercícios pág. 34-36..."
+                      rows={2}
+                    />
+                  </div>
+                </ModalBody>
+                <ModalFooter>
+                  <Button variant="ghost" onClick={() => setCompletingClass(null)}>Cancelar</Button>
+                  <Button
+                    onClick={handleConfirmComplete}
+                    disabled={!completingClass.content.trim()}
+                    className="bg-emerald-600 hover:bg-emerald-500"
+                  >
+                    Concluir e Notificar
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
         </Modal>
 
         {/* Confirmation Modals */}

@@ -213,7 +213,7 @@ export function TimePicker({
           align="start"
           sideOffset={6}
           className={twMerge(
-            'z-50 rounded-xl border border-white/10 bg-[#0c0816] shadow-2xl p-3',
+            'z-[60] rounded-xl border border-white/10 bg-[#0c0816] shadow-2xl p-3',
             'data-[state=open]:animate-in  data-[state=open]:fade-in-0  data-[state=open]:zoom-in-95',
             'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
           )}

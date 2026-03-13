@@ -37,7 +37,11 @@ import {
   Pencil,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
-import { Modal } from "@/components/Modal";
+import { Modal as UIModal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter } from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
+import { TimePicker } from "@/components/ui/time-picker";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
@@ -406,37 +410,41 @@ export function DashboardPage() {
 
               {/* Week navigation */}
               <div className="flex gap-1.5">
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   aria-label="Semana anterior"
                   onClick={() => {
                     setWeekOffset((o) => o - 1);
                     setSelectedDay((d) => addWeeks(d, -1));
                   }}
-                  className="glass h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-700 hover:text-primary transition-colors"
                 >
-                  <ChevronLeft className="h-4 w-4 text-slate-300" />
-                </button>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
                 {weekOffset !== 0 && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
                       setWeekOffset(0);
                       setSelectedDay(today);
                     }}
-                    className="glass h-8 px-2 rounded-lg text-[10px] font-bold text-primary hover:bg-slate-700 transition-colors"
+                    className="text-primary text-[10px] font-bold px-2"
                   >
                     Hoje
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   aria-label="Próxima semana"
                   onClick={() => {
                     setWeekOffset((o) => o + 1);
                     setSelectedDay((d) => addWeeks(d, 1));
                   }}
-                  className="glass h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-700 hover:text-primary transition-colors"
                 >
-                  <ChevronRight className="h-4 w-4 text-slate-300" />
-                </button>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </div>
@@ -527,17 +535,15 @@ export function DashboardPage() {
                             {studentName}
                           </p>
                         </div>
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
                           aria-label="Opções da aula"
                           onClick={(e) => handleMenuToggle(e, cls.id)}
-                          className={`shrink-0 p-1 rounded-md transition-colors ${
-                            isMenuOpen
-                              ? "bg-primary/10 text-primary"
-                              : "text-slate-600 hover:text-slate-300 hover:bg-slate-800/60"
-                          }`}
+                          className={isMenuOpen ? "bg-primary/10 text-primary" : "text-slate-600"}
                         >
                           <MoreVertical className="h-3.5 w-3.5" />
-                        </button>
+                        </Button>
                       </div>
 
                       {/* Footer: time + badge */}
@@ -733,9 +739,9 @@ export function DashboardPage() {
               </p>
             </div>
             <div className="relative z-10 mt-8">
-              <button className="bg-white text-primary px-6 py-2.5 rounded-lg font-bold text-sm shadow-xl hover:scale-[1.02] transition-all">
+              <Button className="bg-white text-primary hover:bg-white/90 shadow-xl hover:scale-[1.02]">
                 Conhecer agora
-              </button>
+              </Button>
             </div>
             <div className="absolute -right-10 -bottom-10 h-64 w-64 bg-white/10 rounded-full blur-[40px]"></div>
             <div className="absolute right-4 top-4 opacity-20 scale-150 rotate-12 pointer-events-none">
@@ -746,167 +752,129 @@ export function DashboardPage() {
       </div>
 
       {/* Edit Class Modal */}
-      <Modal
-        isOpen={!!editingClass}
-        onClose={() => setEditingClass(null)}
-        title="Editar Aula"
-      >
-        {editingClass && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                Data
-              </label>
-              <input
-                type="date"
-                value={editingClass.date}
-                onChange={(e) =>
-                  setEditingClass({ ...editingClass, date: e.target.value })
-                }
-                aria-label="Data da aula"
-                className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
-              />
-            </div>
+      <UIModal open={!!editingClass} onOpenChange={(open) => { if (!open) setEditingClass(null); }}>
+        <ModalContent size="md">
+          <ModalHeader>
+            <ModalTitle>Editar Aula</ModalTitle>
+          </ModalHeader>
+          {editingClass && (
+            <>
+              <ModalBody>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                      Data
+                    </label>
+                    <DatePicker
+                      value={editingClass.date ? new Date(editingClass.date + "T12:00:00") : undefined}
+                      onChange={(d) => setEditingClass({ ...editingClass, date: format(d, "yyyy-MM-dd") })}
+                      placeholder="Selecione a data"
+                    />
+                  </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                  Início
-                </label>
-                <input
-                  type="time"
-                  value={editingClass.startTime}
-                  onChange={(e) =>
-                    setEditingClass({ ...editingClass, startTime: e.target.value })
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                        Início
+                      </label>
+                      <TimePicker value={editingClass.startTime} onChange={(val) => setEditingClass({ ...editingClass, startTime: val })} step={15} placeholder="Início" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                        Fim
+                      </label>
+                      <TimePicker value={editingClass.endTime} onChange={(val) => setEditingClass({ ...editingClass, endTime: val })} step={15} placeholder="Fim" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                      Plano da Aula
+                    </label>
+                    <Textarea
+                      value={editingClass.content}
+                      onChange={(e) => setEditingClass({ ...editingClass, content: e.target.value })}
+                      placeholder="O que será trabalhado nesta aula..."
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="ghost" onClick={() => setEditingClass(null)}>Cancelar</Button>
+                <Button
+                  onClick={() => {
+                    if (!editingClass.date || !editingClass.startTime || !editingClass.endTime)
+                      return;
+                    updateClass({
+                      id: editingClass.id,
+                      data: {
+                        date: editingClass.date,
+                        startTime: editingClass.startTime,
+                        endTime: editingClass.endTime,
+                        content: editingClass.content || undefined,
+                      },
+                    });
+                    setEditingClass(null);
+                  }}
+                  disabled={
+                    !editingClass.date ||
+                    !editingClass.startTime ||
+                    !editingClass.endTime ||
+                    isUpdating
                   }
-                  aria-label="Horário de início"
-                  className="w-full glass-input rounded-xl px-3 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                  Fim
-                </label>
-                <input
-                  type="time"
-                  value={editingClass.endTime}
-                  onChange={(e) =>
-                    setEditingClass({ ...editingClass, endTime: e.target.value })
-                  }
-                  aria-label="Horário de fim"
-                  className="w-full glass-input rounded-xl px-3 py-3 text-sm text-slate-200 transition-all font-medium outline-none [color-scheme:dark]"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                Plano da Aula
-              </label>
-              <textarea
-                value={editingClass.content}
-                onChange={(e) =>
-                  setEditingClass({ ...editingClass, content: e.target.value })
-                }
-                placeholder="O que será trabalhado nesta aula..."
-                rows={2}
-                className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mt-2">
-              <button
-                onClick={() => setEditingClass(null)}
-                className="w-full py-3.5 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => {
-                  if (!editingClass.date || !editingClass.startTime || !editingClass.endTime)
-                    return;
-                  updateClass({
-                    id: editingClass.id,
-                    data: {
-                      date: editingClass.date,
-                      startTime: editingClass.startTime,
-                      endTime: editingClass.endTime,
-                      content: editingClass.content || undefined,
-                    },
-                  });
-                  setEditingClass(null);
-                }}
-                disabled={
-                  !editingClass.date ||
-                  !editingClass.startTime ||
-                  !editingClass.endTime ||
-                  isUpdating
-                }
-                className="w-full bg-primary py-3.5 rounded-xl text-white font-bold text-sm neon-glow hover:brightness-110 disabled:opacity-50 disabled:shadow-none transition-all"
-              >
-                {isUpdating ? "Salvando..." : "Salvar"}
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
+                >
+                  {isUpdating ? "Salvando..." : "Salvar"}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </UIModal>
 
       {/* Complete Class Modal */}
-      <Modal
-        isOpen={!!completingClass}
-        onClose={() => setCompletingClass(null)}
-        title="Registrar Aula Concluída"
-      >
-        {completingClass && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                O que foi feito *
-              </label>
-              <textarea
-                value={completingClass.content}
-                onChange={(e) =>
-                  setCompletingClass({ ...completingClass, content: e.target.value })
-                }
-                placeholder="Descreva o conteúdo trabalhado na aula..."
-                rows={3}
-                autoFocus
-                className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
-                Tarefa para próxima aula
-              </label>
-              <textarea
-                value={completingClass.homework}
-                onChange={(e) =>
-                  setCompletingClass({ ...completingClass, homework: e.target.value })
-                }
-                placeholder="Ex: Exercícios pág. 34-36..."
-                rows={2}
-                className="w-full glass-input rounded-xl px-4 py-3 text-sm text-slate-200 transition-all font-medium outline-none resize-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mt-2">
-              <button
-                onClick={() => setCompletingClass(null)}
-                className="w-full py-3 rounded-xl font-bold text-sm text-slate-300 hover:text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmComplete}
-                disabled={!completingClass.content.trim()}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl text-white font-bold text-sm disabled:opacity-50 disabled:pointer-events-none transition-all"
-              >
-                Concluir e Notificar
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
+      <UIModal open={!!completingClass} onOpenChange={(open) => { if (!open) setCompletingClass(null); }}>
+        <ModalContent size="md">
+          <ModalHeader>
+            <ModalTitle>Registrar Aula Concluída</ModalTitle>
+          </ModalHeader>
+          {completingClass && (
+            <>
+              <ModalBody>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                      O que foi feito *
+                    </label>
+                    <Textarea
+                      value={completingClass.content}
+                      onChange={(e) => setCompletingClass({ ...completingClass, content: e.target.value })}
+                      placeholder="Descreva o conteúdo trabalhado na aula..."
+                      rows={3}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                      Tarefa para próxima aula
+                    </label>
+                    <Textarea
+                      value={completingClass.homework}
+                      onChange={(e) => setCompletingClass({ ...completingClass, homework: e.target.value })}
+                      placeholder="Ex: Exercícios pág. 34-36..."
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="ghost" onClick={() => setCompletingClass(null)}>Cancelar</Button>
+                <Button onClick={handleConfirmComplete} disabled={!completingClass.content.trim()} className="bg-emerald-600 hover:bg-emerald-500">Concluir e Notificar</Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </UIModal>
 
       {/* Delete Class Modal */}
       <ConfirmModal

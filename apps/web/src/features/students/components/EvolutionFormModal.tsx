@@ -3,6 +3,8 @@ import { X, Sparkles } from "lucide-react";
 import { useSkillCategories } from "../hooks/useSkillCategories";
 import type { SkillCategory } from "../hooks/useSkillCategories";
 import { MicButton } from "@/components/MicButton";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface EvolutionFormModalProps {
   isOpen: boolean;
@@ -63,13 +65,15 @@ export function EvolutionFormModal({
         {/* Decorative Glow */}
         <div className="absolute -top-24 -right-24 size-48 bg-primary/10 rounded-full blur-[60px] pointer-events-none" />
 
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 text-muted-foreground hover:text-white hover:bg-white/5 rounded-full transition-all duration-300"
-          title="Fechar"
+          aria-label="Fechar"
+          className="absolute top-5 right-5 rounded-full"
         >
           <X className="h-5 w-5" />
-        </button>
+        </Button>
 
         <div className="flex flex-col gap-6 relative z-10">
           {/* Header */}
@@ -99,11 +103,12 @@ export function EvolutionFormModal({
                 }
               />
             </div>
-            <textarea
+            <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Ex: O aluno demonstrou grande melhora na interpretação de texto, conseguindo resolver questões de nível intermediário com autonomia..."
-              className="glass-input rounded-xl px-4 py-3 w-full outline-none transition-all text-sm min-h-[120px] resize-none leading-relaxed"
+              rows={5}
+              resize="none"
               autoFocus
             />
           </div>
@@ -142,22 +147,26 @@ export function EvolutionFormModal({
 
           {/* Actions */}
           <div className="flex flex-col gap-3 pt-2">
-            <button
+            <Button
               onClick={handleSubmit}
               disabled={!description.trim() || isLoading}
-              className="w-full rounded-2xl px-6 py-4 text-lg font-black text-white transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 shadow-xl gradient-primary shadow-primary/25 hover:shadow-primary/40"
+              variant="primary"
+              size="lg"
+              className="w-full"
             >
               {isLoading && (
-                <div className="size-5 border-3 border-white/30 border-t-white animate-spin rounded-full" />
+                <div className="size-5 border-2 border-white/30 border-t-white animate-spin rounded-full" />
               )}
               {isEditing ? "Salvar Alterações" : "Registrar Evolução"}
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={onClose}
-              className="w-full rounded-2xl border border-white/5 bg-white/5 px-6 py-3.5 text-sm font-black text-muted-foreground hover:text-white hover:bg-white/10 transition-all active:scale-[0.98] uppercase tracking-widest"
+              variant="ghost"
+              size="lg"
+              className="w-full"
             >
               Cancelar
-            </button>
+            </Button>
           </div>
         </div>
       </div>

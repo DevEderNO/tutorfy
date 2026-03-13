@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Plus, Trash2, Download, ArrowRight, Settings, Bell, Check, Search, Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import { Plus, Trash2, Download, ArrowRight, Settings, Bell, Check, Search, Eye, EyeOff, Mail, Lock, CheckCircle2, XCircle, AlertTriangle, Info, Loader2 } from 'lucide-react'
+import { toast } from '../../components/ui/toast'
 import { Button } from '../../components/ui/button'
 import { Input, InputField } from '../../components/ui/input'
 import { Select, SelectItem, SelectGroup, SelectSeparator } from '../../components/ui/select'
@@ -299,7 +300,109 @@ function PaginationShowcase() {
   )
 }
 
+function ToastShowcase() {
+  return (
+    <div className="flex flex-col gap-4 w-full">
+
+      {/* Tipos */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tipos</span>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="secondary" onClick={() => toast('Mensagem padrão')}>
+            Default
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => toast.success('Aluno salvo com sucesso!')}>
+            <CheckCircle2 className="text-emerald-400" />Success
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => toast.error('Falha ao excluir registro.')}>
+            <XCircle className="text-rose-400" />Error
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => toast.warning('Limite de alunos próximo.')}>
+            <AlertTriangle className="text-amber-400" />Warning
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => toast.info('Nova versão disponível.')}>
+            <Info className="text-sky-400" />Info
+          </Button>
+        </div>
+      </div>
+
+      {/* Com description */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Com description</span>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="secondary" onClick={() =>
+            toast.success('Pagamento registrado', {
+              description: 'R$ 350,00 lançado para João Silva — Março/2025.',
+            })
+          }>
+            Com description
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() =>
+            toast.error('Erro ao gerar relatório', {
+              description: 'Verifique sua conexão e tente novamente.',
+            })
+          }>
+            Error + desc
+          </Button>
+        </div>
+      </div>
+
+      {/* Com ação */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Com ação</span>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="secondary" onClick={() =>
+            toast('Aluno arquivado', {
+              description: 'João Silva foi movido para inativos.',
+              action: { label: 'Desfazer', onClick: () => toast.success('Ação desfeita!') },
+            })
+          }>
+            Com ação
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() =>
+            toast.error('Aula removida', {
+              action: { label: 'Restaurar', onClick: () => toast.success('Aula restaurada!') },
+              cancel: { label: 'Ignorar', onClick: () => {} },
+            })
+          }>
+            Ação + cancelar
+          </Button>
+        </div>
+      </div>
+
+      {/* Promise */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Promise</span>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="secondary" onClick={() => {
+            toast.promise(
+              new Promise((resolve) => setTimeout(resolve, 2000)),
+              { loading: 'Gerando relatório...', success: 'Relatório gerado!', error: 'Falha ao gerar.' }
+            )
+          }}>
+            <Loader2 />Promise (sucesso)
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => {
+            toast.promise(
+              new Promise((_, reject) => setTimeout(reject, 2000)),
+              { loading: 'Salvando dados...', success: 'Dados salvos!', error: 'Falha ao salvar.' }
+            )
+          }}>
+            <Loader2 />Promise (erro)
+          </Button>
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
 const molecules: ComponentItem[] = [
+  {
+    name: 'Toast',
+    description: 'Notificações não-bloqueantes com Sonner. Tipos: default, success, error, warning, info, loading, promise. Suporte a description, action e cancel.',
+    render: () => <ToastShowcase />,
+  },
   {
     name: 'Pagination',
     description: 'Navegação por páginas com ellipsis automático. Variantes: default/glass · Tamanhos: sm/md/lg · Prop showEdges para botões de primeira/última página.',

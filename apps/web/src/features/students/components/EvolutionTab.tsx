@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -98,9 +99,10 @@ export function EvolutionTab({ studentId }: EvolutionTabProps) {
           Registro de Evolução
         </h3>
         <div className="flex gap-2">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setShowCategories(!showCategories)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg glass-panel text-slate-300 text-sm hover:bg-white/10 transition-all font-bold"
           >
             <Settings2 className="h-4 w-4" />
             Categorias
@@ -109,14 +111,15 @@ export function EvolutionTab({ studentId }: EvolutionTabProps) {
             ) : (
               <ChevronDown className="h-3.5 w-3.5" />
             )}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => setIsFormOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg gradient-primary text-white text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20"
           >
             <Plus className="h-4 w-4" />
             Nova Entrada
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -137,12 +140,14 @@ export function EvolutionTab({ studentId }: EvolutionTabProps) {
           <p className="text-xs text-slate-500 mb-4">
             Comece documentando o progresso deste aluno
           </p>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setIsFormOpen(true)}
-            className="text-sm text-primary font-bold hover:text-primary/80 transition-colors"
+            className="text-primary hover:text-primary/80"
           >
             Registrar primeira evolução
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="relative">
@@ -199,20 +204,24 @@ export function EvolutionTab({ studentId }: EvolutionTabProps) {
 
                     {/* Actions */}
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
                         onClick={() => openEdit(entry)}
-                        className="p-2 rounded-lg text-slate-500 hover:text-primary hover:bg-primary/10 transition-all"
-                        title="Editar"
+                        aria-label="Editar registro"
+                        className="hover:text-primary hover:bg-primary/10"
                       >
                         <Pencil className="h-4 w-4" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
                         onClick={() => setDeletingId(entry.id)}
-                        className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all"
-                        title="Remover"
+                        aria-label="Remover registro"
+                        className="hover:text-red-400 hover:bg-red-400/10"
                       >
                         <Trash2 className="h-4 w-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
