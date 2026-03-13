@@ -33,6 +33,7 @@ export class AuthService {
         email: true,
         createdAt: true,
         avatarUrl: true,
+        evolutionAiMode: true,
       },
     });
 
@@ -49,6 +50,7 @@ export class AuthService {
         password: true,
         createdAt: true,
         avatarUrl: true,
+        evolutionAiMode: true,
       }
     });
 
@@ -72,6 +74,7 @@ export class AuthService {
       email: user.email,
       createdAt: user.createdAt,
       avatarUrl: user.avatarUrl,
+      evolutionAiMode: user.evolutionAiMode,
     };
   }
 
@@ -108,6 +111,7 @@ export class AuthService {
         email: true,
         createdAt: true,
         avatarUrl: true,
+        evolutionAiMode: true,
       }
     });
 
@@ -126,6 +130,7 @@ export class AuthService {
           email: true,
           createdAt: true,
           avatarUrl: true,
+          evolutionAiMode: true,
         }
       });
     } else {
@@ -146,6 +151,7 @@ export class AuthService {
       email: user.email,
       createdAt: user.createdAt,
       avatarUrl: user.avatarUrl,
+      evolutionAiMode: user.evolutionAiMode,
     };
   }
 

@@ -4,6 +4,13 @@
 
 // --- Enums ---
 
+export const EvolutionAiMode = {
+  AUTO: 'AUTO',
+  REVIEW: 'REVIEW',
+} as const;
+
+export type EvolutionAiMode = (typeof EvolutionAiMode)[keyof typeof EvolutionAiMode];
+
 export const ClassStatus = {
   SCHEDULED: 'SCHEDULED',
   COMPLETED: 'COMPLETED',
@@ -28,6 +35,7 @@ export interface User {
   name: string;
   avatarUrl?: string | null;
   createdAt: string;
+  evolutionAiMode?: EvolutionAiMode;
 }
 
 export interface Student {

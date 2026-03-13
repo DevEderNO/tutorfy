@@ -18,6 +18,7 @@ import { DatePicker, DateRangePicker, type DateRange } from '../../components/ui
 import { TimePicker } from '../../components/ui/time-picker'
 import { ImageUpload, FileUpload, type FileUploadItem } from '../../components/ui/upload'
 import { Textarea, TextareaField } from '../../components/ui/textarea'
+import { Pagination } from '../../components/ui/pagination'
 
 interface ComponentItem {
   name: string;
@@ -247,7 +248,63 @@ function DatePickerShowcase() {
   )
 }
 
+function PaginationShowcase() {
+  const [page1, setPage1] = useState(1)
+  const [page2, setPage2] = useState(5)
+  const [page3, setPage3] = useState(3)
+  const [page4, setPage4] = useState(7)
+  const [page5, setPage5] = useState(2)
+
+  return (
+    <div className="flex flex-col gap-6 w-full">
+
+      {/* Tamanhos */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tamanhos</span>
+        <div className="flex flex-col gap-3">
+          <Pagination size="sm" page={page1} totalPages={8} onPageChange={setPage1} />
+          <Pagination size="md" page={page1} totalPages={8} onPageChange={setPage1} />
+          <Pagination size="lg" page={page1} totalPages={8} onPageChange={setPage1} />
+        </div>
+      </div>
+
+      {/* Variantes */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Variantes</span>
+        <div className="flex flex-col gap-3">
+          <Pagination variant="default" page={page2} totalPages={15} onPageChange={setPage2} />
+          <Pagination variant="glass"   page={page2} totalPages={15} onPageChange={setPage2} />
+        </div>
+      </div>
+
+      {/* Com botões de extremidade */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Com botões de extremidade</span>
+        <Pagination showEdges page={page3} totalPages={20} onPageChange={setPage3} />
+      </div>
+
+      {/* Poucos itens */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Poucas páginas (sem ellipsis)</span>
+        <Pagination page={page5} totalPages={4} onPageChange={setPage5} />
+      </div>
+
+      {/* Muitas páginas / página no meio */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Muitas páginas · ellipsis duplo</span>
+        <Pagination page={page4} totalPages={50} onPageChange={setPage4} showEdges />
+      </div>
+
+    </div>
+  )
+}
+
 const molecules: ComponentItem[] = [
+  {
+    name: 'Pagination',
+    description: 'Navegação por páginas com ellipsis automático. Variantes: default/glass · Tamanhos: sm/md/lg · Prop showEdges para botões de primeira/última página.',
+    render: () => <PaginationShowcase />,
+  },
   {
     name: 'Upload',
     description: 'ImageUpload: preview com overlay de câmera, formas circle/square, tamanhos sm–xl. FileUpload: drop zone + lista de arquivos com status loading/success/error.',

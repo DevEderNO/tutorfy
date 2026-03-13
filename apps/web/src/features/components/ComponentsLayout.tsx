@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 const tabs = [
   { to: "/components/atoms", label: "Átomos" },
   { to: "/components/molecules", label: "Moléculas" },
+  { to: "/components/organisms", label: "Organismos" },
 ];
 
 export function ComponentsLayout() {

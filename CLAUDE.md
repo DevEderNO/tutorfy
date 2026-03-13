@@ -90,6 +90,9 @@ Prompt base: `apps/web/src/features/components/COMPONENT_PROMPT.md`
 | `date-picker.tsx` | `DatePicker`, `DateRangePicker` | size: sm/md/lg · state: default/error/success · min/max · dateFormat |
 | `time-picker.tsx` | `TimePicker` | size: sm/md/lg · state: default/error/success · step (1/5/10/15/30) · withSeconds |
 | `upload.tsx` | `ImageUpload`, `FileUpload` | ImageUpload: shape circle/square · size sm/md/lg/xl · isLoading · onRemove. FileUpload: multiple · accept · maxSize · maxFiles · state · FileUploadItem[] |
+| `pagination.tsx` | `Pagination`, `PaginationRoot`, `PaginationList`, `PaginationItem`, `PaginationEllipsis` | variant: default/glass · size: sm/md/lg · showEdges (botões primeira/última página) · ellipsis automático |
+| `table.tsx` | `Table`, `TableHeader`, `TableBody`, `TableFooter`, `TableRow`, `TableHead`, `TableCell`, `TableCaption`, `TableEmpty`, `TableToolbar`, `TableSearch`, `TableFilterChip` | variant: default/ghost/outline · size: sm/md/lg (via context) · TableHead: sortable/sortDirection/onSort · TableRow: selected · helpers: sortRows, filterRows, nextSortDirection |
+| `table-filter.tsx` | `TableFilter`, `TableFilterGroup` | Popover com multi/single-select, ícones, contadores, searchable · TableFilterGroup gerencia múltiplos filtros via Record |
 
 ### Padrão obrigatório de novo componente
 

@@ -18,6 +18,7 @@ import { StudentPortalPage } from "@/features/portal/StudentPortalPage";
 import { ComponentsLayout } from "@/features/components/ComponentsLayout";
 import { AtomsPage } from "@/features/components/AtomsPage";
 import { MoleculesPage } from "@/features/components/MoleculesPage";
+import { OrganismsPage } from "@/features/components/OrganismsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,6 +87,7 @@ export default function App() {
                     <Route index element={<Navigate to="/components/atoms" replace />} />
                     <Route path="atoms" element={<AtomsPage />} />
                     <Route path="molecules" element={<MoleculesPage />} />
+                    <Route path="organisms" element={<OrganismsPage />} />
                   </Route>
                 )}
               </Route>

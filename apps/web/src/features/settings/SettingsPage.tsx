@@ -8,7 +8,11 @@ import {
   CheckCircle2,
   Save,
   Loader2,
+  Bot,
+  Zap,
+  Eye,
 } from "lucide-react";
+import type { EvolutionAiMode } from "@tutorfy/types";
 import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
@@ -44,6 +48,11 @@ export function SettingsPage() {
     whatsapp: true,
     reports: false,
   });
+
+  const [evolutionAiMode, setEvolutionAiMode] = useState<EvolutionAiMode>(
+    user?.evolutionAiMode ?? "AUTO",
+  );
+  const [isSavingAi, setIsSavingAi] = useState(false);
 
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -116,6 +125,32 @@ export function SettingsPage() {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSaveAiSettings = async () => {
+    try {
+      setIsSavingAi(true);
+      await api.patch("/users/ai-settings", { evolutionAiMode });
+      updateUser({ evolutionAiMode });
+      setModalConfig({
+        isOpen: true,
+        title: "Configurações de IA Salvas",
+        description: "Suas preferências de Inteligência Artificial foram atualizadas.",
+        variant: "success",
+        icon: CheckCircle2,
+      });
+    } catch (error) {
+      console.error("Erro ao salvar configurações de IA:", error);
+      setModalConfig({
+        isOpen: true,
+        title: "Falha ao Salvar",
+        description: "Não foi possível salvar as configurações de IA. Tente novamente.",
+        variant: "danger",
+        icon: AlertCircle,
+      });
+    } finally {
+      setIsSavingAi(false);
     }
   };
 
@@ -485,6 +520,105 @@ export function SettingsPage() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Inteligência Artificial */}
+        <section
+          className="glass-panel rounded-2xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] overflow-hidden relative"
+          id="ia"
+        >
+          <div className="absolute top-0 right-0 w-56 h-56 bg-violet-500/10 rounded-bl-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
+          <div className="p-6 border-b border-white/10 bg-white/5 relative z-10 flex flex-wrap gap-4 justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="size-9 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
+                <Bot className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-xl font-black text-foreground tracking-tight">
+                6. Inteligência Artificial
+              </h3>
+            </div>
+          </div>
+          <div className="p-8 space-y-6 relative z-10">
+            <div>
+              <p className="text-sm font-bold text-foreground tracking-tight mb-1">
+                Modo de geração de evolução do aluno
+              </p>
+              <p className="text-sm text-muted-foreground mb-6">
+                Ao concluir uma aula, o sistema pode gerar automaticamente um
+                registro de evolução com base no conteúdo da sessão.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setEvolutionAiMode("AUTO")}
+                  data-active={evolutionAiMode === "AUTO" ? "" : undefined}
+                  className="group p-5 rounded-2xl border text-left transition-all
+                    border-white/10 bg-white/5 hover:bg-white/10
+                    data-[active]:border-primary/50 data-[active]:bg-primary/10
+                    data-[active]:shadow-[inset_0_0_20px_rgba(116,61,245,0.05),0_4px_15px_rgba(116,61,245,0.1)]"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="size-9 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 group-data-[active]:bg-emerald-500/30">
+                      <Zap className="h-4 w-4 text-emerald-400" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-foreground">Automático</span>
+                      {evolutionAiMode === "AUTO" && (
+                        <div className="size-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground group-data-[active]:text-foreground/80 transition-colors">
+                    A evolução é gerada e salva automaticamente ao concluir uma
+                    aula. Nenhuma ação necessária.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEvolutionAiMode("REVIEW")}
+                  data-active={evolutionAiMode === "REVIEW" ? "" : undefined}
+                  className="group p-5 rounded-2xl border text-left transition-all
+                    border-white/10 bg-white/5 hover:bg-white/10
+                    data-[active]:border-primary/50 data-[active]:bg-primary/10
+                    data-[active]:shadow-[inset_0_0_20px_rgba(116,61,245,0.05),0_4px_15px_rgba(116,61,245,0.1)]"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="size-9 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30 group-data-[active]:bg-amber-500/30">
+                      <Eye className="h-4 w-4 text-amber-400" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-foreground">Revisão</span>
+                      {evolutionAiMode === "REVIEW" && (
+                        <div className="size-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground group-data-[active]:text-foreground/80 transition-colors">
+                    A IA gera um rascunho para você revisar antes de salvar.
+                    Ideal para manter controle total sobre os registros.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleSaveAiSettings}
+                disabled={isSavingAi}
+              >
+                {isSavingAi ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Save />
+                )}
+                {isSavingAi ? "Salvando..." : "Salvar Configurações de IA"}
+              </Button>
             </div>
           </div>
         </section>
