@@ -29,9 +29,7 @@ import {
   Trash2,
   Filter,
   Download,
-  GripVertical,
   Clock,
-  Pencil,
 } from "lucide-react";
 import type { ClassStatus } from "@tutorfy/types";
 import { getInitials } from "@/lib/utils";
@@ -111,6 +109,15 @@ export function SchedulePage() {
     startTime: string;
     endTime: string;
     content: string;
+    status: string;
+  } | null>(null);
+  const [viewingClass, setViewingClass] = useState<{
+    studentName: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    content: string;
+    homework: string | null;
   } | null>(null);
 
   const calendarStart =
@@ -226,6 +233,7 @@ export function SchedulePage() {
         startTime: editingClass.startTime,
         endTime: editingClass.endTime,
         content: editingClass.content || undefined,
+        status: editingClass.status as ClassStatus,
       },
     });
     setEditingClass(null);
@@ -377,7 +385,7 @@ export function SchedulePage() {
                 </Button>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="md"
                   onClick={navigateToday}
                   className="text-[10px] sm:text-xs uppercase tracking-wider"
                 >
@@ -396,7 +404,7 @@ export function SchedulePage() {
             <div className="flex items-center gap-1.5 sm:gap-3">
               <Button
                 variant={showFilters || filters.studentId || filters.status ? "primary" : "glass"}
-                size="sm"
+                size="md"
                 onClick={() => setShowFilters(!showFilters)}
                 className={showFilters || filters.studentId || filters.status ? "bg-primary/20 border-primary/50 shadow-[0_0_10px_rgba(116,61,245,0.2)]" : ""}
               >
@@ -406,12 +414,12 @@ export function SchedulePage() {
                   <span className="ml-1 flex h-1.5 w-1.5 rounded-full bg-primary neon-glow" />
                 )}
               </Button>
-              <Button variant="glass" size="sm" className="hidden sm:flex">
+              <Button variant="glass" size="md" className="hidden sm:flex">
                 <Download className="h-3.5 w-3.5" /> Exportar
               </Button>
               <Button
                 variant="primary"
-                size="sm"
+                size="md"
                 onClick={() => setShowNewClass(true)}
                 className="neon-glow sm:ml-2"
               >
@@ -434,7 +442,7 @@ export function SchedulePage() {
                     value={filters.studentId || undefined}
                     onValueChange={(v) => setFilters({ ...filters, studentId: v })}
                     placeholder="Todos os Alunos"
-                    size="sm"
+                    size="md"
                   >
                     {students.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
@@ -452,7 +460,7 @@ export function SchedulePage() {
                     value={filters.status || undefined}
                     onValueChange={(v) => setFilters({ ...filters, status: v })}
                     placeholder="Todos Status"
-                    size="sm"
+                    size="md"
                   >
                     {Object.entries(statusConfig).map(([key, val]) => (
                       <SelectItem key={key} value={key}>{val.label}</SelectItem>
@@ -463,7 +471,7 @@ export function SchedulePage() {
                 {(filters.studentId || filters.status) && (
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="md"
                     onClick={() => setFilters({ studentId: "", status: "" })}
                     className="text-destructive hover:text-destructive mb-0.5"
                   >
@@ -475,7 +483,7 @@ export function SchedulePage() {
           )}
 
           <Modal open={showNewClass} onOpenChange={setShowNewClass}>
-            <ModalContent size="md">
+            <ModalContent size="xl">
               <ModalHeader>
                 <ModalTitle>Nova Aula</ModalTitle>
               </ModalHeader>
@@ -570,7 +578,7 @@ export function SchedulePage() {
                     value={newClass.content}
                     onChange={(e) => setNewClass({ ...newClass, content: e.target.value })}
                     placeholder="O que será trabalhado nesta aula..."
-                    rows={5}
+                    rows={10}
                   />
                 </div>
               </ModalBody>
@@ -657,56 +665,37 @@ export function SchedulePage() {
                           return (
                             <div
                               key={cls.id}
-                              className={`group/item relative rounded-lg ${statusColor?.bg} border-l-[3px] ${statusColor?.border} p-2 transition-all hover:-translate-y-0.5 flex flex-col gap-1 overflow-hidden`}
+                              onClick={() => {
+                                if (cls.status === "COMPLETED") {
+                                  setViewingClass({
+                                    studentName: (cls as any).student?.name ?? "Aluno(a)",
+                                    date: format(new Date(cls.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
+                                    startTime: cls.startTime,
+                                    endTime: cls.endTime,
+                                    content: cls.content ?? "",
+                                    homework: cls.homework ?? null,
+                                  });
+                                } else {
+                                  setEditingClass({
+                                    id: cls.id,
+                                    studentId: cls.studentId,
+                                    date: format(new Date(cls.date), "yyyy-MM-dd"),
+                                    startTime: cls.startTime,
+                                    endTime: cls.endTime,
+                                    content: cls.content ?? "",
+                                    status: cls.status ?? "SCHEDULED",
+                                  });
+                                }
+                              }}
+                              className={`relative rounded-lg ${statusColor?.bg} border-l-[3px] ${statusColor?.border} p-2 flex flex-col gap-1 cursor-pointer`}
                             >
                               <div className="absolute top-0 right-0 bottom-0 left-0 bg-gradient-to-r from-transparent to-white/[0.02] pointer-events-none"></div>
-                              <div className="flex justify-between items-center relative z-10">
-                                <div className="flex items-center gap-1.5">
-                                  <span
-                                    className={`text-[10px] font-bold ${statusColor?.text} ${cls.status === "CANCELED" ? "line-through opacity-70" : ""}`}
-                                  >
-                                    {cls.startTime}
-                                  </span>
-                                </div>
-
-                                <div className="opacity-0 group-hover/item:opacity-100 flex items-center bg-slate-900/90 backdrop-blur-md rounded-md absolute right-0 top-0 bottom-0 px-1 shadow-lg transition-opacity border border-white/10">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setEditingClass({
-                                        id: cls.id,
-                                        studentId: cls.studentId,
-                                        date: format(new Date(cls.date), "yyyy-MM-dd"),
-                                        startTime: cls.startTime,
-                                        endTime: cls.endTime,
-                                        content: cls.content ?? "",
-                                      });
-                                    }}
-                                    className="p-1 text-slate-400 hover:text-primary transition-colors"
-                                    title="Editar aula"
-                                  >
-                                    <Pencil className="h-3.5 w-3.5" />
-                                  </button>
-                                  <Select
-                                    value={cls.status ?? "SCHEDULED"}
-                                    onValueChange={(v) => handleStatusChange(cls.id, v as ClassStatus)}
-                                    size="sm"
-                                  >
-                                    {Object.entries(statusConfig).map(([k, v]) => (
-                                      <SelectItem key={k} value={k}>{v.label}</SelectItem>
-                                    ))}
-                                  </Select>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setDeletingClassId(cls.id);
-                                    }}
-                                    className="p-1 text-slate-400 hover:text-red-400 transition-colors"
-                                    title="Remover aula"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </button>
-                                </div>
+                              <div className="relative z-10">
+                                <span
+                                  className={`text-[10px] font-bold ${statusColor?.text} ${cls.status === "CANCELED" ? "line-through opacity-70" : ""}`}
+                                >
+                                  {cls.startTime}
+                                </span>
                               </div>
                               <p
                                 className={`text-xs truncate font-semibold relative z-10 ${!isCurrentMonth || cls.status === "CANCELED" ? "text-slate-500" : "text-slate-200"}`}
@@ -736,13 +725,32 @@ export function SchedulePage() {
 
         {/* Edit Class Modal */}
         <Modal open={!!editingClass} onOpenChange={(open) => { if (!open) setEditingClass(null); }}>
-          <ModalContent size="md">
+          <ModalContent size="xl">
             <ModalHeader>
               <ModalTitle>Editar Aula</ModalTitle>
             </ModalHeader>
             {editingClass && (
               <>
                 <ModalBody>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Status</label>
+                    <Select
+                      value={editingClass.status}
+                      onValueChange={(v) => {
+                        if (v === "COMPLETED") {
+                          setEditingClass(null);
+                          setCompletingClass({ id: editingClass.id, content: "", homework: "" });
+                        } else {
+                          setEditingClass({ ...editingClass, status: v });
+                        }
+                      }}
+                    >
+                      {Object.entries(statusConfig).map(([k, v]) => (
+                        <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                      ))}
+                    </Select>
+                  </div>
+
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Aluno</label>
                     <Select
@@ -794,18 +802,32 @@ export function SchedulePage() {
                       value={editingClass.content}
                       onChange={(e) => setEditingClass({ ...editingClass, content: e.target.value })}
                       placeholder="O que será trabalhado nesta aula..."
-                      rows={2}
+                      rows={10}
                     />
                   </div>
                 </ModalBody>
                 <ModalFooter>
-                  <Button variant="ghost" onClick={() => setEditingClass(null)}>Cancelar</Button>
                   <Button
-                    onClick={handleSaveEdit}
-                    disabled={!editingClass.date || !editingClass.startTime || !editingClass.endTime || updateClass.isPending}
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Excluir aula"
+                    onClick={() => {
+                      setDeletingClassId(editingClass.id);
+                      setEditingClass(null);
+                    }}
+                    className="text-muted-foreground hover:text-destructive"
                   >
-                    {updateClass.isPending ? "Salvando..." : "Salvar"}
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
+                  <div className="flex gap-2 ml-auto">
+                    <Button variant="ghost" onClick={() => setEditingClass(null)}>Cancelar</Button>
+                    <Button
+                      onClick={handleSaveEdit}
+                      disabled={!editingClass.date || !editingClass.startTime || !editingClass.endTime || updateClass.isPending}
+                    >
+                      {updateClass.isPending ? "Salvando..." : "Salvar"}
+                    </Button>
+                  </div>
                 </ModalFooter>
               </>
             )}
@@ -814,7 +836,7 @@ export function SchedulePage() {
 
         {/* Complete Class Modal */}
         <Modal open={!!completingClass} onOpenChange={(open) => { if (!open) setCompletingClass(null); }}>
-          <ModalContent size="md">
+          <ModalContent size="xl">
             <ModalHeader>
               <ModalTitle>Registrar Aula Concluída</ModalTitle>
             </ModalHeader>
@@ -830,7 +852,7 @@ export function SchedulePage() {
                       value={completingClass.content}
                       onChange={(e) => setCompletingClass({ ...completingClass, content: e.target.value })}
                       placeholder="Descreva o conteúdo trabalhado na aula..."
-                      rows={3}
+                      rows={10}
                       autoFocus
                     />
                   </div>
@@ -843,7 +865,7 @@ export function SchedulePage() {
                       value={completingClass.homework}
                       onChange={(e) => setCompletingClass({ ...completingClass, homework: e.target.value })}
                       placeholder="Ex: Exercícios pág. 34-36..."
-                      rows={2}
+                      rows={10}
                     />
                   </div>
                 </ModalBody>
@@ -858,6 +880,38 @@ export function SchedulePage() {
                   </Button>
                 </ModalFooter>
               </>
+            )}
+          </ModalContent>
+        </Modal>
+
+        {/* View Completed Class Modal */}
+        <Modal open={!!viewingClass} onOpenChange={(open) => { if (!open) setViewingClass(null); }}>
+          <ModalContent size="xl">
+            <ModalHeader>
+              <ModalTitle>Aula Concluída</ModalTitle>
+            </ModalHeader>
+            {viewingClass && (
+              <ModalBody>
+                <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-400 mb-4">
+                  <span><span className="font-semibold text-slate-200">Aluno:</span> {viewingClass.studentName}</span>
+                  <span><span className="font-semibold text-slate-200">Data:</span> {viewingClass.date}</span>
+                  <span><span className="font-semibold text-slate-200">Horário:</span> {viewingClass.startTime} – {viewingClass.endTime}</span>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">O que foi feito</label>
+                  <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[80px]">
+                    {viewingClass.content || <span className="text-slate-500 italic">Nenhum conteúdo registrado.</span>}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Tarefa para próxima aula</label>
+                  <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[60px]">
+                    {viewingClass.homework || <span className="text-slate-500 italic">Nenhuma tarefa registrada.</span>}
+                  </div>
+                </div>
+              </ModalBody>
             )}
           </ModalContent>
         </Modal>

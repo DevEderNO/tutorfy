@@ -43,6 +43,8 @@ export class StudentEvolutionAiService {
       student: session.student,
       session: {
         date: session.date,
+        startTime: session.startTime,
+        endTime: session.endTime,
         content: session.content,
         homework: session.homework,
         notes: session.notes,

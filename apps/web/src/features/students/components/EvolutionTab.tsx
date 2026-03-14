@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Markdown from "react-markdown";
 import {
   Sparkles,
   Plus,
@@ -176,9 +177,15 @@ export function EvolutionTab({ studentId }: EvolutionTabProps) {
                       </p>
 
                       {/* Description */}
-                      <p className="text-sm text-slate-200 leading-relaxed whitespace-pre-wrap">
-                        {entry.description}
-                      </p>
+                      <div className="prose prose-sm prose-invert max-w-none text-slate-200 leading-relaxed
+                        [&_h1]:text-base [&_h1]:font-bold [&_h1]:text-white [&_h1]:mb-3 [&_h1]:mt-0
+                        [&_h2]:text-sm [&_h2]:font-bold [&_h2]:text-slate-100 [&_h2]:mb-2 [&_h2]:mt-4
+                        [&_p]:text-sm [&_p]:text-slate-200 [&_p]:leading-relaxed [&_p]:mb-2
+                        [&_ul]:my-2 [&_ul]:pl-5 [&_li]:text-sm [&_li]:text-slate-200 [&_li]:mb-1
+                        [&_strong]:text-white [&_strong]:font-semibold
+                        [&_hr]:border-white/10 [&_hr]:my-3">
+                        <Markdown>{entry.description}</Markdown>
+                      </div>
 
                       {/* Categories */}
                       {entry.categories.length > 0 && (

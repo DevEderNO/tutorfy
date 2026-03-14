@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
-import { X, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useSkillCategories } from "../hooks/useSkillCategories";
 import type { SkillCategory } from "../hooks/useSkillCategories";
 import { MicButton } from "@/components/MicButton";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
 
 interface EvolutionFormModalProps {
   isOpen: boolean;
@@ -52,49 +61,31 @@ export function EvolutionFormModal({
     });
   };
 
-  if (!isOpen) return null;
-
   const isEditing = !!initialData;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0c0816]/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div
-        className="glass-panel rounded-[2rem] p-8 w-full max-w-lg border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.5)] relative animate-in zoom-in-95 duration-300 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Decorative Glow */}
-        <div className="absolute -top-24 -right-24 size-48 bg-primary/10 rounded-full blur-[60px] pointer-events-none" />
-
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={onClose}
-          aria-label="Fechar"
-          className="absolute top-5 right-5 rounded-full"
-        >
-          <X className="h-5 w-5" />
-        </Button>
-
-        <div className="flex flex-col gap-6 relative z-10">
-          {/* Header */}
+    <Modal open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <ModalContent size="2xl">
+        <ModalHeader>
           <div className="flex items-center gap-3">
-            <div className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary">
-              <Sparkles className="h-6 w-6" />
+            <div className="size-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-primary shrink-0">
+              <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-white tracking-tight">
+              <ModalTitle>
                 {isEditing ? "Editar Registro" : "Novo Registro de Evolução"}
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
+              </ModalTitle>
+              <ModalDescription>
                 Descreva o progresso observado nesta sessão
-              </p>
+              </ModalDescription>
             </div>
           </div>
+        </ModalHeader>
 
-          {/* Description */}
+        <ModalBody>
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-semibold text-slate-300">
+              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
                 Observação *
               </label>
               <MicButton
@@ -107,16 +98,15 @@ export function EvolutionFormModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Ex: O aluno demonstrou grande melhora na interpretação de texto, conseguindo resolver questões de nível intermediário com autonomia..."
-              rows={5}
+              rows={10}
               resize="none"
               autoFocus
             />
           </div>
 
-          {/* Category Selection */}
           {categories.length > 0 && (
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-300">
+              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
                 Categorias Relacionadas
               </label>
               <div className="flex flex-wrap gap-2">
@@ -144,35 +134,22 @@ export function EvolutionFormModal({
               </div>
             </div>
           )}
+        </ModalBody>
 
-          {/* Actions */}
-          <div className="flex flex-col gap-3 pt-2">
-            <Button
-              onClick={handleSubmit}
-              disabled={!description.trim() || isLoading}
-              variant="primary"
-              size="lg"
-              className="w-full"
-            >
-              {isLoading && (
-                <div className="size-5 border-2 border-white/30 border-t-white animate-spin rounded-full" />
-              )}
-              {isEditing ? "Salvar Alterações" : "Registrar Evolução"}
-            </Button>
-            <Button
-              onClick={onClose}
-              variant="ghost"
-              size="lg"
-              className="w-full"
-            >
-              Cancelar
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Background overlay */}
-      <div className="absolute inset-0 -z-10" onClick={onClose} />
-    </div>
+        <ModalFooter>
+          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!description.trim() || isLoading}
+            variant="primary"
+          >
+            {isLoading && (
+              <div className="size-4 border-2 border-white/30 border-t-white animate-spin rounded-full" />
+            )}
+            {isEditing ? "Salvar Alterações" : "Registrar Evolução"}
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 }

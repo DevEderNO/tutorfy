@@ -19,7 +19,6 @@ import {
   Search,
   Bell,
   Plus,
-  MoreVertical,
   CircleDollarSign,
   Users,
   AlertTriangle,
@@ -29,22 +28,17 @@ import {
   History,
   Zap,
   TrendingUp,
-  CheckCircle2,
-  XCircle,
-  UserX,
-  CalendarClock,
   Trash2,
-  Pencil,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Modal as UIModal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
+import { Select, SelectItem } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TimePicker } from "@/components/ui/time-picker";
 import { ConfirmModal } from "@/components/ConfirmModal";
-import React, { useState, useEffect } from "react";
-import ReactDOM from "react-dom";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { getInitials } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
@@ -100,10 +94,6 @@ export function DashboardPage() {
   const [activeFilter, setActiveFilter] = useState("SCHEDULED");
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState<Date>(new Date());
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(
-    null,
-  );
   const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
   const [completingClass, setCompletingClass] = useState<{
     id: string;
@@ -117,41 +107,21 @@ export function DashboardPage() {
     startTime: string;
     endTime: string;
     content: string;
+    status: string;
+  } | null>(null);
+
+  const [viewingClass, setViewingClass] = useState<{
+    studentName: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    content: string;
+    homework: string | null;
   } | null>(null);
 
   const { mutate: updateClass, isPending: isUpdating } = useUpdateClass();
   const { mutate: deleteClass } = useDeleteClass();
 
-  const closeMenu = () => {
-    setOpenMenuId(null);
-    setMenuPos(null);
-  };
-
-  const handleMenuToggle = (
-    e: React.MouseEvent<HTMLButtonElement>,
-    id: string,
-  ) => {
-    if (openMenuId === id) {
-      closeMenu();
-      return;
-    }
-    const rect = e.currentTarget.getBoundingClientRect();
-    const menuWidth = 192;
-    const left =
-      rect.right - menuWidth > 0 ? rect.right - menuWidth : rect.left;
-    setMenuPos({ top: rect.bottom + 6, left });
-    setOpenMenuId(id);
-  };
-
-  const handleStatusChange = (id: string, status: ClassStatus) => {
-    if (status === ClassStatus.COMPLETED) {
-      closeMenu();
-      setCompletingClass({ id, content: "", homework: "" });
-      return;
-    }
-    updateClass({ id, data: { status } });
-    closeMenu();
-  };
 
   const handleConfirmComplete = () => {
     if (!completingClass || !completingClass.content.trim()) return;
@@ -172,16 +142,6 @@ export function DashboardPage() {
     setDeletingClassId(null);
   };
 
-  useEffect(() => {
-    if (!openMenuId) return;
-    const handleScroll = () => closeMenu();
-    window.addEventListener("scroll", handleScroll, true);
-    window.addEventListener("resize", closeMenu);
-    return () => {
-      window.removeEventListener("scroll", handleScroll, true);
-      window.removeEventListener("resize", closeMenu);
-    };
-  }, [openMenuId]);
 
   const now = new Date();
   const { data: payments, isLoading: isPaymentsLoading } = usePayments({
@@ -511,16 +471,37 @@ export function DashboardPage() {
                 {filteredClasses.map((cls) => {
                   const config =
                     statusConfig[cls.status] || statusConfig.SCHEDULED;
-                  const isMenuOpen = openMenuId === cls.id;
                   const studentName =
                     (cls as any).student?.name || "Desconhecido";
 
                   return (
                     <div
                       key={cls.id}
-                      className={`flex flex-col gap-3 p-4 glass rounded-xl border-l-[3px] hover:brightness-105 transition-all ${config.border}`}
+                      onClick={() => {
+                        if (cls.status === ClassStatus.COMPLETED) {
+                          setViewingClass({
+                            studentName: (cls as any).student?.name ?? "Aluno(a)",
+                            date: format(parseISO(cls.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
+                            startTime: cls.startTime,
+                            endTime: cls.endTime,
+                            content: cls.content ?? "",
+                            homework: cls.homework ?? null,
+                          });
+                        } else {
+                          setEditingClass({
+                            id: cls.id,
+                            studentId: cls.studentId,
+                            date: format(parseISO(cls.date), "yyyy-MM-dd"),
+                            startTime: cls.startTime,
+                            endTime: cls.endTime,
+                            content: cls.content ?? "",
+                            status: cls.status ?? "SCHEDULED",
+                          });
+                        }
+                      }}
+                      className={`flex flex-col gap-3 p-4 glass rounded-xl border-l-[3px] hover:brightness-105 transition-all cursor-pointer ${config.border}`}
                     >
-                      {/* Header: avatar + info + menu */}
+                      {/* Header: avatar + info */}
                       <div className="flex items-center gap-3">
                         <div
                           className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${config.avatarBg}`}
@@ -535,15 +516,6 @@ export function DashboardPage() {
                             {studentName}
                           </p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label="Opções da aula"
-                          onClick={(e) => handleMenuToggle(e, cls.id)}
-                          className={isMenuOpen ? "bg-primary/10 text-primary" : "text-slate-600"}
-                        >
-                          <MoreVertical className="h-3.5 w-3.5" />
-                        </Button>
                       </div>
 
                       {/* Footer: time + badge */}
@@ -572,102 +544,6 @@ export function DashboardPage() {
             )}
           </div>
 
-          {/* Context menu portal */}
-          {openMenuId &&
-            menuPos &&
-            ReactDOM.createPortal(
-              <>
-                <div className="fixed inset-0 z-[998]" onClick={closeMenu} />
-                <div
-                  className="fixed z-[999] w-48 rounded-md border border-slate-700/70 bg-[#120e1e] shadow-lg shadow-black/50 py-1 animate-in fade-in-0 zoom-in-95 duration-100"
-                  style={{ top: menuPos.top, left: menuPos.left }}
-                >
-                  {(() => {
-                    const cls = filteredClasses.find(
-                      (c) => c.id === openMenuId,
-                    )!;
-                    if (!cls) return null;
-                    const statusActions: {
-                      status: ClassStatus;
-                      label: string;
-                      icon: React.ReactNode;
-                    }[] = [
-                      {
-                        status: ClassStatus.COMPLETED,
-                        label: "Concluir",
-                        icon: (
-                          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                        ),
-                      },
-                      {
-                        status: ClassStatus.MISSED,
-                        label: "Falta",
-                        icon: <UserX className="h-4 w-4 text-orange-400" />,
-                      },
-                      {
-                        status: ClassStatus.CANCELED,
-                        label: "Cancelar",
-                        icon: <XCircle className="h-4 w-4 text-slate-400" />,
-                      },
-                      {
-                        status: ClassStatus.SCHEDULED,
-                        label: "Reagendar",
-                        icon: (
-                          <CalendarClock className="h-4 w-4 text-primary" />
-                        ),
-                      },
-                    ].filter((a) => a.status !== cls.status);
-
-                    return (
-                      <>
-                        <button
-                          onClick={() => {
-                            setEditingClass({
-                              id: cls.id,
-                              studentId: cls.studentId,
-                              date: format(parseISO(cls.date), "yyyy-MM-dd"),
-                              startTime: cls.startTime,
-                              endTime: cls.endTime,
-                              content: cls.content ?? "",
-                            });
-                            closeMenu();
-                          }}
-                          className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800/80 transition-colors"
-                        >
-                          <Pencil className="h-4 w-4 text-primary" />
-                          Editar Aula
-                        </button>
-                        <div className="h-px bg-slate-700/50 my-1" />
-                        {statusActions.map((action) => (
-                          <button
-                            key={action.status}
-                            onClick={() =>
-                              handleStatusChange(cls.id, action.status)
-                            }
-                            className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800/80 transition-colors"
-                          >
-                            {action.icon}
-                            {action.label}
-                          </button>
-                        ))}
-                        <div className="h-px bg-slate-700/50 my-1" />
-                        <button
-                          onClick={() => {
-                            setDeletingClassId(cls.id);
-                            closeMenu();
-                          }}
-                          className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Excluir Aula
-                        </button>
-                      </>
-                    );
-                  })()}
-                </div>
-              </>,
-              document.body,
-            )}
         </section>
 
         {/* Bottom Layer */}
@@ -751,9 +627,41 @@ export function DashboardPage() {
         </section>
       </div>
 
+      {/* View Completed Class Modal */}
+      <UIModal open={!!viewingClass} onOpenChange={(open) => { if (!open) setViewingClass(null); }}>
+        <ModalContent size="xl">
+          <ModalHeader>
+            <ModalTitle>Aula Concluída</ModalTitle>
+          </ModalHeader>
+          {viewingClass && (
+            <ModalBody>
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-400 mb-4">
+                <span><span className="font-semibold text-slate-200">Aluno:</span> {viewingClass.studentName}</span>
+                <span><span className="font-semibold text-slate-200">Data:</span> {viewingClass.date}</span>
+                <span><span className="font-semibold text-slate-200">Horário:</span> {viewingClass.startTime} – {viewingClass.endTime}</span>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">O que foi feito</label>
+                <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[80px]">
+                  {viewingClass.content || <span className="text-slate-500 italic">Nenhum conteúdo registrado.</span>}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Tarefa para próxima aula</label>
+                <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[60px]">
+                  {viewingClass.homework || <span className="text-slate-500 italic">Nenhuma tarefa registrada.</span>}
+                </div>
+              </div>
+            </ModalBody>
+          )}
+        </ModalContent>
+      </UIModal>
+
       {/* Edit Class Modal */}
       <UIModal open={!!editingClass} onOpenChange={(open) => { if (!open) setEditingClass(null); }}>
-        <ModalContent size="md">
+        <ModalContent size="xl">
           <ModalHeader>
             <ModalTitle>Editar Aula</ModalTitle>
           </ModalHeader>
@@ -761,6 +669,25 @@ export function DashboardPage() {
             <>
               <ModalBody>
                 <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Status</label>
+                    <Select
+                      value={editingClass.status}
+                      onValueChange={(v) => {
+                        if (v === "COMPLETED") {
+                          setEditingClass(null);
+                          setCompletingClass({ id: editingClass.id, content: "", homework: "" });
+                        } else {
+                          setEditingClass({ ...editingClass, status: v });
+                        }
+                      }}
+                    >
+                      {Object.entries(statusConfig).map(([k, v]) => (
+                        <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                      ))}
+                    </Select>
+                  </div>
+
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
                       Data
@@ -795,37 +722,52 @@ export function DashboardPage() {
                       value={editingClass.content}
                       onChange={(e) => setEditingClass({ ...editingClass, content: e.target.value })}
                       placeholder="O que será trabalhado nesta aula..."
-                      rows={2}
+                      rows={10}
                     />
                   </div>
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Button variant="ghost" onClick={() => setEditingClass(null)}>Cancelar</Button>
                 <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Excluir aula"
                   onClick={() => {
-                    if (!editingClass.date || !editingClass.startTime || !editingClass.endTime)
-                      return;
-                    updateClass({
-                      id: editingClass.id,
-                      data: {
-                        date: editingClass.date,
-                        startTime: editingClass.startTime,
-                        endTime: editingClass.endTime,
-                        content: editingClass.content || undefined,
-                      },
-                    });
+                    setDeletingClassId(editingClass.id);
                     setEditingClass(null);
                   }}
-                  disabled={
-                    !editingClass.date ||
-                    !editingClass.startTime ||
-                    !editingClass.endTime ||
-                    isUpdating
-                  }
+                  className="text-muted-foreground hover:text-destructive"
                 >
-                  {isUpdating ? "Salvando..." : "Salvar"}
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
+                <div className="flex gap-2 ml-auto">
+                  <Button variant="ghost" onClick={() => setEditingClass(null)}>Cancelar</Button>
+                  <Button
+                    onClick={() => {
+                      if (!editingClass.date || !editingClass.startTime || !editingClass.endTime)
+                        return;
+                      updateClass({
+                        id: editingClass.id,
+                        data: {
+                          date: editingClass.date,
+                          startTime: editingClass.startTime,
+                          endTime: editingClass.endTime,
+                          content: editingClass.content || undefined,
+                          status: editingClass.status as ClassStatus,
+                        },
+                      });
+                      setEditingClass(null);
+                    }}
+                    disabled={
+                      !editingClass.date ||
+                      !editingClass.startTime ||
+                      !editingClass.endTime ||
+                      isUpdating
+                    }
+                  >
+                    {isUpdating ? "Salvando..." : "Salvar"}
+                  </Button>
+                </div>
               </ModalFooter>
             </>
           )}
@@ -834,7 +776,7 @@ export function DashboardPage() {
 
       {/* Complete Class Modal */}
       <UIModal open={!!completingClass} onOpenChange={(open) => { if (!open) setCompletingClass(null); }}>
-        <ModalContent size="md">
+        <ModalContent size="xl">
           <ModalHeader>
             <ModalTitle>Registrar Aula Concluída</ModalTitle>
           </ModalHeader>
@@ -850,7 +792,7 @@ export function DashboardPage() {
                       value={completingClass.content}
                       onChange={(e) => setCompletingClass({ ...completingClass, content: e.target.value })}
                       placeholder="Descreva o conteúdo trabalhado na aula..."
-                      rows={3}
+                      rows={10}
                       autoFocus
                     />
                   </div>
@@ -862,7 +804,7 @@ export function DashboardPage() {
                       value={completingClass.homework}
                       onChange={(e) => setCompletingClass({ ...completingClass, homework: e.target.value })}
                       placeholder="Ex: Exercícios pág. 34-36..."
-                      rows={2}
+                      rows={10}
                     />
                   </div>
                 </div>
