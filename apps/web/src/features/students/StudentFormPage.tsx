@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "@/components/ui/toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm, useWatch, useFieldArray, Controller } from "react-hook-form";
@@ -198,27 +199,34 @@ export function StudentFormPage() {
   };
 
   const onSubmit = async (data: StudentFormData) => {
+    const payload = {
+      name:                data.name,
+      avatarUrl:           data.avatarUrl ?? undefined,
+      grade:               data.grade,
+      school:              data.school,
+      responsibleName:     data.responsibleName,
+      responsiblePhone:    data.responsiblePhone,
+      billingType:         data.billingType,
+      monthlyFee:          data.monthlyFee,
+      hourlyRate:          data.hourlyRate ?? undefined,
+      schedulePreferences: data.schedulePreferences,
+    };
+
+    const promise = isEditing
+      ? updateStudent.mutateAsync({ id, data: payload })
+      : createStudent.mutateAsync(payload);
+
+    toast.promise(promise, {
+      loading: isEditing ? 'Salvando alterações...' : 'Cadastrando aluno...',
+      success: isEditing ? 'Aluno atualizado com sucesso!' : 'Aluno cadastrado com sucesso!',
+      error:   'Não foi possível salvar. Tente novamente.',
+    });
+
     try {
-      const payload = {
-        name:                data.name,
-        avatarUrl:           data.avatarUrl ?? undefined,
-        grade:               data.grade,
-        school:              data.school,
-        responsibleName:     data.responsibleName,
-        responsiblePhone:    data.responsiblePhone,
-        billingType:         data.billingType,
-        monthlyFee:          data.monthlyFee,
-        hourlyRate:          data.hourlyRate ?? undefined,
-        schedulePreferences: data.schedulePreferences,
-      };
-      if (isEditing) {
-        await updateStudent.mutateAsync({ id, data: payload });
-      } else {
-        await createStudent.mutateAsync(payload);
-      }
+      await promise;
       navigate("/students");
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // erro já exibido pelo toast
     }
   };
 

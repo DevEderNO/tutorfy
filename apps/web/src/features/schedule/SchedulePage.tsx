@@ -5,7 +5,7 @@ import {
   useUpdateClass,
   useDeleteClass,
 } from "../classes/hooks/useClasses";
-import { useStudents } from "../students/hooks/useStudents";
+import { useStudents, useStudentsInfinite } from "../students/hooks/useStudents";
 import {
   format,
   startOfWeek,
@@ -40,13 +40,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectItem } from "@/components/ui/select";
+import { SearchSelect } from "@/components/ui/search-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TimePicker } from "@/components/ui/time-picker";
 import { Header } from "@/components/layout/Header";
 import { Search, Sparkles } from "lucide-react";
 import { MicButton } from "@/components/MicButton";
+import { toast } from "@/components/ui/toast";
 import { useAuth } from "@/lib/auth";
 import { useGenerateLessonPlan } from "@/features/ai/hooks/useLessonPlan";
+import { useGenerateStudentEvolution } from "@/features/ai/hooks/useStudentEvolution";
 
 const statusConfig: Record<
   string,
@@ -95,6 +98,7 @@ export function SchedulePage() {
     homework: "",
     notes: "",
   });
+  const [studentSearch, setStudentSearch] = useState("");
   const [lessonPlanDraft, setLessonPlanDraft] = useState<LessonPlanResult | null>(null);
   const [showLessonPlanReview, setShowLessonPlanReview] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -147,23 +151,38 @@ export function SchedulePage() {
   });
   const { data: studentsResult } = useStudents();
   const students = studentsResult?.data ?? [];
+
+  const {
+    data: studentsInfiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: isLoadingStudents,
+  } = useStudentsInfinite({ active: 'true', search: studentSearch || undefined, sortBy: 'name' });
   const createClass = useCreateClass();
   const updateClass = useUpdateClass();
   const deleteClass = useDeleteClass();
   const { user } = useAuth();
   const generateLessonPlan = useGenerateLessonPlan();
+  const generateEvolution = useGenerateStudentEvolution();
   const lessonPlanMode = user?.lessonPlanAiMode ?? 'OFF';
 
   useEffect(() => {
     if (lessonPlanMode !== 'AUTO' || !showNewClass || !newClass.studentId) return;
-    generateLessonPlan.mutateAsync(newClass.studentId).then((plan) => {
+    const promise = generateLessonPlan.mutateAsync(newClass.studentId).then((plan) => {
       setNewClass((prev) => ({
         ...prev,
         content:  plan.content  ?? prev.content,
         homework: plan.homework ?? prev.homework,
         notes:    plan.notes    ?? prev.notes,
       }));
-    }).catch(() => { /* silencia erros no modo AUTO */ });
+      return plan;
+    });
+    toast.promise(promise, {
+      loading: 'Gerando plano de aula com IA...',
+      success: 'Plano de aula sugerido com sucesso!',
+      error:   'Não foi possível gerar o plano de aula.',
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newClass.studentId, showNewClass]);
 
@@ -226,6 +245,11 @@ export function SchedulePage() {
     setShowNewClass(false);
   };
 
+  const resetNewClass = () => {
+    setNewClass({ studentId: "", date: "", startTime: "", endTime: "", content: "", homework: "", notes: "" });
+    setStudentSearch("");
+  };
+
   const handleDemandLessonPlan = () => {
     if (!newClass.studentId) return;
     generateLessonPlan.mutateAsync(newClass.studentId).then((plan) => {
@@ -254,10 +278,11 @@ export function SchedulePage() {
     updateClass.mutate({ id, data: { status } });
   };
 
-  const handleConfirmComplete = () => {
+  const handleConfirmComplete = async () => {
     if (!completingClass || !completingClass.content.trim()) return;
-    updateClass.mutate({
-      id: completingClass.id,
+    const sessionId = completingClass.id;
+    await updateClass.mutateAsync({
+      id: sessionId,
       data: {
         status: 'COMPLETED',
         content: completingClass.content.trim(),
@@ -265,6 +290,11 @@ export function SchedulePage() {
       },
     });
     setCompletingClass(null);
+    toast.promise(generateEvolution.mutateAsync(sessionId), {
+      loading: 'Gerando registro de evolução com IA...',
+      success: 'Evolução registrada com sucesso!',
+      error:   'Não foi possível gerar a evolução.',
+    });
   };
 
   const handleSaveEdit = async () => {
@@ -530,7 +560,7 @@ export function SchedulePage() {
             </div>
           )}
 
-          <Modal open={showNewClass} onOpenChange={setShowNewClass}>
+          <Modal open={showNewClass} onOpenChange={(open) => { setShowNewClass(open); if (!open) resetNewClass(); }}>
             <ModalContent size="xl">
               <ModalHeader>
                 <ModalTitle>Nova Aula</ModalTitle>
@@ -540,15 +570,20 @@ export function SchedulePage() {
                   <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
                     Aluno *
                   </label>
-                  <Select
+                  <SearchSelect
                     value={newClass.studentId}
                     onValueChange={(v) => setNewClass({ ...newClass, studentId: v })}
+                    options={(studentsInfiniteData?.pages ?? []).flatMap((p) =>
+                      p.data.map((s) => ({ value: s.id, label: s.name }))
+                    )}
+                    search={studentSearch}
+                    onSearchChange={setStudentSearch}
+                    hasNextPage={hasNextPage}
+                    onLoadMore={fetchNextPage}
+                    isFetchingNextPage={isFetchingNextPage}
+                    isLoading={isLoadingStudents}
                     placeholder="Selecione o aluno"
-                  >
-                    {students.filter((s) => s.active).map((s) => (
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                    ))}
-                  </Select>
+                  />
 
                   {newClass.studentId && (() => {
                     const selectedStudent = students.find((s) => s.id === newClass.studentId);
@@ -681,7 +716,7 @@ export function SchedulePage() {
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Button variant="ghost" onClick={() => setShowNewClass(false)}>Cancelar</Button>
+                <Button variant="ghost" onClick={() => { setShowNewClass(false); resetNewClass(); }}>Cancelar</Button>
                 <Button
                   onClick={handleCreateClass}
                   disabled={!newClass.studentId || !newClass.date || !newClass.startTime || !newClass.endTime || createClass.isPending}

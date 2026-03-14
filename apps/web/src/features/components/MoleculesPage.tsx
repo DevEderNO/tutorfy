@@ -1,5 +1,11 @@
 import React, { useState } from 'react'
-import { Plus, Trash2, Download, ArrowRight, Settings, Bell, Check, Search, Eye, EyeOff, Mail, Lock, CheckCircle2, XCircle, AlertTriangle, Info, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Download, ArrowRight, Settings, Bell, Check, Search, Eye, EyeOff, Mail, Lock, CheckCircle2, XCircle, AlertTriangle, Info, Loader2, User, LogOut, CreditCard, ChevronRight } from 'lucide-react'
+import {
+  Dropdown, DropdownTrigger, DropdownContent, DropdownItem, DropdownSeparator,
+  DropdownLabel, DropdownCheckboxItem, DropdownRadioGroup, DropdownRadioItem,
+  DropdownSub, DropdownSubTrigger, DropdownSubContent,
+} from '../../components/ui/dropdown'
+import { SearchSelect, type SearchSelectOption } from '../../components/ui/search-select'
 import { toast } from '../../components/ui/toast'
 import { Button } from '../../components/ui/button'
 import { Input, InputField } from '../../components/ui/input'
@@ -1213,7 +1219,202 @@ const molecules: ComponentItem[] = [
       </div>
     ),
   },
+  {
+    name: 'Dropdown',
+    description: 'Menu contextual com itens, separadores, labels, checkbox, radio e sub-menus.',
+    render: () => <DropdownShowcase />,
+  },
+  {
+    name: 'SearchSelect',
+    description: 'Select com busca (client-side e server-side) e infinite scroll via IntersectionObserver.',
+    render: () => <SearchSelectShowcase />,
+  },
 ]
+
+function DropdownShowcase() {
+  const [notifications, setNotifications] = useState(true)
+  const [theme, setTheme] = useState('dark')
+
+  return (
+    <div className="flex flex-col gap-6 w-full">
+      {/* Básico */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Básico</span>
+        <div className="flex flex-wrap gap-3">
+          <Dropdown>
+            <DropdownTrigger asChild>
+              <Button variant="glass">Minha conta <ChevronRight className="rotate-90" /></Button>
+            </DropdownTrigger>
+            <DropdownContent>
+              <DropdownLabel>Conta</DropdownLabel>
+              <DropdownItem><User />Perfil</DropdownItem>
+              <DropdownItem><CreditCard />Faturamento</DropdownItem>
+              <DropdownItem><Settings />Configurações</DropdownItem>
+              <DropdownSeparator />
+              <DropdownItem variant="destructive"><LogOut />Sair</DropdownItem>
+            </DropdownContent>
+          </Dropdown>
+
+          <Dropdown>
+            <DropdownTrigger asChild>
+              <Button size="icon" variant="ghost" aria-label="Opções"><Settings /></Button>
+            </DropdownTrigger>
+            <DropdownContent>
+              <DropdownItem>Editar</DropdownItem>
+              <DropdownItem>Duplicar</DropdownItem>
+              <DropdownSeparator />
+              <DropdownItem variant="destructive"><Trash2 />Excluir</DropdownItem>
+            </DropdownContent>
+          </Dropdown>
+        </div>
+      </div>
+
+      {/* Checkbox e Radio */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Checkbox & Radio</span>
+        <div className="flex flex-wrap gap-3">
+          <Dropdown>
+            <DropdownTrigger asChild>
+              <Button variant="glass">Preferências</Button>
+            </DropdownTrigger>
+            <DropdownContent>
+              <DropdownLabel>Opções</DropdownLabel>
+              <DropdownCheckboxItem
+                checked={notifications}
+                onCheckedChange={setNotifications}
+              >
+                Notificações
+              </DropdownCheckboxItem>
+              <DropdownSeparator />
+              <DropdownLabel>Tema</DropdownLabel>
+              <DropdownRadioGroup value={theme} onValueChange={setTheme}>
+                <DropdownRadioItem value="light">Claro</DropdownRadioItem>
+                <DropdownRadioItem value="dark">Escuro</DropdownRadioItem>
+                <DropdownRadioItem value="system">Sistema</DropdownRadioItem>
+              </DropdownRadioGroup>
+            </DropdownContent>
+          </Dropdown>
+        </div>
+      </div>
+
+      {/* Sub-menu */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sub-menu</span>
+        <Dropdown>
+          <DropdownTrigger asChild>
+            <Button variant="glass">Mais opções</Button>
+          </DropdownTrigger>
+          <DropdownContent>
+            <DropdownItem>Ação principal</DropdownItem>
+            <DropdownSub>
+              <DropdownSubTrigger>Compartilhar</DropdownSubTrigger>
+              <DropdownSubContent>
+                <DropdownItem>Por e-mail</DropdownItem>
+                <DropdownItem>Copiar link</DropdownItem>
+              </DropdownSubContent>
+            </DropdownSub>
+            <DropdownSeparator />
+            <DropdownItem variant="destructive" disabled>Desabilitado</DropdownItem>
+          </DropdownContent>
+        </Dropdown>
+      </div>
+    </div>
+  )
+}
+
+// ─── Dados mock para infinite scroll ──────────────────────────────────────────
+const PAGE_SIZE = 8
+const ALL_OPTIONS: SearchSelectOption[] = Array.from({ length: 40 }, (_, i) => ({
+  value: `opt-${i + 1}`,
+  label: `Opção ${i + 1}`,
+  description: i % 3 === 0 ? `Descrição da opção ${i + 1}` : undefined,
+}))
+
+function SearchSelectShowcase() {
+  const [value, setValue]   = React.useState<string>('')
+  const [search, setSearch] = React.useState('')
+  const [page, setPage]     = React.useState(1)
+  const [loading, setLoading] = React.useState(false)
+
+  // Client-side filter + pagination simulation
+  const filtered = ALL_OPTIONS.filter((o) =>
+    o.label.toLowerCase().includes(search.toLowerCase()),
+  )
+  const visible     = filtered.slice(0, page * PAGE_SIZE)
+  const hasNextPage = visible.length < filtered.length
+
+  function handleLoadMore() {
+    if (loading) return
+    setLoading(true)
+    setTimeout(() => {
+      setPage((p) => p + 1)
+      setLoading(false)
+    }, 600)
+  }
+
+  function handleSearchChange(q: string) {
+    setSearch(q)
+    setPage(1)
+  }
+
+  return (
+    <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+          40 opções com busca e infinite scroll
+        </span>
+        <SearchSelect
+          value={value}
+          onValueChange={setValue}
+          options={visible}
+          search={search}
+          onSearchChange={handleSearchChange}
+          hasNextPage={hasNextPage}
+          onLoadMore={handleLoadMore}
+          isFetchingNextPage={loading}
+          placeholder="Selecione uma opção..."
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estados</span>
+        <SearchSelect
+          value=""
+          onValueChange={() => {}}
+          options={[]}
+          search=""
+          onSearchChange={() => {}}
+          state="error"
+          placeholder="Estado de erro"
+        />
+        <SearchSelect
+          value="opt-1"
+          onValueChange={() => {}}
+          options={[{ value: 'opt-1', label: 'Opção válida' }]}
+          search=""
+          onSearchChange={() => {}}
+          state="success"
+        />
+        <SearchSelect
+          value=""
+          onValueChange={() => {}}
+          options={[]}
+          search=""
+          onSearchChange={() => {}}
+          disabled
+          placeholder="Desabilitado"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tamanhos</span>
+        <SearchSelect size="sm" value="" onValueChange={() => {}} options={[{ value: 'a', label: 'Small' }]} search="" onSearchChange={() => {}} placeholder="sm" />
+        <SearchSelect size="md" value="" onValueChange={() => {}} options={[{ value: 'a', label: 'Medium' }]} search="" onSearchChange={() => {}} placeholder="md" />
+        <SearchSelect size="lg" value="" onValueChange={() => {}} options={[{ value: 'a', label: 'Large' }]} search="" onSearchChange={() => {}} placeholder="lg" />
+      </div>
+    </div>
+  )
+}
 
 export function MoleculesPage() {
   if (molecules.length === 0) {

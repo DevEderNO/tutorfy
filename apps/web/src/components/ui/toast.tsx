@@ -13,6 +13,7 @@ export function Toaster({ ...props }: ToasterProps) {
     <Sonner
       position="bottom-right"
       theme="dark"
+      style={{ zIndex: 9999 }}
       toastOptions={{
         classNames: {
           toast: [

@@ -33,7 +33,10 @@ export class AuthService {
         email: true,
         createdAt: true,
         avatarUrl: true,
-        evolutionAiMode: true,
+        evolutionAiMode:        true,
+        lessonPlanAiMode:       true,
+        lessonPlanFields:       true,
+        lessonPlanSessionCount: true,
       },
     });
 
@@ -50,7 +53,10 @@ export class AuthService {
         password: true,
         createdAt: true,
         avatarUrl: true,
-        evolutionAiMode: true,
+        evolutionAiMode:        true,
+        lessonPlanAiMode:       true,
+        lessonPlanFields:       true,
+        lessonPlanSessionCount: true,
       }
     });
 
@@ -74,7 +80,10 @@ export class AuthService {
       email: user.email,
       createdAt: user.createdAt,
       avatarUrl: user.avatarUrl,
-      evolutionAiMode: user.evolutionAiMode,
+      evolutionAiMode:        user.evolutionAiMode,
+      lessonPlanAiMode:       user.lessonPlanAiMode,
+      lessonPlanFields:       user.lessonPlanFields,
+      lessonPlanSessionCount: user.lessonPlanSessionCount,
     };
   }
 
@@ -103,42 +112,29 @@ export class AuthService {
     const avatarUrl = payload.picture || null;
     const googleId = payload.sub;
 
-    let user = await prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        createdAt: true,
-        avatarUrl: true,
-        evolutionAiMode: true,
-      }
-    });
+    const userSelect = {
+      id: true,
+      name: true,
+      email: true,
+      createdAt: true,
+      avatarUrl: true,
+      evolutionAiMode:        true,
+      lessonPlanAiMode:       true,
+      lessonPlanFields:       true,
+      lessonPlanSessionCount: true,
+    } as const;
+
+    let user = await prisma.user.findUnique({ where: { email }, select: userSelect });
 
     if (!user) {
-      // Create new user via Google
       user = await prisma.user.create({
-        data: {
-          email,
-          name,
-          avatarUrl,
-          googleId,
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          createdAt: true,
-          avatarUrl: true,
-          evolutionAiMode: true,
-        }
+        data: { email, name, avatarUrl, googleId },
+        select: userSelect,
       });
     } else {
-      // Update existing user with googleId if it doesn't have one
-      // or simply fetch the latest user info needed.
       await prisma.user.update({
         where: { id: user.id },
-        data: { 
+        data: {
           googleId,
           ...(avatarUrl && !user.avatarUrl ? { avatarUrl } : {})
         }
@@ -151,7 +147,10 @@ export class AuthService {
       email: user.email,
       createdAt: user.createdAt,
       avatarUrl: user.avatarUrl,
-      evolutionAiMode: user.evolutionAiMode,
+      evolutionAiMode:        user.evolutionAiMode,
+      lessonPlanAiMode:       user.lessonPlanAiMode,
+      lessonPlanFields:       user.lessonPlanFields,
+      lessonPlanSessionCount: user.lessonPlanSessionCount,
     };
   }
 

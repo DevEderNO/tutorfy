@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type {
   Student,
@@ -14,6 +14,25 @@ export function useStudents(params: StudentsListParams = {}) {
     queryFn: async (): Promise<PaginatedResponse<Student>> => {
       const res = await api.get('/students', { params });
       return res.data.data;
+    },
+  });
+}
+
+const INFINITE_LIMIT = 15;
+
+export function useStudentsInfinite(params: Omit<StudentsListParams, 'page' | 'limit'> = {}) {
+  return useInfiniteQuery({
+    queryKey: ['students', 'infinite', params],
+    queryFn: async ({ pageParam = 1 }): Promise<PaginatedResponse<Student>> => {
+      const res = await api.get('/students', {
+        params: { ...params, page: pageParam, limit: INFINITE_LIMIT },
+      });
+      return res.data.data;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const totalPages = Math.ceil(lastPage.total / INFINITE_LIMIT);
+      return lastPage.page < totalPages ? lastPage.page + 1 : undefined;
     },
   });
 }
