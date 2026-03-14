@@ -6,7 +6,10 @@ export const updateProfileSchema = z.object({
 });
 
 export const updateAiSettingsSchema = z.object({
-  evolutionAiMode: z.enum(['AUTO', 'REVIEW']),
+  evolutionAiMode:        z.enum(['AUTO', 'REVIEW']).optional(),
+  lessonPlanAiMode:       z.enum(['OFF', 'AUTO', 'DEMAND']).optional(),
+  lessonPlanFields:       z.array(z.enum(['content', 'homework', 'notes'])).optional(),
+  lessonPlanSessionCount: z.number().int().min(1).max(3).optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

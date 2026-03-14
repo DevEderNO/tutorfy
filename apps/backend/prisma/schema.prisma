@@ -16,9 +16,12 @@ model User {
   password  String?
   googleId  String?  @unique @map("google_id")
   name      String
-  avatarUrl        String?         @map("avatar_url")
-  evolutionAiMode  EvolutionAiMode @default(AUTO) @map("evolution_ai_mode")
-  createdAt        DateTime        @default(now()) @map("created_at")
+  avatarUrl             String?          @map("avatar_url")
+  evolutionAiMode       EvolutionAiMode  @default(AUTO) @map("evolution_ai_mode")
+  lessonPlanAiMode      LessonPlanAiMode @default(OFF)  @map("lesson_plan_ai_mode")
+  lessonPlanFields      String[]         @default([])   @map("lesson_plan_fields")
+  lessonPlanSessionCount Int             @default(3)    @map("lesson_plan_session_count")
+  createdAt             DateTime         @default(now()) @map("created_at")
 
   students     Student[]
   classSessions ClassSession[]
@@ -81,6 +84,12 @@ enum BillingType {
 enum EvolutionAiMode {
   AUTO
   REVIEW
+}
+
+enum LessonPlanAiMode {
+  OFF
+  AUTO
+  DEMAND
 }
 
 enum ClassSessionStatus {

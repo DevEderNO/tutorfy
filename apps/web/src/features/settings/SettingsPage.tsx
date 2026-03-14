@@ -11,8 +11,10 @@ import {
   Bot,
   Zap,
   Eye,
+  PowerOff,
+  MousePointerClick,
 } from "lucide-react";
-import type { EvolutionAiMode } from "@tutorfy/types";
+import type { EvolutionAiMode, LessonPlanAiMode, LessonPlanField } from "@tutorfy/types";
 import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
@@ -59,6 +61,15 @@ export function SettingsPage() {
 
   const [evolutionAiMode, setEvolutionAiMode] = useState<EvolutionAiMode>(
     user?.evolutionAiMode ?? "AUTO",
+  );
+  const [lessonPlanAiMode, setLessonPlanAiMode] = useState<LessonPlanAiMode>(
+    user?.lessonPlanAiMode ?? "OFF",
+  );
+  const [lessonPlanFields, setLessonPlanFields] = useState<LessonPlanField[]>(
+    user?.lessonPlanFields ?? ["content", "homework"],
+  );
+  const [lessonPlanSessionCount, setLessonPlanSessionCount] = useState(
+    user?.lessonPlanSessionCount ?? 3,
   );
   const [isSavingAi, setIsSavingAi] = useState(false);
 
@@ -139,8 +150,13 @@ export function SettingsPage() {
   const handleSaveAiSettings = async () => {
     try {
       setIsSavingAi(true);
-      await api.patch("/users/ai-settings", { evolutionAiMode });
-      updateUser({ evolutionAiMode });
+      await api.patch("/users/ai-settings", {
+        evolutionAiMode,
+        lessonPlanAiMode,
+        lessonPlanFields,
+        lessonPlanSessionCount,
+      });
+      updateUser({ evolutionAiMode, lessonPlanAiMode, lessonPlanFields, lessonPlanSessionCount });
       setModalConfig({
         isOpen: true,
         title: "Configurações de IA Salvas",
@@ -596,6 +612,106 @@ export function SettingsPage() {
                     Ideal para manter controle total sobre os registros.
                   </p>
                 </button>
+              </div>
+            </div>
+
+            <div className="border-t border-white/10 pt-6 space-y-6">
+              <div>
+                <p className="text-sm font-bold text-foreground tracking-tight mb-1">
+                  Plano de aula por IA
+                </p>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Ao abrir o formulário de nova aula, a IA pode sugerir um plano com base nas últimas sessões e na evolução registrada.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                  {([
+                    { value: "OFF",    label: "Desativado", desc: "Nenhuma sugestão gerada.",                                          icon: PowerOff,         color: "slate" },
+                    { value: "AUTO",   label: "Automático", desc: "Preenche o formulário automaticamente ao abrir.",                   icon: Zap,              color: "emerald" },
+                    { value: "DEMAND", label: "Sob Demanda", desc: "Exibe um botão no formulário para gerar o plano quando quiser.",  icon: MousePointerClick, color: "amber" },
+                  ] as { value: LessonPlanAiMode; label: string; desc: string; icon: typeof Zap; color: string }[]).map(({ value, label, desc, icon: Icon, color }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setLessonPlanAiMode(value)}
+                      data-active={lessonPlanAiMode === value ? "" : undefined}
+                      className="group p-5 rounded-2xl border text-left transition-all
+                        border-white/10 bg-white/5 hover:bg-white/10
+                        data-[active]:border-primary/50 data-[active]:bg-primary/10
+                        data-[active]:shadow-[inset_0_0_20px_rgba(116,61,245,0.05),0_4px_15px_rgba(116,61,245,0.1)]"
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`size-9 rounded-xl flex items-center justify-center border bg-${color}-500/20 border-${color}-500/30 group-data-[active]:bg-${color}-500/30`}>
+                          <Icon className={`h-4 w-4 text-${color}-400`} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-foreground">{label}</span>
+                          {lessonPlanAiMode === value && (
+                            <div className={`size-2 rounded-full bg-${color}-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]`} />
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground group-data-[active]:text-foreground/80 transition-colors">
+                        {desc}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+
+                {lessonPlanAiMode !== "OFF" && (
+                  <div className="space-y-5 p-5 rounded-2xl bg-white/5 border border-white/10">
+                    <div>
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                        Campos a preencher
+                      </p>
+                      <div className="flex flex-wrap gap-4">
+                        {([
+                          { value: "content",  label: "Conteúdo da aula" },
+                          { value: "homework", label: "Tarefa para casa" },
+                          { value: "notes",    label: "Notas / Observações" },
+                        ] as { value: LessonPlanField; label: string }[]).map(({ value, label }) => (
+                          <Checkbox
+                            key={value}
+                            id={`lp-field-${value}`}
+                            label={label}
+                            checked={lessonPlanFields.includes(value)}
+                            onCheckedChange={(checked) =>
+                              setLessonPlanFields((prev) =>
+                                checked
+                                  ? [...prev, value]
+                                  : prev.filter((f) => f !== value),
+                              )
+                            }
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                          Sessões anteriores analisadas
+                        </p>
+                        <span className="text-sm font-bold text-primary">
+                          {lessonPlanSessionCount} aula{lessonPlanSessionCount > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={3}
+                        step={1}
+                        value={lessonPlanSessionCount}
+                        onChange={(e) => setLessonPlanSessionCount(Number(e.target.value))}
+                        className="w-full h-1.5 rounded-full appearance-none cursor-pointer
+                          bg-white/10 accent-primary"
+                      />
+                      <div className="flex justify-between text-[10px] text-muted-foreground mt-1.5 px-0.5">
+                        <span>1</span><span>2</span><span>3</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

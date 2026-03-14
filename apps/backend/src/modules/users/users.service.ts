@@ -23,8 +23,19 @@ export class UsersService {
   async updateAiSettings(userId: string, data: UpdateAiSettingsInput) {
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { evolutionAiMode: data.evolutionAiMode },
-      select: { id: true, evolutionAiMode: true },
+      data: {
+        ...(data.evolutionAiMode        !== undefined && { evolutionAiMode: data.evolutionAiMode }),
+        ...(data.lessonPlanAiMode       !== undefined && { lessonPlanAiMode: data.lessonPlanAiMode }),
+        ...(data.lessonPlanFields       !== undefined && { lessonPlanFields: data.lessonPlanFields }),
+        ...(data.lessonPlanSessionCount !== undefined && { lessonPlanSessionCount: data.lessonPlanSessionCount }),
+      },
+      select: {
+        id: true,
+        evolutionAiMode: true,
+        lessonPlanAiMode: true,
+        lessonPlanFields: true,
+        lessonPlanSessionCount: true,
+      },
     });
     return user;
   }

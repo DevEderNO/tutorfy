@@ -11,6 +11,22 @@ export const EvolutionAiMode = {
 
 export type EvolutionAiMode = (typeof EvolutionAiMode)[keyof typeof EvolutionAiMode];
 
+export const LessonPlanAiMode = {
+  OFF:    'OFF',
+  AUTO:   'AUTO',
+  DEMAND: 'DEMAND',
+} as const;
+
+export type LessonPlanAiMode = (typeof LessonPlanAiMode)[keyof typeof LessonPlanAiMode];
+
+export type LessonPlanField = 'content' | 'homework' | 'notes';
+
+export interface LessonPlanResult {
+  content?:  string;
+  homework?: string;
+  notes?:    string;
+}
+
 export const ClassStatus = {
   SCHEDULED: 'SCHEDULED',
   COMPLETED: 'COMPLETED',
@@ -55,6 +71,9 @@ export interface User {
   avatarUrl?: string | null;
   createdAt: string;
   evolutionAiMode?: EvolutionAiMode;
+  lessonPlanAiMode?:      LessonPlanAiMode;
+  lessonPlanFields?:      LessonPlanField[];
+  lessonPlanSessionCount?: number;
 }
 
 export interface Student {

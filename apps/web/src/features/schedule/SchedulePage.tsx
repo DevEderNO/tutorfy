@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   useClasses,
   useCreateClass,
@@ -31,7 +31,7 @@ import {
   Download,
   Clock,
 } from "lucide-react";
-import type { ClassStatus } from "@tutorfy/types";
+import type { ClassStatus, LessonPlanResult } from "@tutorfy/types";
 import { getInitials } from "@/lib/utils";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import {
@@ -43,8 +43,10 @@ import { Select, SelectItem } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TimePicker } from "@/components/ui/time-picker";
 import { Header } from "@/components/layout/Header";
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import { MicButton } from "@/components/MicButton";
+import { useAuth } from "@/lib/auth";
+import { useGenerateLessonPlan } from "@/features/ai/hooks/useLessonPlan";
 
 const statusConfig: Record<
   string,
@@ -90,7 +92,11 @@ export function SchedulePage() {
     startTime: "",
     endTime: "",
     content: "",
+    homework: "",
+    notes: "",
   });
+  const [lessonPlanDraft, setLessonPlanDraft] = useState<LessonPlanResult | null>(null);
+  const [showLessonPlanReview, setShowLessonPlanReview] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     studentId: "",
@@ -144,6 +150,22 @@ export function SchedulePage() {
   const createClass = useCreateClass();
   const updateClass = useUpdateClass();
   const deleteClass = useDeleteClass();
+  const { user } = useAuth();
+  const generateLessonPlan = useGenerateLessonPlan();
+  const lessonPlanMode = user?.lessonPlanAiMode ?? 'OFF';
+
+  useEffect(() => {
+    if (lessonPlanMode !== 'AUTO' || !showNewClass || !newClass.studentId) return;
+    generateLessonPlan.mutateAsync(newClass.studentId).then((plan) => {
+      setNewClass((prev) => ({
+        ...prev,
+        content:  plan.content  ?? prev.content,
+        homework: plan.homework ?? prev.homework,
+        notes:    plan.notes    ?? prev.notes,
+      }));
+    }).catch(() => { /* silencia erros no modo AUTO */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newClass.studentId, showNewClass]);
 
   const filteredClasses = useMemo(() => {
     if (!classes) return [];
@@ -198,8 +220,30 @@ export function SchedulePage() {
       startTime: "",
       endTime: "",
       content: "",
+      homework: "",
+      notes: "",
     });
     setShowNewClass(false);
+  };
+
+  const handleDemandLessonPlan = () => {
+    if (!newClass.studentId) return;
+    generateLessonPlan.mutateAsync(newClass.studentId).then((plan) => {
+      setLessonPlanDraft(plan);
+      setShowLessonPlanReview(true);
+    }).catch(() => { /* silencia erros */ });
+  };
+
+  const handleApplyLessonPlanDraft = () => {
+    if (!lessonPlanDraft) return;
+    setNewClass((prev) => ({
+      ...prev,
+      content:  lessonPlanDraft.content  ?? prev.content,
+      homework: lessonPlanDraft.homework ?? prev.homework,
+      notes:    lessonPlanDraft.notes    ?? prev.notes,
+    }));
+    setShowLessonPlanReview(false);
+    setLessonPlanDraft(null);
   };
 
   const handleStatusChange = (id: string, status: ClassStatus) => {
@@ -573,28 +617,134 @@ export function SchedulePage() {
                   </div>
                 </div>
 
+                {lessonPlanMode === 'DEMAND' && newClass.studentId && (
+                  <div className="flex justify-end">
+                    <Button
+                      variant="glass"
+                      size="sm"
+                      onClick={handleDemandLessonPlan}
+                      disabled={generateLessonPlan.isPending}
+                      className="border-primary/30 text-primary hover:border-primary/60"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {generateLessonPlan.isPending ? "Gerando..." : "Sugerir Plano"}
+                    </Button>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <div className="flex items-center justify-between ml-1">
                     <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Plano da Aula</label>
                     <MicButton onAppend={(text) => setNewClass((prev) => ({ ...prev, content: prev.content + (prev.content.trim() ? " " : "") + text }))} />
                   </div>
-                  <Textarea
-                    value={newClass.content}
-                    onChange={(e) => setNewClass({ ...newClass, content: e.target.value })}
-                    placeholder="O que será trabalhado nesta aula..."
-                    rows={10}
-                  />
+                  <div className={`relative rounded-xl transition-all ${generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? 'animate-pulse' : ''}`}>
+                    <Textarea
+                      value={newClass.content}
+                      onChange={(e) => setNewClass({ ...newClass, content: e.target.value })}
+                      placeholder={generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? "Gerando sugestão com IA..." : "O que será trabalhado nesta aula..."}
+                      rows={4}
+                      disabled={generateLessonPlan.isPending && lessonPlanMode === 'AUTO'}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between ml-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Tarefa para próxima aula</label>
+                    <MicButton onAppend={(text) => setNewClass((prev) => ({ ...prev, homework: prev.homework + (prev.homework.trim() ? " " : "") + text }))} />
+                  </div>
+                  <div className={`relative rounded-xl transition-all ${generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? 'animate-pulse' : ''}`}>
+                    <Textarea
+                      value={newClass.homework}
+                      onChange={(e) => setNewClass({ ...newClass, homework: e.target.value })}
+                      placeholder={generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? "Gerando sugestão com IA..." : "Ex: Exercícios pág. 34-36..."}
+                      rows={2}
+                      disabled={generateLessonPlan.isPending && lessonPlanMode === 'AUTO'}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between ml-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Notas / Observações</label>
+                    <MicButton onAppend={(text) => setNewClass((prev) => ({ ...prev, notes: prev.notes + (prev.notes.trim() ? " " : "") + text }))} />
+                  </div>
+                  <div className={`relative rounded-xl transition-all ${generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? 'animate-pulse' : ''}`}>
+                    <Textarea
+                      value={newClass.notes}
+                      onChange={(e) => setNewClass({ ...newClass, notes: e.target.value })}
+                      placeholder={generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? "Gerando sugestão com IA..." : "Observações adicionais sobre a aula..."}
+                      rows={2}
+                      disabled={generateLessonPlan.isPending && lessonPlanMode === 'AUTO'}
+                    />
+                  </div>
                 </div>
               </ModalBody>
               <ModalFooter>
                 <Button variant="ghost" onClick={() => setShowNewClass(false)}>Cancelar</Button>
                 <Button
                   onClick={handleCreateClass}
-                  disabled={!newClass.studentId || !newClass.date || !newClass.startTime || !newClass.endTime}
+                  disabled={!newClass.studentId || !newClass.date || !newClass.startTime || !newClass.endTime || createClass.isPending}
                 >
-                  Agendar
+                  {createClass.isPending ? "Agendando..." : "Agendar"}
                 </Button>
               </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          {/* Lesson Plan Review Modal (DEMAND mode) */}
+          <Modal open={showLessonPlanReview} onOpenChange={(open) => { if (!open) { setShowLessonPlanReview(false); setLessonPlanDraft(null); } }}>
+            <ModalContent size="xl">
+              <ModalHeader>
+                <ModalTitle className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Sugestão de Plano de Aula
+                </ModalTitle>
+              </ModalHeader>
+              {lessonPlanDraft && (
+                <>
+                  <ModalBody>
+                    <p className="text-xs text-slate-400 mb-4">Revise e edite a sugestão gerada pela IA antes de aplicar ao formulário.</p>
+                    {lessonPlanDraft.content !== undefined && (
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Plano da Aula</label>
+                        <Textarea
+                          value={lessonPlanDraft.content}
+                          onChange={(e) => setLessonPlanDraft((prev) => prev ? { ...prev, content: e.target.value } : prev)}
+                          rows={4}
+                        />
+                      </div>
+                    )}
+                    {lessonPlanDraft.homework !== undefined && (
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Tarefa para próxima aula</label>
+                        <Textarea
+                          value={lessonPlanDraft.homework}
+                          onChange={(e) => setLessonPlanDraft((prev) => prev ? { ...prev, homework: e.target.value } : prev)}
+                          rows={2}
+                        />
+                      </div>
+                    )}
+                    {lessonPlanDraft.notes !== undefined && (
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Notas / Observações</label>
+                        <Textarea
+                          value={lessonPlanDraft.notes}
+                          onChange={(e) => setLessonPlanDraft((prev) => prev ? { ...prev, notes: e.target.value } : prev)}
+                          rows={2}
+                        />
+                      </div>
+                    )}
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button variant="ghost" onClick={() => { setShowLessonPlanReview(false); setLessonPlanDraft(null); }}>Descartar</Button>
+                    <Button onClick={handleApplyLessonPlanDraft} className="neon-glow">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Aplicar Sugestão
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
             </ModalContent>
           </Modal>
 
