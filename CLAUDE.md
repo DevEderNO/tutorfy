@@ -64,6 +64,7 @@ O Tutorfy é uma aplicação web de gestão e interação para aulas/tutorias. O
 ## Padrões de UI/UX
 
 - Design system: dark glassmorphism premium (backgrounds escuros, bordas translúcidas, gradientes sutis).
+- **Sempre usar os componentes da biblioteca de UI (`apps/web/src/components/ui/`) ao implementar ou alterar qualquer elemento visual** — botões, inputs, selects, tabelas, modais, tabs, etc. Elementos HTML nativos (`<button>`, `<input>`, `<select>`, `<table>`, etc.) só são aceitáveis quando o componente da biblioteca não atende ao caso de uso e o usuário explicitamente solicitar algo mais customizado.
 - Antes de implementar qualquer tela nova ou refatoração visual relevante, usar o **Stitch MCP** para gerar protótipos.
 
 ## Biblioteca de Componentes UI

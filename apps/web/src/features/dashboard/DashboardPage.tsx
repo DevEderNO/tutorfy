@@ -34,6 +34,7 @@ import { Header } from "@/components/layout/Header";
 import { Modal as UIModal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Select, SelectItem } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TimePicker } from "@/components/ui/time-picker";
@@ -354,17 +355,19 @@ export function DashboardPage() {
               {/* Filter Tabs */}
               <div className="flex items-center bg-slate-800/50 p-1 rounded-xl overflow-x-auto hide-scrollbar border border-slate-700/30">
                 {Object.entries(statusConfig).map(([key, config]) => (
-                  <button
+                  <Button
                     key={key}
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setActiveFilter(key)}
-                    className={`px-4 py-1.5 text-sm font-bold rounded-lg whitespace-nowrap transition-all ${
+                    className={`rounded-lg whitespace-nowrap font-bold ${
                       activeFilter === key
-                        ? "bg-slate-700/80 text-white shadow-sm"
+                        ? "bg-slate-700/80 text-white shadow-sm hover:bg-slate-700/80"
                         : "text-slate-400 hover:text-slate-200"
                     }`}
                   >
                     {config.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
 
@@ -410,55 +413,40 @@ export function DashboardPage() {
           </div>
 
           {/* Day picker */}
-          <div className="flex justify-between mb-6 overflow-x-auto pb-2 gap-2">
-            {weekDays.map((day) => {
-              const isToday = isSameDay(day, today);
-              const isSelected = isSameDay(day, selectedDay);
-              const dayClasses = (weekClasses ?? []).filter((c) =>
-                isSameDay(parseISO(c.date), day),
-              );
-              return (
-                <button
-                  key={day.toISOString()}
-                  onClick={() => setSelectedDay(day)}
-                  className="flex flex-col items-center gap-2 min-w-[52px] group"
-                >
-                  <span
-                    className={`text-[11px] font-bold uppercase transition-colors ${
-                      isSelected
-                        ? "text-primary"
-                        : isToday
-                          ? "text-slate-300"
-                          : "text-slate-500 group-hover:text-slate-300"
-                    }`}
+          <Tabs
+            value={selectedDay.toISOString()}
+            onValueChange={(v) => setSelectedDay(new Date(v))}
+            variant="underline"
+            className="mb-6"
+          >
+            <TabsList className="w-full justify-between gap-0">
+              {weekDays.map((day) => {
+                const isToday = isSameDay(day, today);
+                const dayClasses = (weekClasses ?? []).filter((c) =>
+                  isSameDay(parseISO(c.date), day),
+                );
+                return (
+                  <TabsTrigger
+                    key={day.toISOString()}
+                    value={day.toISOString()}
+                    className="flex flex-col items-center gap-1 px-3 py-2 min-w-[52px]"
                   >
-                    {format(day, "EEE", { locale: ptBR }).substring(0, 3)}
-                  </span>
-                  <div
-                    className={`h-10 w-10 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${
-                      isSelected
-                        ? "bg-primary text-white neon-glow scale-105"
-                        : isToday
-                          ? "glass border border-primary/40 text-primary"
-                          : "glass hover:bg-slate-800/80 text-slate-300"
-                    }`}
-                  >
-                    {format(day, "d")}
-                  </div>
-                  {/* dot indicator for days with classes */}
-                  <div
-                    className={`h-1 w-1 rounded-full transition-all ${
-                      dayClasses.length > 0
-                        ? isSelected
-                          ? "bg-primary"
-                          : "bg-slate-500"
-                        : "bg-transparent"
-                    }`}
-                  />
-                </button>
-              );
-            })}
-          </div>
+                    <span className="text-[11px] font-bold uppercase">
+                      {format(day, "EEE", { locale: ptBR }).substring(0, 3)}
+                    </span>
+                    <span className={`text-sm font-bold ${isToday ? "text-primary" : ""}`}>
+                      {format(day, "d")}
+                    </span>
+                    <div
+                      className={`h-1 w-1 rounded-full transition-all ${
+                        dayClasses.length > 0 ? "bg-current opacity-60" : "bg-transparent"
+                      }`}
+                    />
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </Tabs>
 
           {/* Classes list */}
           <div className="max-h-[320px] overflow-y-auto custom-scrollbar pr-1">

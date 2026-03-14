@@ -10,6 +10,15 @@ import { Header } from "@/components/layout/Header";
 import { EvolutionTab } from "./components/EvolutionTab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableEmpty,
+} from "@/components/ui/table";
 
 const statusColors: Record<string, string> = {
   SCHEDULED: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
@@ -210,51 +219,45 @@ export function StudentDetailPage() {
                   </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse min-w-[600px]">
-                    <thead className="bg-white/5 text-slate-400 text-xs uppercase tracking-widest font-semibold border-b border-white/10">
-                      <tr>
-                        <th className="px-6 py-4">Mês/Ano</th>
-                        <th className="px-6 py-4">Data Venc.</th>
-                        <th className="px-6 py-4">Valor Total</th>
-                        <th className="px-6 py-4 text-center">Status</th>
-                        <th className="px-6 py-4 text-right">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5 text-sm">
-                      {student.payments && student.payments.length > 0 ? (
-                        student.payments.map((payment: any) => (
-                          <tr key={payment.id} className="hover:bg-white/5 transition-colors group">
-                            <td className="px-6 py-5 font-medium text-slate-100">
-                              Mês {String(payment.month).padStart(2, "0")}/{payment.year}
-                            </td>
-                            <td className="px-6 py-5 text-slate-400">Dia 10</td>
-                            <td className="px-6 py-5 font-bold text-slate-100">R$ {payment.amount.toFixed(2)}</td>
-                            <td className="px-6 py-5 text-center">
-                              <span
-                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${payment.paid ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}
-                              >
-                                <span className={`size-1.5 rounded-full ${payment.paid ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}></span>
-                                {payment.paid ? "Pago" : "Pendente"}
-                              </span>
-                            </td>
-                            <td className="px-6 py-5 text-right">
-                              <Button variant="ghost" size="icon-sm" aria-label="Mais ações relativas à fatura" className="ml-auto">
-                                <MoreHorizontal className="h-5 w-5" />
-                              </Button>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={5} className="py-8 text-center text-slate-500">
-                            Nenhum histórico de cobrança registrado.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                <Table variant="ghost">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Mês/Ano</TableHead>
+                      <TableHead>Data Venc.</TableHead>
+                      <TableHead>Valor Total</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {student.payments && student.payments.length > 0 ? (
+                      student.payments.map((payment: { id: string; month: number; year: number; amount: number; paid: boolean }) => (
+                        <TableRow key={payment.id}>
+                          <TableCell className="font-medium text-slate-100">
+                            Mês {String(payment.month).padStart(2, "0")}/{payment.year}
+                          </TableCell>
+                          <TableCell className="text-slate-400">Dia 10</TableCell>
+                          <TableCell className="font-bold text-slate-100">R$ {payment.amount.toFixed(2)}</TableCell>
+                          <TableCell className="text-center">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${payment.paid ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}
+                            >
+                              <span className={`size-1.5 rounded-full ${payment.paid ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`} />
+                              {payment.paid ? "Pago" : "Pendente"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="icon-sm" aria-label="Mais ações relativas à fatura" className="ml-auto">
+                              <MoreHorizontal className="h-5 w-5" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableEmpty colSpan={5} message="Nenhum histórico de cobrança registrado." />
+                    )}
+                  </TableBody>
+                </Table>
               </>
             )}
 
@@ -272,60 +275,52 @@ export function StudentDetailPage() {
                   </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse min-w-[700px]">
-                    <thead className="bg-white/5 text-slate-400 text-xs uppercase tracking-widest font-semibold border-b border-white/10">
-                      <tr>
-                        <th className="px-6 py-4">Data</th>
-                        <th className="px-6 py-4">Horário</th>
-                        <th className="px-6 py-4">Conteúdo</th>
-                        <th className="px-6 py-4 text-center">Status</th>
-                        <th className="px-6 py-4 text-right">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5 text-sm">
-                      {student.classSessions && student.classSessions.length > 0 ? (
-                        student.classSessions.map((cls: any) => (
-                          <tr key={cls.id} className="hover:bg-white/5 transition-colors group">
-                            <td className="px-6 py-5 font-medium text-slate-100">
-                              {format(new Date(cls.date), "dd/MMM/yyyy", {
-                                locale: ptBR,
-                              })}
-                            </td>
-                            <td className="px-6 py-5 text-slate-400">
-                              <span className="flex items-center gap-1.5">
-                                <Clock className="h-4 w-4 text-primary" /> {cls.startTime} - {cls.endTime}
-                              </span>
-                            </td>
-                            <td className="px-6 py-5 text-slate-300">{cls.content || "-"}</td>
-                            <td className="px-6 py-5 text-center">
-                              <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[cls.status] || "bg-slate-500/10 text-slate-500 border-slate-500/20"}`}>
-                                {statusLabels[cls.status] || cls.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-5 text-right">
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                onClick={() => setDeletingClassId(cls.id)}
-                                aria-label="Remover aula"
-                                className="ml-auto hover:text-red-400 hover:bg-red-400/10"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={5} className="py-8 text-center text-slate-500">
-                            Nenhum log de aulas registrado.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                <Table variant="ghost">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Horário</TableHead>
+                      <TableHead>Conteúdo</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {student.classSessions && student.classSessions.length > 0 ? (
+                      student.classSessions.map((cls: { id: string; date: string; startTime: string; endTime: string; content?: string; status: string }) => (
+                        <TableRow key={cls.id}>
+                          <TableCell className="font-medium text-slate-100">
+                            {format(new Date(cls.date), "dd/MMM/yyyy", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="text-slate-400">
+                            <span className="flex items-center gap-1.5">
+                              <Clock className="h-4 w-4 text-primary" /> {cls.startTime} - {cls.endTime}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-slate-300">{cls.content || "-"}</TableCell>
+                          <TableCell className="text-center">
+                            <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[cls.status] || "bg-slate-500/10 text-slate-500 border-slate-500/20"}`}>
+                              {statusLabels[cls.status] || cls.status}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => setDeletingClassId(cls.id)}
+                              aria-label="Remover aula"
+                              className="ml-auto hover:text-red-400 hover:bg-red-400/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableEmpty colSpan={5} message="Nenhum log de aulas registrado." />
+                    )}
+                  </TableBody>
+                </Table>
               </>
             )}
 

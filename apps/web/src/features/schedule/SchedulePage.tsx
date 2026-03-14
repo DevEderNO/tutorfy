@@ -271,18 +271,22 @@ export function SchedulePage() {
               Visualização
             </h3>
             <div className="grid grid-cols-2 gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setViewMode("month")}
-                className={`rounded-lg px-3 py-2 text-xs font-bold transition-colors ${viewMode === "month" ? "bg-primary text-white shadow-lg neon-glow" : "text-slate-400 hover:text-white"}`}
+                className={`rounded-lg text-xs font-bold ${viewMode === "month" ? "bg-primary text-white shadow-lg neon-glow hover:bg-primary" : "text-slate-400 hover:text-white"}`}
               >
                 Mensal
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setViewMode("week")}
-                className={`rounded-lg px-3 py-2 text-xs font-bold transition-colors ${viewMode === "week" ? "bg-primary text-white shadow-lg neon-glow" : "text-slate-400 hover:text-white"}`}
+                className={`rounded-lg text-xs font-bold ${viewMode === "week" ? "bg-primary text-white shadow-lg neon-glow hover:bg-primary" : "text-slate-400 hover:text-white"}`}
               >
                 Semanal
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -644,16 +648,18 @@ export function SchedulePage() {
                         </div>
 
                         {isCurrentMonth && (
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
                             onClick={() => {
                               setNewClass((prev) => ({ ...prev, date: key }));
                               setShowNewClass(true);
                             }}
-                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-white transition-opacity hover:bg-white/10 rounded-md"
-                            title="Agendar neste dia"
+                            aria-label="Agendar neste dia"
+                            className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-white transition-opacity"
                           >
                             <Plus className="h-4 w-4" />
-                          </button>
+                          </Button>
                         )}
                       </div>
 

@@ -29,6 +29,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Select, SelectItem } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableEmpty,
+  TableToolbar,
+  TableSearch,
+  sortRows,
+  nextSortDirection,
+  type SortState,
+} from "@/components/ui/table";
+import { TableFilter } from "@/components/ui/table-filter";
+import { Pagination } from "@/components/ui/pagination";
 import { Header } from "@/components/layout/Header";
 
 export function FinancialPage() {
@@ -47,9 +63,13 @@ export function FinancialPage() {
     amount: 0,
     classHours: 0,
   });
-  const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(
-    null,
-  );
+  const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null);
+
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [sort, setSort] = useState<SortState<'name' | 'amount' | 'status'>>({ column: null, direction: null });
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const { data: payments, isLoading } = usePayments({ month, year });
   const { data: studentsResult } = useStudents();
@@ -129,8 +149,42 @@ export function FinancialPage() {
       ? Math.round((paidCount / payments.length) * 100)
       : 0;
 
-  // Filter payments by active tab
-  const filteredPayments = payments?.filter((p) => p.billingType === activeTab);
+  type PaymentRow = {
+    id: string; paid: boolean; billingType: string; amount: number;
+    month: number; year: number; classHours: number | null;
+    student?: { name?: string; school?: string; hourlyRate?: number };
+  };
+
+  const tabPayments = ((payments ?? []) as PaymentRow[]).filter(p => p.billingType === activeTab);
+
+  const searched = !search.trim()
+    ? tabPayments
+    : tabPayments.filter(p => (p.student?.name ?? '').toLowerCase().includes(search.trim().toLowerCase()));
+
+  const statusFiltered = statusFilter.length === 0
+    ? searched
+    : searched.filter(p => statusFilter.includes(p.paid ? 'paid' : 'pending'));
+
+  const sorted = sortRows(statusFiltered, sort, (row, col) => {
+    if (col === 'name')   return row.student?.name ?? '';
+    if (col === 'amount') return row.amount;
+    if (col === 'status') return row.paid ? 1 : 0;
+    return '';
+  });
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const paginated  = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const handleSearch = (v: string) => { setSearch(v); setPage(1); };
+  const handleStatusFilter = (v: string[]) => { setStatusFilter(v); setPage(1); };
+  const handleTabChange = (tab: 'MONTHLY' | 'HOURLY') => { setActiveTab(tab); setPage(1); setSearch(''); setStatusFilter([]); };
+  const toggleSort = (col: 'name' | 'amount' | 'status') => () => {
+    setSort(prev => ({
+      column: col,
+      direction: prev.column === col ? nextSortDirection(prev.direction) : 'asc',
+    }));
+    setPage(1);
+  };
 
   // Avatar colors
   const avatarColors = [
@@ -300,7 +354,7 @@ export function FinancialPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setActiveTab("MONTHLY")}
+                  onClick={() => handleTabChange("MONTHLY")}
                   className={`flex-1 lg:flex-none whitespace-nowrap ${activeTab === "MONTHLY" ? "bg-white/10 text-foreground shadow-sm hover:bg-white/10" : ""}`}
                 >
                   Mensalidade Fixa
@@ -308,7 +362,7 @@ export function FinancialPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setActiveTab("HOURLY")}
+                  onClick={() => handleTabChange("HOURLY")}
                   className={`flex-1 lg:flex-none whitespace-nowrap ${activeTab === "HOURLY" ? "bg-white/10 text-foreground shadow-sm hover:bg-white/10" : ""}`}
                 >
                   Valor por Hora
@@ -345,12 +399,10 @@ export function FinancialPage() {
             <div className="glass-panel rounded-2xl border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col">
               <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
                 <h3 className="text-lg font-bold text-foreground">
-                  {activeTab === "MONTHLY"
-                    ? "Lançamentos: Mensalidade Fixa"
-                    : "Lançamentos: Valor por Hora"}
+                  {activeTab === "MONTHLY" ? "Lançamentos: Mensalidade Fixa" : "Lançamentos: Valor por Hora"}
                 </h3>
                 <span className="text-xs font-bold px-3 py-1 bg-white/10 text-muted-foreground rounded-full border border-white/5">
-                  {filteredPayments?.length || 0} Registros
+                  {sorted.length} Registros
                 </span>
               </div>
 
@@ -358,127 +410,155 @@ export function FinancialPage() {
                 <div className="flex h-32 items-center justify-center p-8">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 </div>
-              ) : !filteredPayments || filteredPayments.length === 0 ? (
+              ) : tabPayments.length === 0 ? (
                 <div className="p-12 text-center">
                   <DollarSign className="mx-auto h-12 w-12 text-muted-foreground/30 mb-4" />
-                  <p className="text-muted-foreground font-medium">
-                    Nenhum pagamento registrado nesta categoria.
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Tente alterar os filtros de mês ou gerar faturas do mês.
-                  </p>
+                  <p className="text-muted-foreground font-medium">Nenhum pagamento registrado nesta categoria.</p>
+                  <p className="text-sm text-muted-foreground mt-1">Tente alterar os filtros de mês ou gerar faturas do mês.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead className="bg-white/5 text-muted-foreground text-xs font-bold uppercase tracking-widest border-b border-white/10">
-                      <tr>
-                        <th className="px-6 py-4 whitespace-nowrap truncate min-w-[200px]">
-                          Aluno
-                        </th>
-                        <th className="px-6 py-4 whitespace-nowrap truncate">
-                          Detalhes
-                        </th>
-                        <th className="px-6 py-4 whitespace-nowrap truncate min-w-[120px]">
-                          Valor Total
-                        </th>
-                        <th className="px-6 py-4 whitespace-nowrap truncate">
-                          Status
-                        </th>
-                        <th className="px-6 py-4 text-right whitespace-nowrap truncate min-w-[150px]">
-                          Ação
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {filteredPayments.map((payment, idx) => {
-                        const studentName =
-                          (payment as any).student?.name || "Desconhecido";
-                        const initial = getInitials(studentName);
-                        const colorClass =
-                          avatarColors[idx % avatarColors.length];
+                <>
+                  <div className="px-4 pt-4">
+                    <TableToolbar>
+                      <TableSearch
+                        value={search}
+                        onValueChange={handleSearch}
+                        placeholder="Buscar por aluno..."
+                      />
+                      <TableFilter
+                        label="Status"
+                        value={statusFilter}
+                        onValueChange={handleStatusFilter}
+                        options={[
+                          { value: 'paid',    label: 'Pago' },
+                          { value: 'pending', label: 'Pendente' },
+                        ]}
+                      />
+                    </TableToolbar>
+                  </div>
 
-                        return (
-                          <tr
-                            key={payment.id}
-                            className="hover:bg-white/[0.02] transition-colors group"
-                          >
-                            <td className="px-6 py-5">
-                              <div className="flex items-center gap-3">
-                                <div
-                                  className={`size-10 shrink-0 rounded-full flex items-center justify-center font-bold text-xs ${colorClass} border border-white/10 shadow-sm`}
-                                >
-                                  {initial}
+                  <Table variant="ghost">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead
+                          className="min-w-[200px]"
+                          sortable
+                          sortDirection={sort.column === 'name' ? sort.direction : null}
+                          onSort={toggleSort('name')}
+                        >
+                          Aluno
+                        </TableHead>
+                        <TableHead>Detalhes</TableHead>
+                        <TableHead
+                          className="min-w-[120px]"
+                          sortable
+                          sortDirection={sort.column === 'amount' ? sort.direction : null}
+                          onSort={toggleSort('amount')}
+                        >
+                          Valor Total
+                        </TableHead>
+                        <TableHead
+                          sortable
+                          sortDirection={sort.column === 'status' ? sort.direction : null}
+                          onSort={toggleSort('status')}
+                        >
+                          Status
+                        </TableHead>
+                        <TableHead className="text-right min-w-[150px]">Ação</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginated.length === 0 ? (
+                        <TableEmpty
+                          colSpan={5}
+                          message="Nenhum resultado encontrado."
+                          description="Tente ajustar a busca ou os filtros."
+                        />
+                      ) : (
+                        paginated.map((payment, idx) => {
+                          const studentName = payment.student?.name || "Desconhecido";
+                          const initial    = getInitials(studentName);
+                          const colorClass = avatarColors[idx % avatarColors.length];
+
+                          return (
+                            <TableRow key={payment.id}>
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <div className={`size-10 shrink-0 rounded-full flex items-center justify-center font-bold text-xs ${colorClass} border border-white/10 shadow-sm`}>
+                                    {initial}
+                                  </div>
+                                  <div className="flex flex-col min-w-0">
+                                    <p className="text-sm font-bold text-foreground truncate max-w-[140px] md:max-w-[200px]">
+                                      {studentName}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground truncate max-w-[140px] md:max-w-[200px]">
+                                      {payment.student?.school || "Sem escola"}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="flex flex-col min-w-0">
-                                  <p className="text-sm font-bold text-foreground truncate max-w-[140px] md:max-w-[200px]">
-                                    {studentName}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground truncate max-w-[140px] md:max-w-[200px]">
-                                    {(payment as any).student?.school ||
-                                      "Sem escola"}
-                                  </p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-5">
-                              {activeTab === "HOURLY" ? (
-                                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap truncate">
-                                  {payment.classHours} hrs x R$
-                                  {(
-                                    payment as any
-                                  ).student?.hourlyRate?.toFixed(2) || "0.00"}
+                              </TableCell>
+                              <TableCell>
+                                {activeTab === "HOURLY" ? (
+                                  <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                                    {payment.classHours} hrs x R$ {payment.student?.hourlyRate?.toFixed(2) || "0.00"}
+                                  </span>
+                                ) : (
+                                  <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                                    Mês de Referência {payment.month}/{payment.year}
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-sm font-bold text-foreground whitespace-nowrap">
+                                  R$ {payment.amount.toFixed(2)}
                                 </span>
-                              ) : (
-                                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap truncate">
-                                  Mês de Referência {payment.month}/
-                                  {payment.year}
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-5">
-                              <span className="text-sm font-bold text-foreground whitespace-nowrap truncate">
-                                R$ {payment.amount.toFixed(2)}
-                              </span>
-                            </td>
-                            <td className="px-6 py-5">
-                              <span
-                                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider border ${
+                              </TableCell>
+                              <TableCell>
+                                <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider border ${
                                   payment.paid
                                     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
                                     : "bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]"
-                                }`}
-                              >
-                                {payment.paid ? "Pago" : "Pendente"}
-                              </span>
-                            </td>
-                            <td className="px-6 py-5 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <Button
-                                  variant={payment.paid ? "ghost" : "secondary"}
-                                  size="sm"
-                                  onClick={() => handleTogglePaid(payment.id, payment.paid)}
-                                  className={!payment.paid ? "text-primary border-primary/20" : ""}
-                                >
-                                  {payment.paid ? "Desfazer" : "Marcar Pago"}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  onClick={() => setDeletingPaymentId(payment.id)}
-                                  aria-label="Apagar"
-                                  className="hover:bg-destructive/10 hover:text-destructive shrink-0"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                                }`}>
+                                  {payment.paid ? "Pago" : "Pendente"}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    variant={payment.paid ? "ghost" : "secondary"}
+                                    size="sm"
+                                    onClick={() => handleTogglePaid(payment.id, payment.paid)}
+                                    className={!payment.paid ? "text-primary border-primary/20" : ""}
+                                  >
+                                    {payment.paid ? "Desfazer" : "Marcar Pago"}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    onClick={() => setDeletingPaymentId(payment.id)}
+                                    aria-label="Apagar"
+                                    className="hover:bg-destructive/10 hover:text-destructive shrink-0"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
+
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between px-6 py-3 border-t border-white/10 bg-white/[0.02]">
+                      <p className="text-xs text-muted-foreground">
+                        {sorted.length} registro{sorted.length !== 1 ? 's' : ''} · página {page} de {totalPages}
+                      </p>
+                      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} size="sm" />
+                    </div>
+                  )}
+                </>
               )}
             </div>
 

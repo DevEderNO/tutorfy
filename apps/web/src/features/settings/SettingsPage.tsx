@@ -18,6 +18,14 @@ import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 import { Input, InputField } from "@/components/ui/input";
 import { Textarea, TextareaField } from "@/components/ui/textarea";
 import { Select, SelectItem } from "@/components/ui/select";
@@ -478,48 +486,34 @@ export function SettingsPage() {
               <p className="font-bold text-foreground mb-4 text-lg">
                 Histórico de Faturas
               </p>
-              <div className="overflow-hidden border border-white/10 rounded-2xl bg-white/5 backdrop-blur-sm">
-                <table className="w-full text-left text-sm whitespace-nowrap">
-                  <thead className="bg-white/5 text-muted-foreground uppercase text-xs font-bold tracking-wider border-b border-white/10">
-                    <tr>
-                      <th className="px-6 py-4">Data</th>
-                      <th className="px-6 py-4">Valor</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4 text-right">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-foreground">
-                    <tr className="hover:bg-white/10 transition-colors group">
-                      <td className="px-6 py-4 font-medium">15 Set 2026</td>
-                      <td className="px-6 py-4 text-muted-foreground group-hover:text-foreground transition-colors">
-                        R$ 49,90
-                      </td>
-                      <td className="px-6 py-4">
-                        <StatusLabel status="active" label="Pago" />
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Button variant="ghost" size="sm">
-                          Baixar PDF
-                        </Button>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-white/10 transition-colors group">
-                      <td className="px-6 py-4 font-medium">15 Ago 2026</td>
-                      <td className="px-6 py-4 text-muted-foreground group-hover:text-foreground transition-colors">
-                        R$ 49,90
-                      </td>
-                      <td className="px-6 py-4">
-                        <StatusLabel status="active" label="Pago" />
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Button variant="ghost" size="sm">
-                          Baixar PDF
-                        </Button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">15 Set 2026</TableCell>
+                    <TableCell className="text-muted-foreground">R$ 49,90</TableCell>
+                    <TableCell><StatusLabel status="active" label="Pago" /></TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm">Baixar PDF</Button>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">15 Ago 2026</TableCell>
+                    <TableCell className="text-muted-foreground">R$ 49,90</TableCell>
+                    <TableCell><StatusLabel status="active" label="Pago" /></TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm">Baixar PDF</Button>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </section>
