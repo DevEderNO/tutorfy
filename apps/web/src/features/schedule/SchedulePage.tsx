@@ -5,7 +5,10 @@ import {
   useUpdateClass,
   useDeleteClass,
 } from "../classes/hooks/useClasses";
-import { useStudents, useStudentsInfinite } from "../students/hooks/useStudents";
+import {
+  useStudents,
+  useStudentsInfinite,
+} from "../students/hooks/useStudents";
 import {
   format,
   startOfWeek,
@@ -35,7 +38,12 @@ import type { ClassStatus, LessonPlanResult } from "@tutorfy/types";
 import { getInitials } from "@/lib/utils";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import {
-  Modal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalBody,
+  ModalFooter,
 } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -99,7 +107,9 @@ export function SchedulePage() {
     notes: "",
   });
   const [studentSearch, setStudentSearch] = useState("");
-  const [lessonPlanDraft, setLessonPlanDraft] = useState<LessonPlanResult | null>(null);
+  const [editStudentSearch, setEditStudentSearch] = useState("");
+  const [lessonPlanDraft, setLessonPlanDraft] =
+    useState<LessonPlanResult | null>(null);
   const [showLessonPlanReview, setShowLessonPlanReview] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -158,32 +168,51 @@ export function SchedulePage() {
     hasNextPage,
     isFetchingNextPage,
     isLoading: isLoadingStudents,
-  } = useStudentsInfinite({ active: 'true', search: studentSearch || undefined, sortBy: 'name' });
+  } = useStudentsInfinite({
+    active: "true",
+    search: studentSearch || undefined,
+    sortBy: "name",
+  });
+
+  const {
+    data: editStudentsInfiniteData,
+    fetchNextPage: editFetchNextPage,
+    hasNextPage: editHasNextPage,
+    isFetchingNextPage: editIsFetchingNextPage,
+    isLoading: editIsLoadingStudents,
+  } = useStudentsInfinite({
+    active: "true",
+    search: editStudentSearch || undefined,
+    sortBy: "name",
+  });
   const createClass = useCreateClass();
   const updateClass = useUpdateClass();
   const deleteClass = useDeleteClass();
   const { user } = useAuth();
   const generateLessonPlan = useGenerateLessonPlan();
   const generateEvolution = useGenerateStudentEvolution();
-  const lessonPlanMode = user?.lessonPlanAiMode ?? 'OFF';
+  const lessonPlanMode = user?.lessonPlanAiMode ?? "OFF";
 
   useEffect(() => {
-    if (lessonPlanMode !== 'AUTO' || !showNewClass || !newClass.studentId) return;
-    const promise = generateLessonPlan.mutateAsync(newClass.studentId).then((plan) => {
-      setNewClass((prev) => ({
-        ...prev,
-        content:  plan.content  ?? prev.content,
-        homework: plan.homework ?? prev.homework,
-        notes:    plan.notes    ?? prev.notes,
-      }));
-      return plan;
-    });
+    if (lessonPlanMode !== "AUTO" || !showNewClass || !newClass.studentId)
+      return;
+    const promise = generateLessonPlan
+      .mutateAsync(newClass.studentId)
+      .then((plan) => {
+        setNewClass((prev) => ({
+          ...prev,
+          content: plan.content ?? prev.content,
+          homework: plan.homework ?? prev.homework,
+          notes: plan.notes ?? prev.notes,
+        }));
+        return plan;
+      });
     toast.promise(promise, {
-      loading: 'Gerando plano de aula com IA...',
-      success: 'Plano de aula sugerido com sucesso!',
-      error:   'Não foi possível gerar o plano de aula.',
+      loading: "Gerando plano de aula com IA...",
+      success: "Plano de aula sugerido com sucesso!",
+      error: "Não foi possível gerar o plano de aula.",
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newClass.studentId, showNewClass]);
 
   const filteredClasses = useMemo(() => {
@@ -246,33 +275,45 @@ export function SchedulePage() {
   };
 
   const resetNewClass = () => {
-    setNewClass({ studentId: "", date: "", startTime: "", endTime: "", content: "", homework: "", notes: "" });
+    setNewClass({
+      studentId: "",
+      date: "",
+      startTime: "",
+      endTime: "",
+      content: "",
+      homework: "",
+      notes: "",
+    });
     setStudentSearch("");
   };
 
   const handleDemandLessonPlan = () => {
     if (!newClass.studentId) return;
-    generateLessonPlan.mutateAsync(newClass.studentId).then((plan) => {
-      setLessonPlanDraft(plan);
-      setShowLessonPlanReview(true);
-    }).catch(() => { /* silencia erros */ });
+    generateLessonPlan
+      .mutateAsync(newClass.studentId)
+      .then((plan) => {
+        setLessonPlanDraft(plan);
+        setShowLessonPlanReview(true);
+      })
+      .catch(() => {
+        /* silencia erros */
+      });
   };
 
   const handleApplyLessonPlanDraft = () => {
     if (!lessonPlanDraft) return;
     setNewClass((prev) => ({
       ...prev,
-      content:  lessonPlanDraft.content  ?? prev.content,
-      homework: lessonPlanDraft.homework ?? prev.homework,
-      notes:    lessonPlanDraft.notes    ?? prev.notes,
+      content: lessonPlanDraft.content ?? prev.content,
+      notes: lessonPlanDraft.notes ?? prev.notes,
     }));
     setShowLessonPlanReview(false);
     setLessonPlanDraft(null);
   };
 
   const handleStatusChange = (id: string, status: ClassStatus) => {
-    if (status === 'COMPLETED') {
-      setCompletingClass({ id, content: '', homework: '' });
+    if (status === "COMPLETED") {
+      setCompletingClass({ id, content: "", homework: "" });
       return;
     }
     updateClass.mutate({ id, data: { status } });
@@ -284,21 +325,27 @@ export function SchedulePage() {
     await updateClass.mutateAsync({
       id: sessionId,
       data: {
-        status: 'COMPLETED',
+        status: "COMPLETED",
         content: completingClass.content.trim(),
         homework: completingClass.homework.trim() || undefined,
       },
     });
     setCompletingClass(null);
     toast.promise(generateEvolution.mutateAsync(sessionId), {
-      loading: 'Gerando registro de evolução com IA...',
-      success: 'Evolução registrada com sucesso!',
-      error:   'Não foi possível gerar a evolução.',
+      loading: "Gerando registro de evolução com IA...",
+      success: "Evolução registrada com sucesso!",
+      error: "Não foi possível gerar a evolução.",
     });
   };
 
   const handleSaveEdit = async () => {
-    if (!editingClass || !editingClass.date || !editingClass.startTime || !editingClass.endTime) return;
+    if (
+      !editingClass ||
+      !editingClass.date ||
+      !editingClass.startTime ||
+      !editingClass.endTime
+    )
+      return;
     await updateClass.mutateAsync({
       id: editingClass.id,
       data: {
@@ -369,16 +416,29 @@ export function SchedulePage() {
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
                 Status
               </h3>
-              <div className="space-y-3">
-                {Object.entries(statusConfig).map(([key, val]) => (
-                  <div
-                    key={key}
-                    className="flex items-center gap-3 text-xs text-slate-300 font-medium"
-                  >
-                    <span className={`h-2.5 w-2.5 rounded-full ${val.dot}`} />
-                    {val.label}
-                  </div>
-                ))}
+              <div className="space-y-1">
+                {Object.entries(statusConfig).map(([key, val]) => {
+                  const isActive = filters.status === key;
+                  return (
+                    <div
+                      key={key}
+                      onClick={() =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          status: prev.status === key ? "" : key,
+                        }))
+                      }
+                      className={`flex items-center gap-3 text-xs font-medium px-2 py-1.5 rounded-lg cursor-pointer transition-all select-none
+                        ${isActive ? "bg-white/10 text-white" : "text-slate-400 hover:text-slate-200 hover:bg-white/5"}`}
+                    >
+                      <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${val.dot}`} />
+                      {val.label}
+                      {isActive && (
+                        <X className="h-3 w-3 ml-auto text-slate-400" />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -394,7 +454,11 @@ export function SchedulePage() {
                   studentsWithoutClasses.map((student) => (
                     <div
                       key={student.id}
-                      className="group flex items-center justify-between p-2 rounded-xl glass border-l-4 border-l-red-500/50 hover:border-white/20 transition-all cursor-default"
+                      className="group flex items-center justify-between p-2 rounded-xl glass border-l-4 border-l-red-500/50 hover:border-white/20 transition-all cursor-pointer"
+                      onClick={() => {
+                        setNewClass((prev) => ({ ...prev, studentId: student.id }));
+                        setShowNewClass(true);
+                      }}
                     >
                       <div className="flex items-center gap-2">
                         <div className="h-7 w-7 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-slate-300">
@@ -404,6 +468,7 @@ export function SchedulePage() {
                           {student.name}
                         </span>
                       </div>
+                      <Plus className="h-3.5 w-3.5 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   ))
                 ) : (
@@ -481,10 +546,18 @@ export function SchedulePage() {
             </div>
             <div className="flex items-center gap-1.5 sm:gap-3">
               <Button
-                variant={showFilters || filters.studentId || filters.status ? "primary" : "glass"}
+                variant={
+                  showFilters || filters.studentId || filters.status
+                    ? "primary"
+                    : "glass"
+                }
                 size="md"
                 onClick={() => setShowFilters(!showFilters)}
-                className={showFilters || filters.studentId || filters.status ? "bg-primary/20 border-primary/50 shadow-[0_0_10px_rgba(116,61,245,0.2)]" : ""}
+                className={
+                  showFilters || filters.studentId || filters.status
+                    ? "bg-primary/20 border-primary/50 shadow-[0_0_10px_rgba(116,61,245,0.2)]"
+                    : ""
+                }
               >
                 <Filter className="h-3.5 w-3.5" />
                 <span>Filtrar</span>
@@ -518,7 +591,9 @@ export function SchedulePage() {
                   </label>
                   <Select
                     value={filters.studentId || undefined}
-                    onValueChange={(v) => setFilters({ ...filters, studentId: v })}
+                    onValueChange={(v) =>
+                      setFilters({ ...filters, studentId: v })
+                    }
                     placeholder="Todos os Alunos"
                     size="md"
                   >
@@ -541,7 +616,9 @@ export function SchedulePage() {
                     size="md"
                   >
                     {Object.entries(statusConfig).map(([key, val]) => (
-                      <SelectItem key={key} value={key}>{val.label}</SelectItem>
+                      <SelectItem key={key} value={key}>
+                        {val.label}
+                      </SelectItem>
                     ))}
                   </Select>
                 </div>
@@ -560,7 +637,13 @@ export function SchedulePage() {
             </div>
           )}
 
-          <Modal open={showNewClass} onOpenChange={(open) => { setShowNewClass(open); if (!open) resetNewClass(); }}>
+          <Modal
+            open={showNewClass}
+            onOpenChange={(open) => {
+              setShowNewClass(open);
+              if (!open) resetNewClass();
+            }}
+          >
             <ModalContent size="xl">
               <ModalHeader>
                 <ModalTitle>Nova Aula</ModalTitle>
@@ -572,9 +655,11 @@ export function SchedulePage() {
                   </label>
                   <SearchSelect
                     value={newClass.studentId}
-                    onValueChange={(v) => setNewClass({ ...newClass, studentId: v })}
+                    onValueChange={(v) =>
+                      setNewClass({ ...newClass, studentId: v })
+                    }
                     options={(studentsInfiniteData?.pages ?? []).flatMap((p) =>
-                      p.data.map((s) => ({ value: s.id, label: s.name }))
+                      p.data.map((s) => ({ value: s.id, label: s.name })),
                     )}
                     search={studentSearch}
                     onSearchChange={setStudentSearch}
@@ -585,74 +670,126 @@ export function SchedulePage() {
                     placeholder="Selecione o aluno"
                   />
 
-                  {newClass.studentId && (() => {
-                    const selectedStudent = students.find((s) => s.id === newClass.studentId);
-                    const preferences = (selectedStudent as any)?.schedulePreferences || [];
-                    if (preferences.length === 0) return null;
-                    const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-                    return (
-                      <div className="space-y-2 mt-3">
-                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1 flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> Sugestões de Horário
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {preferences.map((pref: any, idx: number) => {
-                            const label = `${dayNames[pref.dayOfWeek]} ${pref.startTime}`;
-                            const today = new Date();
-                            const targetDate = getDay(today) === pref.dayOfWeek ? today : nextDay(today, pref.dayOfWeek as any);
-                            const targetDateStr = format(targetDate, "yyyy-MM-dd");
-                            const isSelected = newClass.date === targetDateStr && newClass.startTime === pref.startTime;
-                            return (
-                              <button
-                                key={idx}
-                                type="button"
-                                onClick={() => setNewClass((prev) => ({ ...prev, date: targetDateStr, startTime: pref.startTime, endTime: pref.endTime }))}
-                                className={`text-[10px] px-3 py-1.5 rounded-full font-semibold transition-all hover:scale-105 active:scale-95 ${isSelected ? "bg-primary/20 text-primary border border-primary/50 neon-glow" : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/30"}`}
-                              >
-                                {label}
-                              </button>
-                            );
-                          })}
+                  {newClass.studentId &&
+                    (() => {
+                      const selectedStudent = students.find(
+                        (s) => s.id === newClass.studentId,
+                      );
+                      const preferences =
+                        (selectedStudent as any)?.schedulePreferences || [];
+                      if (preferences.length === 0) return null;
+                      const dayNames = [
+                        "Dom",
+                        "Seg",
+                        "Ter",
+                        "Qua",
+                        "Qui",
+                        "Sex",
+                        "Sáb",
+                      ];
+                      return (
+                        <div className="space-y-2 mt-3">
+                          <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1 flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> Sugestões de Horário
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {preferences.map((pref: any, idx: number) => {
+                              const label = `${dayNames[pref.dayOfWeek]} ${pref.startTime}`;
+                              const today = new Date();
+                              const targetDate =
+                                getDay(today) === pref.dayOfWeek
+                                  ? today
+                                  : nextDay(today, pref.dayOfWeek as any);
+                              const targetDateStr = format(
+                                targetDate,
+                                "yyyy-MM-dd",
+                              );
+                              const isSelected =
+                                newClass.date === targetDateStr &&
+                                newClass.startTime === pref.startTime;
+                              return (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() =>
+                                    setNewClass((prev) => ({
+                                      ...prev,
+                                      date: targetDateStr,
+                                      startTime: pref.startTime,
+                                      endTime: pref.endTime,
+                                    }))
+                                  }
+                                  className={`text-[10px] px-3 py-1.5 rounded-full font-semibold transition-all hover:scale-105 active:scale-95 ${isSelected ? "bg-primary/20 text-primary border border-primary/50 neon-glow" : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/30"}`}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Data *</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                    Data *
+                  </label>
                   <DatePicker
-                    value={newClass.date ? new Date(newClass.date + "T12:00:00") : undefined}
-                    onChange={(d) => setNewClass({ ...newClass, date: format(d, "yyyy-MM-dd") })}
+                    value={
+                      newClass.date
+                        ? new Date(newClass.date + "T12:00:00")
+                        : undefined
+                    }
+                    onChange={(d) =>
+                      setNewClass({
+                        ...newClass,
+                        date: format(d, "yyyy-MM-dd"),
+                      })
+                    }
                     placeholder="Selecione a data"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Início *</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                      Início *
+                    </label>
                     <TimePicker
                       value={newClass.startTime}
                       onChange={(val) => {
-                        const end = newClass.endTime || (val ? `${String((parseInt(val.split(":")[0]) + 1) % 24).padStart(2, "0")}:${val.split(":")[1]}` : "");
-                        setNewClass({ ...newClass, startTime: val, endTime: end });
+                        const end =
+                          newClass.endTime ||
+                          (val
+                            ? `${String((parseInt(val.split(":")[0]) + 1) % 24).padStart(2, "0")}:${val.split(":")[1]}`
+                            : "");
+                        setNewClass({
+                          ...newClass,
+                          startTime: val,
+                          endTime: end,
+                        });
                       }}
                       step={15}
                       placeholder="Início"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Fim *</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                      Fim *
+                    </label>
                     <TimePicker
                       value={newClass.endTime}
-                      onChange={(val) => setNewClass({ ...newClass, endTime: val })}
+                      onChange={(val) =>
+                        setNewClass({ ...newClass, endTime: val })
+                      }
                       step={15}
                       placeholder="Fim"
                     />
                   </div>
                 </div>
 
-                {lessonPlanMode === 'DEMAND' && newClass.studentId && (
+                {lessonPlanMode === "DEMAND" && newClass.studentId && (
                   <div className="flex justify-end">
                     <Button
                       variant="glass"
@@ -662,64 +799,110 @@ export function SchedulePage() {
                       className="border-primary/30 text-primary hover:border-primary/60"
                     >
                       <Sparkles className="h-3.5 w-3.5" />
-                      {generateLessonPlan.isPending ? "Gerando..." : "Sugerir Plano"}
+                      {generateLessonPlan.isPending
+                        ? "Gerando..."
+                        : "Sugerir Plano"}
                     </Button>
                   </div>
                 )}
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between ml-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Plano da Aula</label>
-                    <MicButton onAppend={(text) => setNewClass((prev) => ({ ...prev, content: prev.content + (prev.content.trim() ? " " : "") + text }))} />
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                      Plano da Aula
+                    </label>
+                    <MicButton
+                      onAppend={(text) =>
+                        setNewClass((prev) => ({
+                          ...prev,
+                          content:
+                            prev.content +
+                            (prev.content.trim() ? " " : "") +
+                            text,
+                        }))
+                      }
+                    />
                   </div>
-                  <div className={`relative rounded-xl transition-all ${generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? 'animate-pulse' : ''}`}>
+                  <div
+                    className={`relative rounded-xl transition-all ${generateLessonPlan.isPending && lessonPlanMode === "AUTO" ? "animate-pulse" : ""}`}
+                  >
                     <Textarea
                       value={newClass.content}
-                      onChange={(e) => setNewClass({ ...newClass, content: e.target.value })}
-                      placeholder={generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? "Gerando sugestão com IA..." : "O que será trabalhado nesta aula..."}
-                      rows={4}
-                      disabled={generateLessonPlan.isPending && lessonPlanMode === 'AUTO'}
+                      onChange={(e) =>
+                        setNewClass({ ...newClass, content: e.target.value })
+                      }
+                      placeholder={
+                        generateLessonPlan.isPending &&
+                        lessonPlanMode === "AUTO"
+                          ? "Gerando sugestão com IA..."
+                          : "O que será trabalhado nesta aula..."
+                      }
+                      rows={5}
+                      disabled={
+                        generateLessonPlan.isPending &&
+                        lessonPlanMode === "AUTO"
+                      }
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between ml-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Tarefa para próxima aula</label>
-                    <MicButton onAppend={(text) => setNewClass((prev) => ({ ...prev, homework: prev.homework + (prev.homework.trim() ? " " : "") + text }))} />
-                  </div>
-                  <div className={`relative rounded-xl transition-all ${generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? 'animate-pulse' : ''}`}>
-                    <Textarea
-                      value={newClass.homework}
-                      onChange={(e) => setNewClass({ ...newClass, homework: e.target.value })}
-                      placeholder={generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? "Gerando sugestão com IA..." : "Ex: Exercícios pág. 34-36..."}
-                      rows={2}
-                      disabled={generateLessonPlan.isPending && lessonPlanMode === 'AUTO'}
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                      Notas / Observações
+                    </label>
+                    <MicButton
+                      onAppend={(text) =>
+                        setNewClass((prev) => ({
+                          ...prev,
+                          notes:
+                            prev.notes + (prev.notes.trim() ? " " : "") + text,
+                        }))
+                      }
                     />
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between ml-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Notas / Observações</label>
-                    <MicButton onAppend={(text) => setNewClass((prev) => ({ ...prev, notes: prev.notes + (prev.notes.trim() ? " " : "") + text }))} />
-                  </div>
-                  <div className={`relative rounded-xl transition-all ${generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? 'animate-pulse' : ''}`}>
+                  <div
+                    className={`relative rounded-xl transition-all ${generateLessonPlan.isPending && lessonPlanMode === "AUTO" ? "animate-pulse" : ""}`}
+                  >
                     <Textarea
                       value={newClass.notes}
-                      onChange={(e) => setNewClass({ ...newClass, notes: e.target.value })}
-                      placeholder={generateLessonPlan.isPending && lessonPlanMode === 'AUTO' ? "Gerando sugestão com IA..." : "Observações adicionais sobre a aula..."}
-                      rows={2}
-                      disabled={generateLessonPlan.isPending && lessonPlanMode === 'AUTO'}
+                      onChange={(e) =>
+                        setNewClass({ ...newClass, notes: e.target.value })
+                      }
+                      placeholder={
+                        generateLessonPlan.isPending &&
+                        lessonPlanMode === "AUTO"
+                          ? "Gerando sugestão com IA..."
+                          : "Observações adicionais sobre a aula..."
+                      }
+                      rows={5}
+                      disabled={
+                        generateLessonPlan.isPending &&
+                        lessonPlanMode === "AUTO"
+                      }
                     />
                   </div>
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Button variant="ghost" onClick={() => { setShowNewClass(false); resetNewClass(); }}>Cancelar</Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setShowNewClass(false);
+                    resetNewClass();
+                  }}
+                >
+                  Cancelar
+                </Button>
                 <Button
                   onClick={handleCreateClass}
-                  disabled={!newClass.studentId || !newClass.date || !newClass.startTime || !newClass.endTime || createClass.isPending}
+                  disabled={
+                    !newClass.studentId ||
+                    !newClass.date ||
+                    !newClass.startTime ||
+                    !newClass.endTime ||
+                    createClass.isPending
+                  }
                 >
                   {createClass.isPending ? "Agendando..." : "Agendar"}
                 </Button>
@@ -728,7 +911,15 @@ export function SchedulePage() {
           </Modal>
 
           {/* Lesson Plan Review Modal (DEMAND mode) */}
-          <Modal open={showLessonPlanReview} onOpenChange={(open) => { if (!open) { setShowLessonPlanReview(false); setLessonPlanDraft(null); } }}>
+          <Modal
+            open={showLessonPlanReview}
+            onOpenChange={(open) => {
+              if (!open) {
+                setShowLessonPlanReview(false);
+                setLessonPlanDraft(null);
+              }
+            }}
+          >
             <ModalContent size="xl">
               <ModalHeader>
                 <ModalTitle className="flex items-center gap-2">
@@ -739,41 +930,59 @@ export function SchedulePage() {
               {lessonPlanDraft && (
                 <>
                   <ModalBody>
-                    <p className="text-xs text-slate-400 mb-4">Revise e edite a sugestão gerada pela IA antes de aplicar ao formulário.</p>
+                    <p className="text-xs text-slate-400 mb-4">
+                      Revise e edite a sugestão gerada pela IA antes de aplicar
+                      ao formulário.
+                    </p>
                     {lessonPlanDraft.content !== undefined && (
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Plano da Aula</label>
+                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                          Plano da Aula
+                        </label>
                         <Textarea
                           value={lessonPlanDraft.content}
-                          onChange={(e) => setLessonPlanDraft((prev) => prev ? { ...prev, content: e.target.value } : prev)}
-                          rows={4}
-                        />
-                      </div>
-                    )}
-                    {lessonPlanDraft.homework !== undefined && (
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Tarefa para próxima aula</label>
-                        <Textarea
-                          value={lessonPlanDraft.homework}
-                          onChange={(e) => setLessonPlanDraft((prev) => prev ? { ...prev, homework: e.target.value } : prev)}
-                          rows={2}
+                          onChange={(e) =>
+                            setLessonPlanDraft((prev) =>
+                              prev
+                                ? { ...prev, content: e.target.value }
+                                : prev,
+                            )
+                          }
+                          rows={5}
                         />
                       </div>
                     )}
                     {lessonPlanDraft.notes !== undefined && (
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Notas / Observações</label>
+                        <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                          Notas / Observações
+                        </label>
                         <Textarea
                           value={lessonPlanDraft.notes}
-                          onChange={(e) => setLessonPlanDraft((prev) => prev ? { ...prev, notes: e.target.value } : prev)}
-                          rows={2}
+                          onChange={(e) =>
+                            setLessonPlanDraft((prev) =>
+                              prev ? { ...prev, notes: e.target.value } : prev,
+                            )
+                          }
+                          rows={5}
                         />
                       </div>
                     )}
                   </ModalBody>
                   <ModalFooter>
-                    <Button variant="ghost" onClick={() => { setShowLessonPlanReview(false); setLessonPlanDraft(null); }}>Descartar</Button>
-                    <Button onClick={handleApplyLessonPlanDraft} className="neon-glow">
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setShowLessonPlanReview(false);
+                        setLessonPlanDraft(null);
+                      }}
+                    >
+                      Descartar
+                    </Button>
+                    <Button
+                      onClick={handleApplyLessonPlanDraft}
+                      className="neon-glow"
+                    >
                       <Sparkles className="h-3.5 w-3.5" />
                       Aplicar Sugestão
                     </Button>
@@ -859,8 +1068,13 @@ export function SchedulePage() {
                               onClick={() => {
                                 if (cls.status === "COMPLETED") {
                                   setViewingClass({
-                                    studentName: (cls as any).student?.name ?? "Aluno(a)",
-                                    date: format(new Date(cls.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
+                                    studentName:
+                                      (cls as any).student?.name ?? "Aluno(a)",
+                                    date: format(
+                                      new Date(cls.date),
+                                      "dd 'de' MMMM 'de' yyyy",
+                                      { locale: ptBR },
+                                    ),
                                     startTime: cls.startTime,
                                     endTime: cls.endTime,
                                     content: cls.content ?? "",
@@ -870,7 +1084,10 @@ export function SchedulePage() {
                                   setEditingClass({
                                     id: cls.id,
                                     studentId: cls.studentId,
-                                    date: format(new Date(cls.date), "yyyy-MM-dd"),
+                                    date: format(
+                                      new Date(cls.date),
+                                      "yyyy-MM-dd",
+                                    ),
                                     startTime: cls.startTime,
                                     endTime: cls.endTime,
                                     content: cls.content ?? "",
@@ -915,7 +1132,15 @@ export function SchedulePage() {
         </button>
 
         {/* Edit Class Modal */}
-        <Modal open={!!editingClass} onOpenChange={(open) => { if (!open) setEditingClass(null); }}>
+        <Modal
+          open={!!editingClass}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingClass(null);
+              setEditStudentSearch("");
+            }
+          }}
+        >
           <ModalContent size="xl">
             <ModalHeader>
               <ModalTitle>Editar Aula</ModalTitle>
@@ -924,60 +1149,98 @@ export function SchedulePage() {
               <>
                 <ModalBody>
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Status</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                      Status
+                    </label>
                     <Select
                       value={editingClass.status}
                       onValueChange={(v) => {
                         if (v === "COMPLETED") {
                           setEditingClass(null);
-                          setCompletingClass({ id: editingClass.id, content: "", homework: "" });
+                          setCompletingClass({
+                            id: editingClass.id,
+                            content: "",
+                            homework: "",
+                          });
                         } else {
                           setEditingClass({ ...editingClass, status: v });
                         }
                       }}
                     >
                       {Object.entries(statusConfig).map(([k, v]) => (
-                        <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                        <SelectItem key={k} value={k}>
+                          {v.label}
+                        </SelectItem>
                       ))}
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Aluno</label>
-                    <Select
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                      Aluno
+                    </label>
+                    <SearchSelect
                       value={editingClass.studentId}
-                      onValueChange={(v) => setEditingClass({ ...editingClass, studentId: v })}
-                    >
-                      {students.filter((s) => s.active).map((s) => (
-                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                      ))}
-                    </Select>
+                      onValueChange={(v) =>
+                        setEditingClass({ ...editingClass, studentId: v })
+                      }
+                      options={(editStudentsInfiniteData?.pages ?? []).flatMap(
+                        (p) =>
+                          p.data.map((s) => ({ value: s.id, label: s.name })),
+                      )}
+                      search={editStudentSearch}
+                      onSearchChange={setEditStudentSearch}
+                      hasNextPage={editHasNextPage}
+                      onLoadMore={editFetchNextPage}
+                      isLoading={editIsLoadingStudents}
+                      isFetchingNextPage={editIsFetchingNextPage}
+                      placeholder="Selecione o aluno"
+                    />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Data</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                      Data
+                    </label>
                     <DatePicker
-                      value={editingClass.date ? new Date(editingClass.date + "T12:00:00") : undefined}
-                      onChange={(d) => setEditingClass({ ...editingClass, date: format(d, "yyyy-MM-dd") })}
+                      value={
+                        editingClass.date
+                          ? new Date(editingClass.date + "T12:00:00")
+                          : undefined
+                      }
+                      onChange={(d) =>
+                        setEditingClass({
+                          ...editingClass,
+                          date: format(d, "yyyy-MM-dd"),
+                        })
+                      }
                       placeholder="Selecione a data"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Início</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                        Início
+                      </label>
                       <TimePicker
                         value={editingClass.startTime}
-                        onChange={(val) => setEditingClass({ ...editingClass, startTime: val })}
+                        onChange={(val) =>
+                          setEditingClass({ ...editingClass, startTime: val })
+                        }
                         step={15}
                         placeholder="Início"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Fim</label>
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                        Fim
+                      </label>
                       <TimePicker
                         value={editingClass.endTime}
-                        onChange={(val) => setEditingClass({ ...editingClass, endTime: val })}
+                        onChange={(val) =>
+                          setEditingClass({ ...editingClass, endTime: val })
+                        }
                         step={15}
                         placeholder="Fim"
                       />
@@ -986,12 +1249,33 @@ export function SchedulePage() {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between ml-1">
-                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Plano da Aula</label>
-                      <MicButton onAppend={(text) => setEditingClass((prev) => prev ? { ...prev, content: prev.content + (prev.content.trim() ? " " : "") + text } : prev)} />
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                        Plano da Aula
+                      </label>
+                      <MicButton
+                        onAppend={(text) =>
+                          setEditingClass((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  content:
+                                    prev.content +
+                                    (prev.content.trim() ? " " : "") +
+                                    text,
+                                }
+                              : prev,
+                          )
+                        }
+                      />
                     </div>
                     <Textarea
                       value={editingClass.content}
-                      onChange={(e) => setEditingClass({ ...editingClass, content: e.target.value })}
+                      onChange={(e) =>
+                        setEditingClass({
+                          ...editingClass,
+                          content: e.target.value,
+                        })
+                      }
                       placeholder="O que será trabalhado nesta aula..."
                       rows={10}
                     />
@@ -1011,10 +1295,20 @@ export function SchedulePage() {
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                   <div className="flex gap-2 ml-auto">
-                    <Button variant="ghost" onClick={() => setEditingClass(null)}>Cancelar</Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setEditingClass(null)}
+                    >
+                      Cancelar
+                    </Button>
                     <Button
                       onClick={handleSaveEdit}
-                      disabled={!editingClass.date || !editingClass.startTime || !editingClass.endTime || updateClass.isPending}
+                      disabled={
+                        !editingClass.date ||
+                        !editingClass.startTime ||
+                        !editingClass.endTime ||
+                        updateClass.isPending
+                      }
                     >
                       {updateClass.isPending ? "Salvando..." : "Salvar"}
                     </Button>
@@ -1026,7 +1320,12 @@ export function SchedulePage() {
         </Modal>
 
         {/* Complete Class Modal */}
-        <Modal open={!!completingClass} onOpenChange={(open) => { if (!open) setCompletingClass(null); }}>
+        <Modal
+          open={!!completingClass}
+          onOpenChange={(open) => {
+            if (!open) setCompletingClass(null);
+          }}
+        >
           <ModalContent size="xl">
             <ModalHeader>
               <ModalTitle>Registrar Aula Concluída</ModalTitle>
@@ -1036,12 +1335,33 @@ export function SchedulePage() {
                 <ModalBody>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between ml-1">
-                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">O que foi feito *</label>
-                      <MicButton onAppend={(text) => setCompletingClass((prev) => prev ? { ...prev, content: prev.content + (prev.content.trim() ? " " : "") + text } : prev)} />
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                        O que foi feito *
+                      </label>
+                      <MicButton
+                        onAppend={(text) =>
+                          setCompletingClass((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  content:
+                                    prev.content +
+                                    (prev.content.trim() ? " " : "") +
+                                    text,
+                                }
+                              : prev,
+                          )
+                        }
+                      />
                     </div>
                     <Textarea
                       value={completingClass.content}
-                      onChange={(e) => setCompletingClass({ ...completingClass, content: e.target.value })}
+                      onChange={(e) =>
+                        setCompletingClass({
+                          ...completingClass,
+                          content: e.target.value,
+                        })
+                      }
                       placeholder="Descreva o conteúdo trabalhado na aula..."
                       rows={10}
                       autoFocus
@@ -1049,19 +1369,45 @@ export function SchedulePage() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between ml-1">
-                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Tarefa para próxima aula</label>
-                      <MicButton onAppend={(text) => setCompletingClass((prev) => prev ? { ...prev, homework: prev.homework + (prev.homework.trim() ? " " : "") + text } : prev)} />
+                      <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                        Tarefa para próxima aula
+                      </label>
+                      <MicButton
+                        onAppend={(text) =>
+                          setCompletingClass((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  homework:
+                                    prev.homework +
+                                    (prev.homework.trim() ? " " : "") +
+                                    text,
+                                }
+                              : prev,
+                          )
+                        }
+                      />
                     </div>
                     <Textarea
                       value={completingClass.homework}
-                      onChange={(e) => setCompletingClass({ ...completingClass, homework: e.target.value })}
+                      onChange={(e) =>
+                        setCompletingClass({
+                          ...completingClass,
+                          homework: e.target.value,
+                        })
+                      }
                       placeholder="Ex: Exercícios pág. 34-36..."
                       rows={10}
                     />
                   </div>
                 </ModalBody>
                 <ModalFooter>
-                  <Button variant="ghost" onClick={() => setCompletingClass(null)}>Cancelar</Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setCompletingClass(null)}
+                  >
+                    Cancelar
+                  </Button>
                   <Button
                     onClick={handleConfirmComplete}
                     disabled={!completingClass.content.trim()}
@@ -1076,7 +1422,12 @@ export function SchedulePage() {
         </Modal>
 
         {/* View Completed Class Modal */}
-        <Modal open={!!viewingClass} onOpenChange={(open) => { if (!open) setViewingClass(null); }}>
+        <Modal
+          open={!!viewingClass}
+          onOpenChange={(open) => {
+            if (!open) setViewingClass(null);
+          }}
+        >
           <ModalContent size="xl">
             <ModalHeader>
               <ModalTitle>Aula Concluída</ModalTitle>
@@ -1084,22 +1435,45 @@ export function SchedulePage() {
             {viewingClass && (
               <ModalBody>
                 <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-400 mb-4">
-                  <span><span className="font-semibold text-slate-200">Aluno:</span> {viewingClass.studentName}</span>
-                  <span><span className="font-semibold text-slate-200">Data:</span> {viewingClass.date}</span>
-                  <span><span className="font-semibold text-slate-200">Horário:</span> {viewingClass.startTime} – {viewingClass.endTime}</span>
+                  <span>
+                    <span className="font-semibold text-slate-200">Aluno:</span>{" "}
+                    {viewingClass.studentName}
+                  </span>
+                  <span>
+                    <span className="font-semibold text-slate-200">Data:</span>{" "}
+                    {viewingClass.date}
+                  </span>
+                  <span>
+                    <span className="font-semibold text-slate-200">
+                      Horário:
+                    </span>{" "}
+                    {viewingClass.startTime} – {viewingClass.endTime}
+                  </span>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">O que foi feito</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                    O que foi feito
+                  </label>
                   <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[80px]">
-                    {viewingClass.content || <span className="text-slate-500 italic">Nenhum conteúdo registrado.</span>}
+                    {viewingClass.content || (
+                      <span className="text-slate-500 italic">
+                        Nenhum conteúdo registrado.
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Tarefa para próxima aula</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                    Tarefa para próxima aula
+                  </label>
                   <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[60px]">
-                    {viewingClass.homework || <span className="text-slate-500 italic">Nenhuma tarefa registrada.</span>}
+                    {viewingClass.homework || (
+                      <span className="text-slate-500 italic">
+                        Nenhuma tarefa registrada.
+                      </span>
+                    )}
                   </div>
                 </div>
               </ModalBody>
