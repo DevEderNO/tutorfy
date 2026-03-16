@@ -14,7 +14,11 @@ import {
   PowerOff,
   MousePointerClick,
 } from "lucide-react";
-import type { EvolutionAiMode, LessonPlanAiMode, LessonPlanField } from "@tutorfy/types";
+import type {
+  EvolutionAiMode,
+  LessonPlanAiMode,
+  LessonPlanField,
+} from "@tutorfy/types";
 import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
@@ -156,11 +160,17 @@ export function SettingsPage() {
         lessonPlanFields,
         lessonPlanSessionCount,
       });
-      updateUser({ evolutionAiMode, lessonPlanAiMode, lessonPlanFields, lessonPlanSessionCount });
+      updateUser({
+        evolutionAiMode,
+        lessonPlanAiMode,
+        lessonPlanFields,
+        lessonPlanSessionCount,
+      });
       setModalConfig({
         isOpen: true,
         title: "Configurações de IA Salvas",
-        description: "Suas preferências de Inteligência Artificial foram atualizadas.",
+        description:
+          "Suas preferências de Inteligência Artificial foram atualizadas.",
         variant: "success",
         icon: CheckCircle2,
       });
@@ -169,7 +179,8 @@ export function SettingsPage() {
       setModalConfig({
         isOpen: true,
         title: "Falha ao Salvar",
-        description: "Não foi possível salvar as configurações de IA. Tente novamente.",
+        description:
+          "Não foi possível salvar as configurações de IA. Tente novamente.",
         variant: "danger",
         icon: AlertCircle,
       });
@@ -240,7 +251,7 @@ export function SettingsPage() {
             <TextareaField label="Bio Profissional">
               <Textarea
                 size="lg"
-                rows={4}
+                rows={5}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
               />
@@ -514,18 +525,30 @@ export function SettingsPage() {
                 <TableBody>
                   <TableRow>
                     <TableCell className="font-medium">15 Set 2026</TableCell>
-                    <TableCell className="text-muted-foreground">R$ 49,90</TableCell>
-                    <TableCell><StatusLabel status="active" label="Pago" /></TableCell>
+                    <TableCell className="text-muted-foreground">
+                      R$ 49,90
+                    </TableCell>
+                    <TableCell>
+                      <StatusLabel status="active" label="Pago" />
+                    </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Baixar PDF</Button>
+                      <Button variant="ghost" size="sm">
+                        Baixar PDF
+                      </Button>
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">15 Ago 2026</TableCell>
-                    <TableCell className="text-muted-foreground">R$ 49,90</TableCell>
-                    <TableCell><StatusLabel status="active" label="Pago" /></TableCell>
+                    <TableCell className="text-muted-foreground">
+                      R$ 49,90
+                    </TableCell>
+                    <TableCell>
+                      <StatusLabel status="active" label="Pago" />
+                    </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Baixar PDF</Button>
+                      <Button variant="ghost" size="sm">
+                        Baixar PDF
+                      </Button>
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -575,7 +598,9 @@ export function SettingsPage() {
                       <Zap className="h-4 w-4 text-emerald-400" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-foreground">Automático</span>
+                      <span className="font-bold text-foreground">
+                        Automático
+                      </span>
                       {evolutionAiMode === "AUTO" && (
                         <div className="size-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
                       )}
@@ -621,15 +646,42 @@ export function SettingsPage() {
                   Plano de aula por IA
                 </p>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Ao abrir o formulário de nova aula, a IA pode sugerir um plano com base nas últimas sessões e na evolução registrada.
+                  Ao abrir o formulário de nova aula, a IA pode sugerir um plano
+                  com base nas últimas sessões e na evolução registrada.
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                  {([
-                    { value: "OFF",    label: "Desativado", desc: "Nenhuma sugestão gerada.",                                          icon: PowerOff,         color: "slate" },
-                    { value: "AUTO",   label: "Automático", desc: "Preenche o formulário automaticamente ao abrir.",                   icon: Zap,              color: "emerald" },
-                    { value: "DEMAND", label: "Sob Demanda", desc: "Exibe um botão no formulário para gerar o plano quando quiser.",  icon: MousePointerClick, color: "amber" },
-                  ] as { value: LessonPlanAiMode; label: string; desc: string; icon: typeof Zap; color: string }[]).map(({ value, label, desc, icon: Icon, color }) => (
+                  {(
+                    [
+                      {
+                        value: "OFF",
+                        label: "Desativado",
+                        desc: "Nenhuma sugestão gerada.",
+                        icon: PowerOff,
+                        color: "slate",
+                      },
+                      {
+                        value: "AUTO",
+                        label: "Automático",
+                        desc: "Preenche o formulário automaticamente ao abrir.",
+                        icon: Zap,
+                        color: "emerald",
+                      },
+                      {
+                        value: "DEMAND",
+                        label: "Sob Demanda",
+                        desc: "Exibe um botão no formulário para gerar o plano quando quiser.",
+                        icon: MousePointerClick,
+                        color: "amber",
+                      },
+                    ] as {
+                      value: LessonPlanAiMode;
+                      label: string;
+                      desc: string;
+                      icon: typeof Zap;
+                      color: string;
+                    }[]
+                  ).map(({ value, label, desc, icon: Icon, color }) => (
                     <button
                       key={value}
                       type="button"
@@ -641,13 +693,19 @@ export function SettingsPage() {
                         data-[active]:shadow-[inset_0_0_20px_rgba(116,61,245,0.05),0_4px_15px_rgba(116,61,245,0.1)]"
                     >
                       <div className="flex items-center gap-3 mb-3">
-                        <div className={`size-9 rounded-xl flex items-center justify-center border bg-${color}-500/20 border-${color}-500/30 group-data-[active]:bg-${color}-500/30`}>
+                        <div
+                          className={`size-9 rounded-xl flex items-center justify-center border bg-${color}-500/20 border-${color}-500/30 group-data-[active]:bg-${color}-500/30`}
+                        >
                           <Icon className={`h-4 w-4 text-${color}-400`} />
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-foreground">{label}</span>
+                          <span className="font-bold text-foreground">
+                            {label}
+                          </span>
                           {lessonPlanAiMode === value && (
-                            <div className={`size-2 rounded-full bg-${color}-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]`} />
+                            <div
+                              className={`size-2 rounded-full bg-${color}-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]`}
+                            />
                           )}
                         </div>
                       </div>
@@ -665,11 +723,13 @@ export function SettingsPage() {
                         Campos a preencher
                       </p>
                       <div className="flex flex-wrap gap-4">
-                        {([
-                          { value: "content",  label: "Conteúdo da aula" },
-                          { value: "homework", label: "Tarefa para casa" },
-                          { value: "notes",    label: "Notas / Observações" },
-                        ] as { value: LessonPlanField; label: string }[]).map(({ value, label }) => (
+                        {(
+                          [
+                            { value: "content", label: "Conteúdo da aula" },
+                            { value: "homework", label: "Tarefa para casa" },
+                            { value: "notes", label: "Notas / Observações" },
+                          ] as { value: LessonPlanField; label: string }[]
+                        ).map(({ value, label }) => (
                           <Checkbox
                             key={value}
                             id={`lp-field-${value}`}
@@ -693,7 +753,8 @@ export function SettingsPage() {
                           Sessões anteriores analisadas
                         </p>
                         <span className="text-sm font-bold text-primary">
-                          {lessonPlanSessionCount} aula{lessonPlanSessionCount > 1 ? "s" : ""}
+                          {lessonPlanSessionCount} aula
+                          {lessonPlanSessionCount > 1 ? "s" : ""}
                         </span>
                       </div>
                       <input
@@ -702,12 +763,16 @@ export function SettingsPage() {
                         max={3}
                         step={1}
                         value={lessonPlanSessionCount}
-                        onChange={(e) => setLessonPlanSessionCount(Number(e.target.value))}
+                        onChange={(e) =>
+                          setLessonPlanSessionCount(Number(e.target.value))
+                        }
                         className="w-full h-1.5 rounded-full appearance-none cursor-pointer
                           bg-white/10 accent-primary"
                       />
                       <div className="flex justify-between text-[10px] text-muted-foreground mt-1.5 px-0.5">
-                        <span>1</span><span>2</span><span>3</span>
+                        <span>1</span>
+                        <span>2</span>
+                        <span>3</span>
                       </div>
                     </div>
                   </div>
@@ -722,11 +787,7 @@ export function SettingsPage() {
                 onClick={handleSaveAiSettings}
                 disabled={isSavingAi}
               >
-                {isSavingAi ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Save />
-                )}
+                {isSavingAi ? <Loader2 className="animate-spin" /> : <Save />}
                 {isSavingAi ? "Salvando..." : "Salvar Configurações de IA"}
               </Button>
             </div>

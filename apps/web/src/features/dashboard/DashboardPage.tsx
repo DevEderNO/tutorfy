@@ -31,7 +31,14 @@ import {
   Trash2,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
-import { Modal as UIModal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter } from "@/components/ui/modal";
+import {
+  Modal as UIModal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Select, SelectItem } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -123,7 +130,6 @@ export function DashboardPage() {
   const { mutate: updateClass, isPending: isUpdating } = useUpdateClass();
   const { mutate: deleteClass } = useDeleteClass();
 
-
   const handleConfirmComplete = () => {
     if (!completingClass || !completingClass.content.trim()) return;
     updateClass({
@@ -142,7 +148,6 @@ export function DashboardPage() {
     deleteClass(deletingClassId);
     setDeletingClassId(null);
   };
-
 
   const now = new Date();
   const { data: payments, isLoading: isPaymentsLoading } = usePayments({
@@ -434,12 +439,16 @@ export function DashboardPage() {
                     <span className="text-[11px] font-bold uppercase">
                       {format(day, "EEE", { locale: ptBR }).substring(0, 3)}
                     </span>
-                    <span className={`text-sm font-bold ${isToday ? "text-primary" : ""}`}>
+                    <span
+                      className={`text-sm font-bold ${isToday ? "text-primary" : ""}`}
+                    >
                       {format(day, "d")}
                     </span>
                     <div
                       className={`h-1 w-1 rounded-full transition-all ${
-                        dayClasses.length > 0 ? "bg-current opacity-60" : "bg-transparent"
+                        dayClasses.length > 0
+                          ? "bg-current opacity-60"
+                          : "bg-transparent"
                       }`}
                     />
                   </TabsTrigger>
@@ -468,8 +477,13 @@ export function DashboardPage() {
                       onClick={() => {
                         if (cls.status === ClassStatus.COMPLETED) {
                           setViewingClass({
-                            studentName: (cls as any).student?.name ?? "Aluno(a)",
-                            date: format(parseISO(cls.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
+                            studentName:
+                              (cls as any).student?.name ?? "Aluno(a)",
+                            date: format(
+                              parseISO(cls.date),
+                              "dd 'de' MMMM 'de' yyyy",
+                              { locale: ptBR },
+                            ),
                             startTime: cls.startTime,
                             endTime: cls.endTime,
                             content: cls.content ?? "",
@@ -531,7 +545,6 @@ export function DashboardPage() {
               </div>
             )}
           </div>
-
         </section>
 
         {/* Bottom Layer */}
@@ -616,7 +629,12 @@ export function DashboardPage() {
       </div>
 
       {/* View Completed Class Modal */}
-      <UIModal open={!!viewingClass} onOpenChange={(open) => { if (!open) setViewingClass(null); }}>
+      <UIModal
+        open={!!viewingClass}
+        onOpenChange={(open) => {
+          if (!open) setViewingClass(null);
+        }}
+      >
         <ModalContent size="xl">
           <ModalHeader>
             <ModalTitle>Aula Concluída</ModalTitle>
@@ -624,22 +642,43 @@ export function DashboardPage() {
           {viewingClass && (
             <ModalBody>
               <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-400 mb-4">
-                <span><span className="font-semibold text-slate-200">Aluno:</span> {viewingClass.studentName}</span>
-                <span><span className="font-semibold text-slate-200">Data:</span> {viewingClass.date}</span>
-                <span><span className="font-semibold text-slate-200">Horário:</span> {viewingClass.startTime} – {viewingClass.endTime}</span>
+                <span>
+                  <span className="font-semibold text-slate-200">Aluno:</span>{" "}
+                  {viewingClass.studentName}
+                </span>
+                <span>
+                  <span className="font-semibold text-slate-200">Data:</span>{" "}
+                  {viewingClass.date}
+                </span>
+                <span>
+                  <span className="font-semibold text-slate-200">Horário:</span>{" "}
+                  {viewingClass.startTime} – {viewingClass.endTime}
+                </span>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">O que foi feito</label>
+                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                  O que foi feito
+                </label>
                 <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[80px]">
-                  {viewingClass.content || <span className="text-slate-500 italic">Nenhum conteúdo registrado.</span>}
+                  {viewingClass.content || (
+                    <span className="text-slate-500 italic">
+                      Nenhum conteúdo registrado.
+                    </span>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Tarefa para próxima aula</label>
+                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                  Tarefa para próxima aula
+                </label>
                 <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[60px]">
-                  {viewingClass.homework || <span className="text-slate-500 italic">Nenhuma tarefa registrada.</span>}
+                  {viewingClass.homework || (
+                    <span className="text-slate-500 italic">
+                      Nenhuma tarefa registrada.
+                    </span>
+                  )}
                 </div>
               </div>
             </ModalBody>
@@ -648,7 +687,12 @@ export function DashboardPage() {
       </UIModal>
 
       {/* Edit Class Modal */}
-      <UIModal open={!!editingClass} onOpenChange={(open) => { if (!open) setEditingClass(null); }}>
+      <UIModal
+        open={!!editingClass}
+        onOpenChange={(open) => {
+          if (!open) setEditingClass(null);
+        }}
+      >
         <ModalContent size="xl">
           <ModalHeader>
             <ModalTitle>Editar Aula</ModalTitle>
@@ -658,20 +702,28 @@ export function DashboardPage() {
               <ModalBody>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">Status</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
+                      Status
+                    </label>
                     <Select
                       value={editingClass.status}
                       onValueChange={(v) => {
                         if (v === "COMPLETED") {
                           setEditingClass(null);
-                          setCompletingClass({ id: editingClass.id, content: "", homework: "" });
+                          setCompletingClass({
+                            id: editingClass.id,
+                            content: "",
+                            homework: "",
+                          });
                         } else {
                           setEditingClass({ ...editingClass, status: v });
                         }
                       }}
                     >
                       {Object.entries(statusConfig).map(([k, v]) => (
-                        <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                        <SelectItem key={k} value={k}>
+                          {v.label}
+                        </SelectItem>
                       ))}
                     </Select>
                   </div>
@@ -681,8 +733,17 @@ export function DashboardPage() {
                       Data
                     </label>
                     <DatePicker
-                      value={editingClass.date ? new Date(editingClass.date + "T12:00:00") : undefined}
-                      onChange={(d) => setEditingClass({ ...editingClass, date: format(d, "yyyy-MM-dd") })}
+                      value={
+                        editingClass.date
+                          ? new Date(editingClass.date + "T12:00:00")
+                          : undefined
+                      }
+                      onChange={(d) =>
+                        setEditingClass({
+                          ...editingClass,
+                          date: format(d, "yyyy-MM-dd"),
+                        })
+                      }
                       placeholder="Selecione a data"
                     />
                   </div>
@@ -692,13 +753,27 @@ export function DashboardPage() {
                       <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
                         Início
                       </label>
-                      <TimePicker value={editingClass.startTime} onChange={(val) => setEditingClass({ ...editingClass, startTime: val })} step={15} placeholder="Início" />
+                      <TimePicker
+                        value={editingClass.startTime}
+                        onChange={(val) =>
+                          setEditingClass({ ...editingClass, startTime: val })
+                        }
+                        step={15}
+                        placeholder="Início"
+                      />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
                         Fim
                       </label>
-                      <TimePicker value={editingClass.endTime} onChange={(val) => setEditingClass({ ...editingClass, endTime: val })} step={15} placeholder="Fim" />
+                      <TimePicker
+                        value={editingClass.endTime}
+                        onChange={(val) =>
+                          setEditingClass({ ...editingClass, endTime: val })
+                        }
+                        step={15}
+                        placeholder="Fim"
+                      />
                     </div>
                   </div>
 
@@ -708,7 +783,12 @@ export function DashboardPage() {
                     </label>
                     <Textarea
                       value={editingClass.content}
-                      onChange={(e) => setEditingClass({ ...editingClass, content: e.target.value })}
+                      onChange={(e) =>
+                        setEditingClass({
+                          ...editingClass,
+                          content: e.target.value,
+                        })
+                      }
                       placeholder="O que será trabalhado nesta aula..."
                       rows={10}
                     />
@@ -729,10 +809,16 @@ export function DashboardPage() {
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
                 <div className="flex gap-2 ml-auto">
-                  <Button variant="ghost" onClick={() => setEditingClass(null)}>Cancelar</Button>
+                  <Button variant="ghost" onClick={() => setEditingClass(null)}>
+                    Cancelar
+                  </Button>
                   <Button
                     onClick={() => {
-                      if (!editingClass.date || !editingClass.startTime || !editingClass.endTime)
+                      if (
+                        !editingClass.date ||
+                        !editingClass.startTime ||
+                        !editingClass.endTime
+                      )
                         return;
                       updateClass({
                         id: editingClass.id,
@@ -763,7 +849,12 @@ export function DashboardPage() {
       </UIModal>
 
       {/* Complete Class Modal */}
-      <UIModal open={!!completingClass} onOpenChange={(open) => { if (!open) setCompletingClass(null); }}>
+      <UIModal
+        open={!!completingClass}
+        onOpenChange={(open) => {
+          if (!open) setCompletingClass(null);
+        }}
+      >
         <ModalContent size="xl">
           <ModalHeader>
             <ModalTitle>Registrar Aula Concluída</ModalTitle>
@@ -778,7 +869,12 @@ export function DashboardPage() {
                     </label>
                     <Textarea
                       value={completingClass.content}
-                      onChange={(e) => setCompletingClass({ ...completingClass, content: e.target.value })}
+                      onChange={(e) =>
+                        setCompletingClass({
+                          ...completingClass,
+                          content: e.target.value,
+                        })
+                      }
                       placeholder="Descreva o conteúdo trabalhado na aula..."
                       rows={10}
                       autoFocus
@@ -790,7 +886,12 @@ export function DashboardPage() {
                     </label>
                     <Textarea
                       value={completingClass.homework}
-                      onChange={(e) => setCompletingClass({ ...completingClass, homework: e.target.value })}
+                      onChange={(e) =>
+                        setCompletingClass({
+                          ...completingClass,
+                          homework: e.target.value,
+                        })
+                      }
                       placeholder="Ex: Exercícios pág. 34-36..."
                       rows={10}
                     />
@@ -798,8 +899,19 @@ export function DashboardPage() {
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Button variant="ghost" onClick={() => setCompletingClass(null)}>Cancelar</Button>
-                <Button onClick={handleConfirmComplete} disabled={!completingClass.content.trim()} className="bg-emerald-600 hover:bg-emerald-500">Concluir e Notificar</Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => setCompletingClass(null)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleConfirmComplete}
+                  disabled={!completingClass.content.trim()}
+                  className="bg-emerald-600 hover:bg-emerald-500"
+                >
+                  Concluir e Notificar
+                </Button>
               </ModalFooter>
             </>
           )}

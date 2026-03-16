@@ -68,8 +68,18 @@ function Column({ label, items, selected, onChange }: ColumnProps) {
     }
   }, [selected, items])
 
+  function handleWheel(e: React.WheelEvent) {
+    e.preventDefault()
+    const index = items.indexOf(selected)
+    if (e.deltaY > 0) {
+      onChange(items[Math.min(index + 1, items.length - 1)])
+    } else {
+      onChange(items[Math.max(index - 1, 0)])
+    }
+  }
+
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1" onWheel={handleWheel}>
       <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
         {label}
       </span>

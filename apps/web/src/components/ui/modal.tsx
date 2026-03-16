@@ -125,7 +125,7 @@ export function ModalFooter({ className, ...props }: ComponentProps<'div'>) {
     <div
       data-slot="modal-footer"
       className={twMerge(
-        'grid grid-cols-2 gap-3 px-6 pb-6 pt-2',
+        'flex items-center justify-end gap-2 px-6 pb-6 pt-2',
         className,
       )}
       {...props}
