@@ -12,8 +12,6 @@
   "dependencies": {
     "@fastify/cors": "^10.0.0",
     "@fastify/jwt": "^9.0.0",
-    "@fastify/multipart": "^9.4.0",
-    "@fastify/static": "^9.0.0",
     "@prisma/client": "^6.3.0",
     "@tutorfy/types": "workspace:*",
     "bcryptjs": "^2.4.3",

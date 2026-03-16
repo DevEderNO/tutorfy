@@ -182,20 +182,18 @@ export function StudentFormPage() {
     }
   }, [student, reset]);
 
-  const handleAvatarUpload = async (file: File) => {
-    try {
-      setIsUploading(true);
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload/avatar", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Upload failed");
-      const { url } = await res.json();
-      setValue("avatarUrl", url, { shouldValidate: true, shouldDirty: true });
-    } catch {
-      setShowErrorModal(true);
-    } finally {
+  const handleAvatarUpload = (file: File) => {
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setValue("avatarUrl", reader.result as string, { shouldValidate: true, shouldDirty: true });
       setIsUploading(false);
-    }
+    };
+    reader.onerror = () => {
+      setIsUploading(false);
+      setShowErrorModal(true);
+    };
+    reader.readAsDataURL(file);
   };
 
   const onSubmit = async (data: StudentFormData) => {

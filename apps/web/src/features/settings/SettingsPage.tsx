@@ -87,34 +87,25 @@ export function SettingsPage() {
     icon: LucideIcon;
   } | null>(null);
 
-  const handleAvatarChange = async (file: File) => {
-    try {
-      setIsUploading(true);
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await api.post<{ url: string }>(
-        "/upload/avatar",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } },
-      );
-
-      if (response.data.url) {
-        setAvatarUrl(response.data.url);
-      }
-    } catch (error) {
-      console.error("Erro ao enviar imagem:", error);
+  const handleAvatarChange = (file: File) => {
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAvatarUrl(reader.result as string);
+      setIsUploading(false);
+    };
+    reader.onerror = () => {
+      setIsUploading(false);
       setModalConfig({
         isOpen: true,
-        title: "Erro no Upload",
+        title: "Erro ao Carregar Imagem",
         description:
           "Não foi possível carregar a foto do perfil. Tente novamente ou use outro arquivo.",
         variant: "danger",
         icon: AlertCircle,
       });
-    } finally {
-      setIsUploading(false);
-    }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSaveSettings = async () => {
