@@ -45,13 +45,11 @@ export function getAdminRole(request: FastifyRequest): AdminRole {
   return payload.adminRole;
 }
 
-export function requireSuperAdmin(request: FastifyRequest, reply: FastifyReply): boolean {
+export async function requireSuperAdmin(request: FastifyRequest, reply: FastifyReply) {
   const role = getAdminRole(request);
   if (role !== 'SUPER_ADMIN') {
-    reply.status(403).send({ message: 'Forbidden: requer super admin' });
-    return false;
+    return reply.status(403).send({ message: 'Forbidden: requer super admin' });
   }
-  return true;
 }
 
 // ── Portal guard ─────────────────────────────────────────────────────────────
