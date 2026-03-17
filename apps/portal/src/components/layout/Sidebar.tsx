@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { Home, Users, User, LogOut } from 'lucide-react';
 import { usePortalAuth } from '@/lib/auth';
+import { Button } from '@tutorfy/ui';
 
 export function Sidebar() {
   const { account, isGuardian, logout } = usePortalAuth();
@@ -42,13 +43,14 @@ export function Sidebar() {
       </nav>
 
       <div className="p-3 border-t border-border">
-        <button
+        <Button
+          variant="ghost"
           onClick={logout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors w-full"
+          className="w-full justify-start gap-3 px-3 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           Sair
-        </button>
+        </Button>
       </div>
     </aside>
   );

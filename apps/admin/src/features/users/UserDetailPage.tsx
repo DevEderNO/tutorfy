@@ -44,13 +44,21 @@ export function UserDetailPage() {
   const changePlanMutation = useMutation({
     mutationFn: (planId: string) => api.patch(`/admin/users/${id}/plan`, { planId }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'users', id] }); toast.success('Plano atualizado'); },
-    onError: (err: any) => toast.error(err.response?.data?.message ?? 'Erro ao atualizar plano'),
+    onError: (err: unknown) => toast.error(
+      err instanceof Object && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message ?? 'Erro ao atualizar plano'
+        : 'Erro ao atualizar plano',
+    ),
   });
 
   const toggleStatusMutation = useMutation({
     mutationFn: (isActive: boolean) => api.patch(`/admin/users/${id}/status`, { isActive }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'users', id] }); toast.success('Status atualizado'); },
-    onError: (err: any) => toast.error(err.response?.data?.message ?? 'Erro ao atualizar status'),
+    onError: (err: unknown) => toast.error(
+      err instanceof Object && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message ?? 'Erro ao atualizar status'
+        : 'Erro ao atualizar status',
+    ),
   });
 
   if (isLoading) return <div className="text-muted-foreground">Carregando...</div>;

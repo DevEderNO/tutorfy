@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Badge } from '@tutorfy/ui';
+import { Badge, Button } from '@tutorfy/ui';
 
 interface Student {
   id: string;
@@ -45,10 +45,11 @@ export function StudentsListPage() {
           </div>
         ) : (
           students.map((student) => (
-            <button
+            <Button
               key={student.id}
+              variant="ghost"
               onClick={() => navigate(`/students/${student.id}`)}
-              className="glass rounded-xl p-4 w-full text-left flex items-center gap-4 hover:border-primary/40 transition-colors"
+              className="glass rounded-xl p-4 w-full h-auto justify-start text-left items-center gap-4 hover:border-primary/40"
             >
               <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
                 {student.avatarUrl ? (
@@ -74,7 +75,7 @@ export function StudentsListPage() {
                 </Badge>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
-            </button>
+            </Button>
           ))
         )}
       </div>

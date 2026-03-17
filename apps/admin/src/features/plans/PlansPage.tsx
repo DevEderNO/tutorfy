@@ -6,6 +6,7 @@ import { Badge } from '@tutorfy/ui';
 import { Button } from '@tutorfy/ui';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalClose } from '@tutorfy/ui';
 import { Input, InputField } from '@tutorfy/ui';
+import { Checkbox } from '@tutorfy/ui';
 import { toast } from 'sonner';
 
 interface Plan {
@@ -49,13 +50,21 @@ export function PlansPage() {
       toast.success(editing ? 'Plano atualizado' : 'Plano criado');
       setOpen(false); setEditing(null); setForm(emptyForm);
     },
-    onError: (err: any) => toast.error(err.response?.data?.message ?? 'Erro ao salvar plano'),
+    onError: (err: unknown) => toast.error(
+      err instanceof Object && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message ?? 'Erro ao salvar plano'
+        : 'Erro ao salvar plano',
+    ),
   });
 
   const deactivateMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/admin/plans/${id}`),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'plans'] }); toast.success('Plano desativado'); },
-    onError: (err: any) => toast.error(err.response?.data?.message ?? 'Erro ao desativar'),
+    onError: (err: unknown) => toast.error(
+      err instanceof Object && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message ?? 'Erro ao desativar'
+        : 'Erro ao desativar',
+    ),
   });
 
   const openEdit = (plan: Plan) => {
@@ -123,10 +132,12 @@ export function PlansPage() {
             <InputField label="Limite de alunos (vazio = ilimitado)"><Input type="number" value={form.maxStudents} onChange={set('maxStudents')} /></InputField>
             <InputField label="Preço mensal (R$)"><Input type="number" value={form.priceMonthly} onChange={set('priceMonthly')} /></InputField>
             <InputField label="Preço anual (R$)"><Input type="number" value={form.priceAnnual} onChange={set('priceAnnual')} /></InputField>
-            <div className="flex items-center gap-2">
-              <input type="checkbox" id="aiEnabled" checked={form.aiEnabled} onChange={(e) => setForm((f) => ({ ...f, aiEnabled: e.target.checked }))} className="accent-primary" />
-              <label htmlFor="aiEnabled" className="text-sm text-foreground">IA habilitada</label>
-            </div>
+            <Checkbox
+              id="aiEnabled"
+              checked={form.aiEnabled}
+              onCheckedChange={(checked) => setForm((f) => ({ ...f, aiEnabled: checked === true }))}
+              label="IA habilitada"
+            />
           </ModalBody>
           <ModalFooter>
             <ModalClose asChild><Button variant="secondary">Cancelar</Button></ModalClose>

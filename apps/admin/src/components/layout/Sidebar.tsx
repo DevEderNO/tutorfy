@@ -11,6 +11,7 @@ import {
   PinOff,
 } from 'lucide-react';
 import { useAdminAuth } from '@/lib/auth';
+import { Button } from '@tutorfy/ui';
 
 interface NavItem {
   to: string;
@@ -90,10 +91,11 @@ export function Sidebar({ pinned, expanded, onTogglePin, onMouseEnter, onMouseLe
 
       {/* Pin */}
       <div className="border-t border-primary/10">
-        <button
+        <Button
+          variant="ghost"
           onClick={onTogglePin}
           title={pinned ? 'Recolher sidebar' : 'Fixar sidebar'}
-          className="flex items-center w-full py-4 text-slate-500 hover:text-primary transition-colors"
+          className="flex items-center w-full h-auto py-4 rounded-none text-slate-500 hover:text-primary hover:bg-transparent"
         >
           <div className="w-16 flex justify-center shrink-0">
             {pinned ? <PinOff className="h-5 w-5" /> : <Pin className="h-5 w-5" />}
@@ -101,7 +103,7 @@ export function Sidebar({ pinned, expanded, onTogglePin, onMouseEnter, onMouseLe
           <span className="whitespace-nowrap text-sm font-medium pr-4">
             {pinned ? 'Recolher' : 'Fixar sidebar'}
           </span>
-        </button>
+        </Button>
       </div>
     </aside>
   );

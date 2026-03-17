@@ -1,6 +1,6 @@
 import { LogOut, Shield } from 'lucide-react';
 import { useAdminAuth } from '@/lib/auth';
-import { Badge } from '@tutorfy/ui';
+import { Badge, Button } from '@tutorfy/ui';
 
 interface HeaderProps {
   sidebarExpanded: boolean;
@@ -32,14 +32,15 @@ export function Header({ sidebarExpanded }: HeaderProps) {
             </Badge>
           </div>
         )}
-        <button
+        <Button
+          variant="ghost"
           onClick={logout}
           title="Sair"
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-destructive hover:bg-destructive/10 transition-colors text-sm"
+          className="text-slate-400 hover:text-destructive hover:bg-destructive/10"
         >
           <LogOut className="h-4 w-4" />
-          <span>Sair</span>
-        </button>
+          Sair
+        </Button>
       </div>
     </header>
   );

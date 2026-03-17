@@ -63,7 +63,7 @@ function AppRoutes() {
   );
 }
 
-export default function App() {
+export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

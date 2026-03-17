@@ -20,8 +20,12 @@ export function LoginPage() {
     try {
       await login(email, password);
       navigate('/');
-    } catch (err: any) {
-      setError(err.response?.data?.message ?? 'Erro ao fazer login');
+    } catch (err: unknown) {
+      setError(
+        err instanceof Object && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message ?? 'Erro ao fazer login'
+          : 'Erro ao fazer login',
+      );
     } finally {
       setIsLoading(false);
     }

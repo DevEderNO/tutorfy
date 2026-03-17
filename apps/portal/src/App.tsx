@@ -25,7 +25,7 @@ function GuardianRoute({ children }: { children: React.ReactNode }) {
   return isGuardian ? <>{children}</> : <Navigate to="/" replace />;
 }
 
-export default function App() {
+export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

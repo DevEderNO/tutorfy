@@ -37,16 +37,24 @@ export function AdminsPage() {
       toast.success('Admin criado com sucesso');
       setOpen(false); setForm({ name: '', email: '', password: '', adminRole: 'SUPPORT' });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message ?? 'Erro ao criar admin'),
+    onError: (err: unknown) => toast.error(
+      err instanceof Object && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message ?? 'Erro ao criar admin'
+        : 'Erro ao criar admin',
+    ),
   });
 
   const deactivateMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/admin/admins/${id}`),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'admins'] }); toast.success('Admin desativado'); },
-    onError: (err: any) => toast.error(err.response?.data?.message ?? 'Erro ao desativar'),
+    onError: (err: unknown) => toast.error(
+      err instanceof Object && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message ?? 'Erro ao desativar'
+        : 'Erro ao desativar',
+    ),
   });
 
-  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [field]: e.target.value }));
+  const set = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
   return (
     <div className="space-y-6">

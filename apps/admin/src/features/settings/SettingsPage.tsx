@@ -31,7 +31,11 @@ export function SettingsPage() {
   const saveMutation = useMutation({
     mutationFn: () => api.put('/admin/settings', { config }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'settings'] }); toast.success('Configurações salvas'); },
-    onError: (err: any) => toast.error(err.response?.data?.message ?? 'Erro ao salvar'),
+    onError: (err: unknown) => toast.error(
+      err instanceof Object && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message ?? 'Erro ao salvar'
+        : 'Erro ao salvar',
+    ),
   });
 
   if (isLoading) return <div className="text-muted-foreground">Carregando...</div>;
