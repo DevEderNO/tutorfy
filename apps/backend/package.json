@@ -7,7 +7,11 @@
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc",
     "start": "prisma migrate deploy && node dist/server.js",
-    "lint": "echo 'no lint configured'"
+    "lint": "echo 'no lint configured'",
+    "seed": "tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.0",

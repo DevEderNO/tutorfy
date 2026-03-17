@@ -26,6 +26,16 @@ export class UsersController {
     }
   }
 
+  async getSubscription(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const userId = getUserId(request);
+      const data = await usersService.getSubscription(userId);
+      return reply.send({ data });
+    } catch (error: any) {
+      return reply.status(error.statusCode || 500).send({ message: error.message });
+    }
+  }
+
   async updateAiSettings(request: FastifyRequest, reply: FastifyReply) {
     const parsed = updateAiSettingsSchema.safeParse(request.body);
     if (!parsed.success) {

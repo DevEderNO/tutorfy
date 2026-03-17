@@ -22,7 +22,7 @@ export class AuthController {
 
     try {
       const user = await authService.register(parsed.data);
-      const token = await reply.jwtSign({ id: user.id });
+      const token = await reply.jwtSign({ id: user.id, type: 'tutor' });
       return reply.status(201).send({ data: { token, user } });
     } catch (error: any) {
       return reply
@@ -42,7 +42,7 @@ export class AuthController {
 
     try {
       const user = await authService.login(parsed.data);
-      const token = await reply.jwtSign({ id: user.id });
+      const token = await reply.jwtSign({ id: user.id, type: 'tutor' });
       return reply.send({ data: { token, user } });
     } catch (error: any) {
       return reply
@@ -62,7 +62,7 @@ export class AuthController {
 
     try {
       const user = await authService.googleLogin(parsed.data);
-      const token = await reply.jwtSign({ id: user.id });
+      const token = await reply.jwtSign({ id: user.id, type: 'tutor' });
       return reply.send({ data: { token, user } });
     } catch (error: any) {
       return reply

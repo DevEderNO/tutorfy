@@ -20,6 +20,34 @@ export class UsersService {
     };
   }
 
+  async getSubscription(userId: string) {
+    const sub = await prisma.subscription.findUnique({
+      where: { userId },
+      select: {
+        id: true,
+        status: true,
+        period: true,
+        startedAt: true,
+        expiresAt: true,
+        plan: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            maxStudents: true,
+            aiEnabled: true,
+            priceMonthly: true,
+            priceAnnual: true,
+          },
+        },
+      },
+    });
+
+    const studentCount = await prisma.student.count({ where: { userId } });
+
+    return { subscription: sub, studentCount };
+  }
+
   async updateAiSettings(userId: string, data: UpdateAiSettingsInput) {
     const user = await prisma.user.update({
       where: { id: userId },

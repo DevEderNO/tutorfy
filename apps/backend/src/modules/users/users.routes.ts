@@ -12,6 +12,7 @@ export async function usersRoutes(app: FastifyInstance) {
     }
   });
 
+  app.get('/subscription', controller.getSubscription.bind(controller));
   app.put('/profile', controller.updateProfile.bind(controller));
   app.patch('/ai-settings', controller.updateAiSettings.bind(controller));
 }

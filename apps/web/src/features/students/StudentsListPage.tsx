@@ -1,8 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useStudents, useDeleteStudent } from "./hooks/useStudents";
 import { UserPlus, Trash2, Eye, Pencil, PersonStanding, UserCheck, BookOpen, Download } from "lucide-react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { useCanAddStudent } from "@/hooks/useSubscription";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
@@ -27,6 +29,15 @@ function fmtFee(billingType: string, monthlyFee: number, hourlyRate: number | nu
 }
 
 export function StudentsListPage() {
+  const navigate = useNavigate();
+  const { canAdd, isAtLimit, max, current } = useCanAddStudent();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const handleNewStudent = () => {
+    if (!canAdd) { setShowUpgradeModal(true); return; }
+    navigate("/students/new");
+  };
+
   const [page, setPage]         = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch]     = useState("");
@@ -95,13 +106,16 @@ export function StudentsListPage() {
     <div className="flex flex-col min-h-screen">
       <Header
         title="Gestão de Alunos"
-        showCreateButton
-        createButtonLink="/students/new"
-        createButtonLabel="Novo Aluno"
         actions={
-          <Button variant="glass" size="icon" aria-label="Exportar lista">
-            <Download />
-          </Button>
+          <>
+            <Button variant="glass" size="icon" aria-label="Exportar lista">
+              <Download />
+            </Button>
+            <Button onClick={handleNewStudent}>
+              <UserPlus />
+              <span className="hidden sm:inline">Novo Aluno</span>
+            </Button>
+          </>
         }
       />
 
@@ -320,6 +334,14 @@ export function StudentsListPage() {
           )}
         </div>
       </div>
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        reason="student-limit"
+        max={max}
+        current={current}
+      />
 
       <ConfirmModal
         isOpen={!!deletingStudent}

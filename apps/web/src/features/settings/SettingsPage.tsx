@@ -1,4 +1,6 @@
 import { useAuth } from "@/lib/auth";
+import { usePlanAiEnabled } from "@/hooks/useSubscription";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import { api } from "@/lib/api";
 import {
   ShieldCheck,
@@ -43,6 +45,8 @@ import { StatusLabel } from "@/components/ui/status-label";
 
 export function SettingsPage() {
   const { user, updateUser } = useAuth();
+  const planAiEnabled = usePlanAiEnabled();
+  const [showAiUpgradeModal, setShowAiUpgradeModal] = useState(false);
 
   const [name, setName] = useState(user?.name || "Dr. Ricardo Silva");
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
@@ -563,8 +567,21 @@ export function SettingsPage() {
                 6. Inteligência Artificial
               </h3>
             </div>
+            {!planAiEnabled && (
+              <Badge variant="warning">Não disponível no seu plano</Badge>
+            )}
           </div>
-          <div className="p-8 space-y-6 relative z-10">
+          {!planAiEnabled && (
+            <div className="px-8 py-4 bg-warning/10 border-b border-warning/20 flex items-center justify-between gap-4">
+              <p className="text-sm text-warning">
+                Os recursos de IA não estão disponíveis no seu plano atual. Faça upgrade para desbloquear.
+              </p>
+              <Button variant="glass" size="sm" onClick={() => setShowAiUpgradeModal(true)}>
+                Fazer upgrade
+              </Button>
+            </div>
+          )}
+          <div className={`p-8 space-y-6 relative z-10 ${!planAiEnabled ? 'opacity-50 pointer-events-none select-none' : ''}`}>
             <div>
               <p className="text-sm font-bold text-foreground tracking-tight mb-1">
                 Modo de geração de evolução do aluno
@@ -800,6 +817,12 @@ export function SettingsPage() {
             {isSaving ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </div>
+
+        <UpgradeModal
+          isOpen={showAiUpgradeModal}
+          onClose={() => setShowAiUpgradeModal(false)}
+          reason="ai-disabled"
+        />
 
         <ConfirmModal
           isOpen={!!modalConfig?.isOpen}

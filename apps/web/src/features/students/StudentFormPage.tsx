@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import type { BillingType } from "@tutorfy/types";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { useCanAddStudent } from "@/hooks/useSubscription";
 import { Header } from "@/components/layout/Header";
 import { Input, InputField } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
@@ -128,6 +130,13 @@ export function StudentFormPage() {
   const { id }      = useParams<{ id: string }>();
   const navigate    = useNavigate();
   const isEditing   = !!id;
+  const { canAdd, isAtLimit, max, current } = useCanAddStudent();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  // redirect back if limit reached on new student form
+  useEffect(() => {
+    if (!isEditing && isAtLimit) setShowUpgradeModal(true);
+  }, [isEditing, isAtLimit]);
 
   const { data: student, isLoading } = useStudent(id);
   const createStudent = useCreateStudent();
@@ -197,6 +206,7 @@ export function StudentFormPage() {
   };
 
   const onSubmit = async (data: StudentFormData) => {
+    if (!isEditing && !canAdd) { setShowUpgradeModal(true); return; }
     const payload = {
       name:                data.name,
       avatarUrl:           data.avatarUrl ?? undefined,
@@ -689,6 +699,14 @@ export function StudentFormPage() {
             </Button>
           </footer>
         </form>
+
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => { setShowUpgradeModal(false); navigate("/students"); }}
+          reason="student-limit"
+          max={max}
+          current={current}
+        />
 
         <ConfirmModal
           isOpen={showErrorModal}
