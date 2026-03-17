@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Badge } from '@tutorfy/ui';
-import { Input, InputField } from '@tutorfy/ui';
-import { Button } from '@tutorfy/ui';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from '@tutorfy/ui';
-import { Pagination } from '@tutorfy/ui';
+import {
+  Badge,
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty,
+  TableToolbar, TableSearch, TableFilter,
+  Pagination,
+  sortRows, nextSortDirection,
+  type SortState, type SortDirection,
+} from '@tutorfy/ui';
 
 interface UserRow {
   id: string; name: string; email: string; isActive: boolean; createdAt: string;
@@ -19,21 +22,50 @@ interface ListResult {
   meta: { total: number; page: number; limit: number; totalPages: number };
 }
 
+type SortKey = 'name' | 'email' | 'students' | 'status';
+
+const ACTIVE_OPTIONS = [
+  { value: 'true', label: 'Ativo' },
+  { value: 'false', label: 'Inativo' },
+];
+
 export function UsersListPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [isActiveFilter, setIsActiveFilter] = useState('');
+  const [activeFilter, setActiveFilter] = useState<string[]>([]);
+  const [sortState, setSortState] = useState<SortState<SortKey>>({ column: null, direction: null });
+
+  const isActiveParam = activeFilter.length === 1 ? activeFilter[0] : '';
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'users', { search, page, isActiveFilter }],
+    queryKey: ['admin', 'users', { search, page, isActiveParam }],
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
       if (search) params.set('search', search);
-      if (isActiveFilter) params.set('isActive', isActiveFilter);
+      if (isActiveParam) params.set('isActive', isActiveParam);
       const res = await api.get<ListResult>(`/admin/users?${params}`);
       return res.data;
     },
+  });
+
+  function handleSort(col: SortKey) {
+    setSortState((prev) => ({
+      column: col,
+      direction: prev.column === col ? nextSortDirection(prev.direction) : 'asc',
+    }));
+  }
+
+  function sortDir(col: SortKey): SortDirection {
+    return sortState.column === col ? sortState.direction : null;
+  }
+
+  const rows = sortRows(data?.data ?? [], sortState, (row, col) => {
+    if (col === 'name') return row.name;
+    if (col === 'email') return row.email;
+    if (col === 'students') return row._count.students;
+    if (col === 'status') return row.isActive ? 1 : 0;
+    return '';
   });
 
   return (
@@ -43,34 +75,31 @@ export function UsersListPage() {
         <p className="text-sm text-muted-foreground mt-1">Tutores cadastrados na plataforma</p>
       </div>
 
-      <div className="flex flex-wrap gap-3 items-end">
-        <div className="flex-1 min-w-[200px] max-w-sm">
-          <InputField>
-            <Input
-              placeholder="Buscar por nome ou email…"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              leadingIcon={<Search className="h-4 w-4" />}
-            />
-          </InputField>
-        </div>
-        <div className="flex gap-2">
-          {(['', 'true', 'false'] as const).map((v) => (
-            <Button key={v} variant={isActiveFilter === v ? 'primary' : 'secondary'} size="sm"
-              onClick={() => { setIsActiveFilter(v); setPage(1); }}>
-              {v === '' ? 'Todos' : v === 'true' ? 'Ativos' : 'Inativos'}
-            </Button>
-          ))}
-        </div>
-      </div>
+      <TableToolbar>
+        <TableSearch
+          placeholder="Buscar por nome ou email…"
+          value={search}
+          onValueChange={(v) => { setSearch(v); setPage(1); }}
+        />
+        <TableFilter
+          label="Status"
+          options={ACTIVE_OPTIONS}
+          value={activeFilter}
+          onValueChange={(v) => { setActiveFilter(v); setPage(1); }}
+          multiple
+        />
+      </TableToolbar>
 
       <div className="glass rounded-xl overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead><TableHead>Email</TableHead>
-              <TableHead>Plano</TableHead><TableHead>Alunos</TableHead>
-              <TableHead>Status</TableHead><TableHead></TableHead>
+              <TableHead sortable sortDirection={sortDir('name')} onSort={() => handleSort('name')}>Nome</TableHead>
+              <TableHead sortable sortDirection={sortDir('email')} onSort={() => handleSort('email')}>Email</TableHead>
+              <TableHead>Plano</TableHead>
+              <TableHead sortable sortDirection={sortDir('students')} onSort={() => handleSort('students')}>Alunos</TableHead>
+              <TableHead sortable sortDirection={sortDir('status')} onSort={() => handleSort('status')}>Status</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -78,10 +107,10 @@ export function UsersListPage() {
               [...Array(5)].map((_, i) => (
                 <TableRow key={i}>{[...Array(6)].map((_, j) => <TableCell key={j}><div className="h-4 bg-muted rounded animate-pulse" /></TableCell>)}</TableRow>
               ))
-            ) : !data?.data.length ? (
+            ) : !rows.length ? (
               <TableEmpty colSpan={6} message="Nenhum usuário encontrado" />
             ) : (
-              data.data.map((user) => (
+              rows.map((user) => (
                 <TableRow key={user.id} className="cursor-pointer hover:bg-white/5" onClick={() => navigate(`/users/${user.id}`)}>
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell className="text-muted-foreground">{user.email}</TableCell>
@@ -105,7 +134,7 @@ export function UsersListPage() {
       </div>
 
       {data && data.meta.totalPages > 1 && (
-        <Pagination page={page} totalPages={data.meta.totalPages} onPageChange={setPage} />
+        <Pagination page={page} totalPages={data.meta.totalPages} onPageChange={setPage} showEdges />
       )}
     </div>
   );
