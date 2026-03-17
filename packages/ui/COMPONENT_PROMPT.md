@@ -1,18 +1,18 @@
-# Conversão de Design para Componentes React
+# Criação de Componentes — @tutorfy/ui
 
-Analise o design anexado (screenshot ou frame do Figma) e converta para componentes React seguindo os padrões abaixo.
+Guia para criar ou modificar componentes no pacote compartilhado `packages/ui`.
 
 ---
 
 ## Stack
 
 - **React 19** (sem `forwardRef`)
-- **TypeScript** strict
+- **TypeScript** strict (sem `any`)
 - **Tailwind CSS v4** com `@theme` e CSS variables
-- **Base UI React** (`@base-ui/react`) para componentes headless
+- **Radix UI** (`@radix-ui/*`) para componentes headless
 - **Tailwind Variants** (`tailwind-variants`) para variantes
 - **Tailwind Merge** (`tailwind-merge`) para merge de classes
-- **Lucide React** ou **Phosphor Icons** para ícones
+- **Lucide React** para ícones
 
 ---
 
@@ -20,7 +20,7 @@ Analise o design anexado (screenshot ou frame do Figma) e converta para componen
 
 - Arquivos: **lowercase com hífens** → `user-card.tsx`, `use-modal.ts`
 - **Sempre named exports**, nunca default export
-- Não criar barrel files (`index.ts`) para pastas internas
+- Exportar tudo em `packages/ui/src/index.ts`
 
 ---
 
@@ -82,9 +82,7 @@ export function Button({ className, variant, size, disabled, children, ...props 
 import { twMerge } from 'tailwind-merge'
 import type { ComponentProps } from 'react'
 
-export interface CardProps extends ComponentProps<'div'> {}
-
-export function Card({ className, ...props }: CardProps) {
+export function Card({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       data-slot="card"
@@ -201,38 +199,40 @@ className="data-[disabled]:opacity-50 data-[selected]:bg-primary"
 
 ---
 
-## Base UI (componentes headless)
+## Radix UI (componentes headless)
 
 ```tsx
 // Dialog
-import * as Dialog from '@base-ui/react/dialog'
-<Dialog.Root><Dialog.Portal><Dialog.Backdrop /><Dialog.Popup /></Dialog.Portal></Dialog.Root>
+import * as Dialog from '@radix-ui/react-dialog'
+<Dialog.Root><Dialog.Portal><Dialog.Overlay /><Dialog.Content /></Dialog.Portal></Dialog.Root>
 
 // Tabs
-import * as Tabs from '@base-ui/react/tabs'
-<Tabs.Root><Tabs.List><Tabs.Tab /></Tabs.List><Tabs.Panel /></Tabs.Root>
+import * as Tabs from '@radix-ui/react-tabs'
+<Tabs.Root><Tabs.List><Tabs.Trigger /></Tabs.List><Tabs.Content /></Tabs.Root>
 
 // Select
-import * as Select from '@base-ui/react/select'
-<Select.Root><Select.Trigger /><Select.Portal><Select.Popup><Select.Item /></Select.Popup></Select.Portal></Select.Root>
+import * as Select from '@radix-ui/react-select'
+<Select.Root><Select.Trigger /><Select.Portal><Select.Content><Select.Item /></Select.Content></Select.Portal></Select.Root>
 
-// Menu
-import * as Menu from '@base-ui/react/menu'
-<Menu.Root><Menu.Trigger /><Menu.Portal><Menu.Popup><Menu.Item /></Menu.Popup></Menu.Portal></Menu.Root>
+// DropdownMenu
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+<DropdownMenu.Root><DropdownMenu.Trigger /><DropdownMenu.Portal><DropdownMenu.Content><DropdownMenu.Item /></DropdownMenu.Content></DropdownMenu.Portal></DropdownMenu.Root>
 ```
 
 ---
 
 ## Onde registrar novos componentes
 
-- **Arquivo do componente:** `apps/web/src/components/ui/<nome-do-componente>.tsx`
-- **Showcase:** adicionar entrada no array `molecules` em `apps/web/src/features/components/MoleculesPage.tsx`
+1. **Arquivo do componente:** `packages/ui/src/<nome-do-componente>.tsx`
+2. **Exportar:** adicionar `export * from './<nome-do-componente>'` em `packages/ui/src/index.ts`
+3. **Showcase:** adicionar entrada no `MoleculesPage.tsx` em `apps/web/src/features/components/`
+4. **MCP Memory:** atualizar o grafo com `mcp__memory__create_entities` / `mcp__memory__add_observations`
 
 ---
 
 ## Checklist
 
-- [ ] Arquivo lowercase com hífens em `src/components/ui/`
+- [ ] Arquivo lowercase com hífens em `packages/ui/src/`
 - [ ] Named export
 - [ ] `ComponentProps<'elemento'>` + `VariantProps`
 - [ ] Variantes com `tv()`, classes com `twMerge()`
@@ -242,4 +242,6 @@ import * as Menu from '@base-ui/react/menu'
 - [ ] Focus visible em interativos
 - [ ] `aria-label` em botões de ícone
 - [ ] `{...props}` no final
+- [ ] Exportado em `packages/ui/src/index.ts`
 - [ ] Registrado no `MoleculesPage.tsx`
+- [ ] MCP Memory atualizado

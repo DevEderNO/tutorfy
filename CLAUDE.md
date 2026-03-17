@@ -64,14 +64,15 @@ O Tutorfy é uma aplicação web de gestão e interação para aulas/tutorias. O
 ## Padrões de UI/UX
 
 - Design system: dark glassmorphism premium (backgrounds escuros, bordas translúcidas, gradientes sutis).
-- **Sempre usar os componentes da biblioteca de UI (`apps/web/src/components/ui/`) ao implementar ou alterar qualquer elemento visual** — botões, inputs, selects, tabelas, modais, tabs, etc. Elementos HTML nativos (`<button>`, `<input>`, `<select>`, `<table>`, etc.) só são aceitáveis quando o componente da biblioteca não atende ao caso de uso e o usuário explicitamente solicitar algo mais customizado.
+- **Sempre importar de `@tutorfy/ui` ao implementar ou alterar qualquer elemento visual** — botões, inputs, selects, tabelas, modais, tabs, badges, avatares, paginação, upload, date/time pickers, etc. Nunca usar elementos HTML nativos (`<button>`, `<input>`, `<select>`, `<table>`, etc.) quando já existe um componente equivalente em `@tutorfy/ui`. A exceção é quando o componente existente genuinamente não atende ao caso de uso e o usuário explicitamente solicitar algo customizado.
+- **Antes de criar um novo componente visual, consultar a tabela de componentes disponíveis** na seção "Biblioteca de Componentes UI" abaixo. Se o componente já existir, usá-lo. Se não existir, criá-lo em `packages/ui/src/`, exportá-lo em `packages/ui/src/index.ts`, e atualizar o MCP Memory e o showcase `MoleculesPage.tsx`.
 - Antes de implementar qualquer tela nova ou refatoração visual relevante, usar o **Stitch MCP** para gerar protótipos.
 
 ## Biblioteca de Componentes UI
 
-Localização: `apps/web/src/components/ui/`
+Localização: `packages/ui/src/` — importar sempre via `@tutorfy/ui`
 Showcase (dev-only via `import.meta.env.DEV`): rota `/components`
-Prompt base: `apps/web/src/features/components/COMPONENT_PROMPT.md`
+Guia completo para criar/modificar componentes: `packages/ui/COMPONENT_PROMPT.md`
 
 ### Componentes disponíveis
 
@@ -134,7 +135,8 @@ export function Xyz({ className, variant, size, disabled, children, ...props }: 
 - Ícones SVG dimensionados via variante: `[&_svg]:size-3.5`
 - Botões de ícone exigem `aria-label`
 - `{...props}` sempre no final
-- Registrar showcase em `MoleculesPage.tsx` ao criar novo componente
+- Criar em `packages/ui/src/` e exportar em `packages/ui/src/index.ts`
+- Registrar showcase em `apps/web/src/features/components/MoleculesPage.tsx`
 - Atualizar o MCP Memory com a nova entidade
 
 ## MCP Servers (`.mcp.json`)
