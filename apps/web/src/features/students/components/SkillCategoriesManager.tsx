@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { X, Plus, Pencil, Trash2, Palette } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from '@tutorfy/ui';
+import { Input } from '@tutorfy/ui';
 import {
   useSkillCategories,
   useCreateSkillCategory,

@@ -3,12 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAdminAuth } from '@/lib/auth';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Modal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalClose } from '@/components/ui/modal';
-import { Input, InputField } from '@/components/ui/input';
-import { Select, SelectItem } from '@/components/ui/select';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from '@/components/ui/table';
+import { Badge } from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { Modal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalClose } from '@tutorfy/ui';
+import { Input, InputField } from '@tutorfy/ui';
+import { Select, SelectItem } from '@tutorfy/ui';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from '@tutorfy/ui';
 import { toast } from 'sonner';
 
 interface AdminRow {

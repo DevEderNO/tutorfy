@@ -19,7 +19,7 @@ import { ComponentsLayout } from "@/features/components/ComponentsLayout";
 import { AtomsPage } from "@/features/components/AtomsPage";
 import { MoleculesPage } from "@/features/components/MoleculesPage";
 import { OrganismsPage } from "@/features/components/OrganismsPage";
-import { Toaster } from "@/components/ui/toast";
+import { Toaster } from '@tutorfy/ui';
 
 const queryClient = new QueryClient({
   defaultOptions: {

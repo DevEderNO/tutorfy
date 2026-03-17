@@ -1,6 +1,6 @@
 import { Sparkles, Users } from "lucide-react";
 import { Modal } from "./Modal";
-import { Button } from "@/components/ui/button";
+import { Button } from '@tutorfy/ui';
 
 interface UpgradeModalProps {
   isOpen: boolean;

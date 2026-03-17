@@ -25,10 +25,10 @@ import {
   ModalDescription,
   ModalBody,
   ModalFooter,
-} from "@/components/ui/modal";
-import { Button } from "@/components/ui/button";
-import { Select, SelectItem } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+} from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { Select, SelectItem } from '@tutorfy/ui';
+import { Input } from '@tutorfy/ui';
 import {
   Table,
   TableHeader,
@@ -42,9 +42,9 @@ import {
   sortRows,
   nextSortDirection,
   type SortState,
-} from "@/components/ui/table";
-import { TableFilter } from "@/components/ui/table-filter";
-import { Pagination } from "@/components/ui/pagination";
+} from '@tutorfy/ui';
+import { TableFilter } from '@tutorfy/ui';
+import { Pagination } from '@tutorfy/ui';
 import { Header } from "@/components/layout/Header";
 
 export function FinancialPage() {

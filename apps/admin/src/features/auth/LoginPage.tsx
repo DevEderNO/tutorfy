@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, Shield } from 'lucide-react';
 import { useAdminAuth } from '@/lib/auth';
-import { Button } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
+import { Button } from '@tutorfy/ui';
+import { Input, InputField } from '@tutorfy/ui';
 
 export function LoginPage() {
   const navigate = useNavigate();

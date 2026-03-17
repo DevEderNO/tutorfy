@@ -1,6 +1,6 @@
 import { LogOut, Shield } from 'lucide-react';
 import { useAdminAuth } from '@/lib/auth';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@tutorfy/ui';
 
 interface HeaderProps {
   sidebarExpanded: boolean;

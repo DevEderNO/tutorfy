@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Modal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalClose } from '@/components/ui/modal';
-import { Input, InputField } from '@/components/ui/input';
+import { Badge } from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { Modal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalClose } from '@tutorfy/ui';
+import { Input, InputField } from '@tutorfy/ui';
 import { toast } from 'sonner';
 
 interface Plan {

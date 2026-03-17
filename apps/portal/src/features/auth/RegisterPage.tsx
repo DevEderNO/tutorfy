@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { usePortalAuth } from '@/lib/auth';
-import { Button } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
+import { Button } from '@tutorfy/ui';
+import { Input, InputField } from '@tutorfy/ui';
 import { toast } from 'sonner';
 
 export function RegisterPage() {

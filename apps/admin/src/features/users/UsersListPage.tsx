@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Badge } from '@/components/ui/badge';
-import { Input, InputField } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from '@/components/ui/table';
-import { Pagination } from '@/components/ui/pagination';
+import { Badge } from '@tutorfy/ui';
+import { Input, InputField } from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from '@tutorfy/ui';
+import { Pagination } from '@tutorfy/ui';
 
 interface UserRow {
   id: string; name: string; email: string; isActive: boolean; createdAt: string;

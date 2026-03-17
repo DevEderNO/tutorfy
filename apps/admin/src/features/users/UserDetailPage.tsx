@@ -4,10 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, BookOpen, CalendarDays, DollarSign } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAdminAuth } from '@/lib/auth';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectItem } from '@/components/ui/select';
-import { InputField } from '@/components/ui/input';
+import { Badge } from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { Select, SelectItem } from '@tutorfy/ui';
+import { InputField } from '@tutorfy/ui';
 import { toast } from 'sonner';
 
 interface Plan { id: string; name: string; slug: string }

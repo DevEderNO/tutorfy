@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@tutorfy/ui';
 
 interface Student {
   id: string;

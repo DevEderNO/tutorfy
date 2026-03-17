@@ -8,8 +8,8 @@ import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { Header } from "@/components/layout/Header";
 import { EvolutionTab } from "./components/EvolutionTab";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from '@tutorfy/ui';
+import { Tabs, TabsList, TabsTrigger } from '@tutorfy/ui';
 import {
   Table,
   TableHeader,
@@ -18,7 +18,7 @@ import {
   TableHead,
   TableCell,
   TableEmpty,
-} from "@/components/ui/table";
+} from '@tutorfy/ui';
 
 const statusColors: Record<string, string> = {
   SCHEDULED: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from '@/components/ui/table';
-import { Pagination } from '@/components/ui/pagination';
+import { Badge } from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from '@tutorfy/ui';
+import { Pagination } from '@tutorfy/ui';
 
 interface Subscription {
   id: string; status: string; period: string; startedAt: string;

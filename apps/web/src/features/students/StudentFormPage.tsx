@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast } from "@/components/ui/toast";
+import { toast } from '@tutorfy/ui';
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm, useWatch, useFieldArray, Controller } from "react-hook-form";
@@ -28,12 +28,12 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { useCanAddStudent } from "@/hooks/useSubscription";
 import { Header } from "@/components/layout/Header";
-import { Input, InputField } from "@/components/ui/input";
-import { Select, SelectItem } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
-import { TimePicker } from "@/components/ui/time-picker";
-import { ImageUpload } from "@/components/ui/upload";
+import { Input, InputField } from '@tutorfy/ui';
+import { Select, SelectItem } from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { DatePicker } from '@tutorfy/ui';
+import { TimePicker } from '@tutorfy/ui';
+import { ImageUpload } from '@tutorfy/ui';
 import { format as fmtDate } from "date-fns";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────

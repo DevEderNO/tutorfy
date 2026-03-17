@@ -1,17 +1,17 @@
 import React, { useState, useMemo } from 'react'
-import { Button } from '../../components/ui/button'
-import { Badge } from '../../components/ui/badge'
-import { StatusLabel } from '../../components/ui/status-label'
-import { Avatar } from '../../components/ui/avatar'
+import { Button } from '@tutorfy/ui'
+import { Badge } from '@tutorfy/ui'
+import { StatusLabel } from '@tutorfy/ui'
+import { Avatar } from '@tutorfy/ui'
 import {
   Table, TableHeader, TableBody, TableFooter,
   TableRow, TableHead, TableCell, TableCaption, TableEmpty,
   TableToolbar, TableSearch,
   sortRows, filterRows,
   type SortState,
-} from '../../components/ui/table'
-import { TableFilter, TableFilterGroup } from '../../components/ui/table-filter'
-import { Pagination } from '../../components/ui/pagination'
+} from '@tutorfy/ui'
+import { TableFilter, TableFilterGroup } from '@tutorfy/ui'
+import { Pagination } from '@tutorfy/ui'
 import {
   Trash2, Pencil, MoreHorizontal,
   GraduationCap, CalendarClock, CircleDollarSign,

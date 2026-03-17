@@ -3,8 +3,8 @@ import { Sparkles } from "lucide-react";
 import { useSkillCategories } from "../hooks/useSkillCategories";
 import type { SkillCategory } from "../hooks/useSkillCategories";
 import { MicButton } from "@/components/MicButton";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from '@tutorfy/ui';
+import { Textarea } from '@tutorfy/ui';
 import {
   Modal,
   ModalContent,
@@ -13,7 +13,7 @@ import {
   ModalDescription,
   ModalBody,
   ModalFooter,
-} from "@/components/ui/modal";
+} from '@tutorfy/ui';
 
 interface EvolutionFormModalProps {
   isOpen: boolean;

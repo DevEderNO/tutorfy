@@ -1,6 +1,6 @@
 import { usePortalAuth } from '@/lib/auth';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
 
 export function ProfilePage() {
   const { account, logout } = usePortalAuth();

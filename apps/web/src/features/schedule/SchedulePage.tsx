@@ -44,17 +44,17 @@ import {
   ModalTitle,
   ModalBody,
   ModalFooter,
-} from "@/components/ui/modal";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectItem } from "@/components/ui/select";
-import { SearchSelect } from "@/components/ui/search-select";
-import { DatePicker } from "@/components/ui/date-picker";
-import { TimePicker } from "@/components/ui/time-picker";
+} from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { Textarea } from '@tutorfy/ui';
+import { Select, SelectItem } from '@tutorfy/ui';
+import { SearchSelect } from '@tutorfy/ui';
+import { DatePicker } from '@tutorfy/ui';
+import { TimePicker } from '@tutorfy/ui';
 import { Header } from "@/components/layout/Header";
 import { Search, Sparkles } from "lucide-react";
 import { MicButton } from "@/components/MicButton";
-import { toast } from "@/components/ui/toast";
+import { toast } from '@tutorfy/ui';
 import { useAuth } from "@/lib/auth";
 import { useGenerateLessonPlan } from "@/features/ai/hooks/useLessonPlan";
 import { useGenerateStudentEvolution } from "@/features/ai/hooks/useStudentEvolution";

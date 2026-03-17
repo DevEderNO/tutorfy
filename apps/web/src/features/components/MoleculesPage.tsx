@@ -35,32 +35,32 @@ import {
   DropdownSub,
   DropdownSubTrigger,
   DropdownSubContent,
-} from "../../components/ui/dropdown";
+} from '@tutorfy/ui';
 import {
   SearchSelect,
   type SearchSelectOption,
-} from "../../components/ui/search-select";
-import { toast } from "../../components/ui/toast";
-import { Button } from "../../components/ui/button";
-import { Input, InputField } from "../../components/ui/input";
+} from '@tutorfy/ui';
+import { toast } from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { Input, InputField } from '@tutorfy/ui';
 import {
   Select,
   SelectItem,
   SelectGroup,
   SelectSeparator,
-} from "../../components/ui/select";
-import { Checkbox } from "../../components/ui/checkbox";
-import { RadioGroup, RadioItem } from "../../components/ui/radio";
-import { Switch } from "../../components/ui/switch";
-import { Badge } from "../../components/ui/badge";
-import { StatusLabel } from "../../components/ui/status-label";
-import { Avatar, AvatarGroup } from "../../components/ui/avatar";
+} from '@tutorfy/ui';
+import { Checkbox } from '@tutorfy/ui';
+import { RadioGroup, RadioItem } from '@tutorfy/ui';
+import { Switch } from '@tutorfy/ui';
+import { Badge } from '@tutorfy/ui';
+import { StatusLabel } from '@tutorfy/ui';
+import { Avatar, AvatarGroup } from '@tutorfy/ui';
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsPanel,
-} from "../../components/ui/tabs";
+} from '@tutorfy/ui';
 import {
   Modal,
   ModalTrigger,
@@ -71,20 +71,20 @@ import {
   ModalBody,
   ModalFooter,
   ModalClose,
-} from "../../components/ui/modal";
+} from '@tutorfy/ui';
 import {
   DatePicker,
   DateRangePicker,
   type DateRange,
-} from "../../components/ui/date-picker";
-import { TimePicker } from "../../components/ui/time-picker";
+} from '@tutorfy/ui';
+import { TimePicker } from '@tutorfy/ui';
 import {
   ImageUpload,
   FileUpload,
   type FileUploadItem,
-} from "../../components/ui/upload";
-import { Textarea, TextareaField } from "../../components/ui/textarea";
-import { Pagination } from "../../components/ui/pagination";
+} from '@tutorfy/ui';
+import { Textarea, TextareaField } from '@tutorfy/ui';
+import { Pagination } from '@tutorfy/ui';
 
 interface ComponentItem {
   name: string;

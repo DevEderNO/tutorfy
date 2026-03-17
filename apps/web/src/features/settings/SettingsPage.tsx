@@ -25,7 +25,7 @@ import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { Header } from "@/components/layout/Header";
-import { Button } from "@/components/ui/button";
+import { Button } from '@tutorfy/ui';
 import {
   Table,
   TableHeader,
@@ -33,15 +33,15 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "@/components/ui/table";
-import { Input, InputField } from "@/components/ui/input";
-import { Textarea, TextareaField } from "@/components/ui/textarea";
-import { Select, SelectItem } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ImageUpload } from "@/components/ui/upload";
-import { Badge } from "@/components/ui/badge";
-import { StatusLabel } from "@/components/ui/status-label";
+} from '@tutorfy/ui';
+import { Input, InputField } from '@tutorfy/ui';
+import { Textarea, TextareaField } from '@tutorfy/ui';
+import { Select, SelectItem } from '@tutorfy/ui';
+import { Switch } from '@tutorfy/ui';
+import { Checkbox } from '@tutorfy/ui';
+import { ImageUpload } from '@tutorfy/ui';
+import { Badge } from '@tutorfy/ui';
+import { StatusLabel } from '@tutorfy/ui';
 
 export function SettingsPage() {
   const { user, updateUser } = useAuth();

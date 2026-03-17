@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Input, InputField } from '@/components/ui/input';
+import { Button } from '@tutorfy/ui';
+import { Switch } from '@tutorfy/ui';
+import { Input, InputField } from '@tutorfy/ui';
 import { toast } from 'sonner';
 
 interface AppConfig {

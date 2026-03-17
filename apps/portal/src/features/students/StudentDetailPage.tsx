@@ -4,10 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, BookOpen, CalendarDays, DollarSign, TrendingUp } from 'lucide-react';
 import { api } from '@/lib/api';
 import { usePortalAuth } from '@/lib/auth';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsPanel } from '@/components/ui/tabs';
-import { Pagination } from '@/components/ui/pagination';
+import { Badge } from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { Tabs, TabsList, TabsTrigger, TabsPanel } from '@tutorfy/ui';
+import { Pagination } from '@tutorfy/ui';
 
 interface Student {
   id: string;

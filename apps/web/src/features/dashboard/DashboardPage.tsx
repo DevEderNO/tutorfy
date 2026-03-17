@@ -38,13 +38,13 @@ import {
   ModalTitle,
   ModalBody,
   ModalFooter,
-} from "@/components/ui/modal";
-import { Button } from "@/components/ui/button";
-import { Select, SelectItem } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { DatePicker } from "@/components/ui/date-picker";
-import { TimePicker } from "@/components/ui/time-picker";
+} from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { Select, SelectItem } from '@tutorfy/ui';
+import { Tabs, TabsList, TabsTrigger } from '@tutorfy/ui';
+import { Textarea } from '@tutorfy/ui';
+import { DatePicker } from '@tutorfy/ui';
+import { TimePicker } from '@tutorfy/ui';
 import { ConfirmModal } from "@/components/ConfirmModal";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";

@@ -6,17 +6,17 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { useCanAddStudent } from "@/hooks/useSubscription";
 import { Header } from "@/components/layout/Header";
-import { Button } from "@/components/ui/button";
-import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { StatusLabel } from "@/components/ui/status-label";
+import { Button } from '@tutorfy/ui';
+import { Avatar } from '@tutorfy/ui';
+import { Badge } from '@tutorfy/ui';
+import { StatusLabel } from '@tutorfy/ui';
 import {
   Table, TableHeader, TableBody,
   TableRow, TableHead, TableCell, TableEmpty,
   TableToolbar, TableSearch,
-} from "@/components/ui/table";
-import { TableFilter } from "@/components/ui/table-filter";
-import { Pagination } from "@/components/ui/pagination";
+} from '@tutorfy/ui';
+import { TableFilter } from '@tutorfy/ui';
+import { Pagination } from '@tutorfy/ui';
 import type { StudentsListParams } from "@tutorfy/types";
 
 type SortBy = NonNullable<StudentsListParams["sortBy"]>;
