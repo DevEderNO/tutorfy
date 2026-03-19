@@ -1,0 +1,6 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/portal/Dockerfile"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
