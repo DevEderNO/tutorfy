@@ -9,30 +9,17 @@
     },
     "sequential-thinking": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ]
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
     },
     "memory": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-memory"
-      ]
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
     },
     "stitch": {
       "type": "http",
       "url": "https://stitch.googleapis.com/mcp",
       "headers": {
         "X-Goog-Api-Key": "${STITCH_API_KEY}"
-      }
-    },
-    "Framelink MCP for Figma": {
-      "command": "npx",
-      "args": ["-y", "figma-developer-mcp"],
-      "env": {
-        "FIGMA_API_KEY": "${FIGMA_API_KEY}"
       }
     }
   }

@@ -31,7 +31,7 @@
   * {
     border-color: var(--color-border);
     scrollbar-width: thin;
-    scrollbar-color: rgba(139, 92, 246, 0.25) transparent;
+    scrollbar-color: color-mix(in srgb, var(--color-primary) 25%, transparent) transparent;
   }
 
   *::-webkit-scrollbar {
@@ -44,13 +44,13 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background: rgba(139, 92, 246, 0.25);
+    background: color-mix(in srgb, var(--color-primary) 25%, transparent);
     border-radius: 9999px;
     transition: background 0.2s;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(139, 92, 246, 0.5);
+    background: color-mix(in srgb, var(--color-primary) 50%, transparent);
   }
 
   *::-webkit-scrollbar-corner {
@@ -66,66 +66,58 @@
 
 @layer utilities {
   .glass {
-    background: rgba(30, 41, 59, 0.7);
+    background: color-mix(in srgb, var(--color-card) 70%, transparent);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(148, 163, 184, 0.1);
+    border: 1px solid color-mix(in srgb, var(--color-muted-foreground) 10%, transparent);
   }
 
   .glass-sidebar {
-    background: rgba(139, 92, 246, 0.05);
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    border-right: 1px solid rgba(139, 92, 246, 0.1);
+    border-right: 1px solid color-mix(in srgb, var(--color-primary) 10%, transparent);
   }
 
   .glass-panel {
-    background: rgba(30, 41, 59, 0.6);
+    background: color-mix(in srgb, var(--color-card) 60%, transparent);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid color-mix(in srgb, var(--color-foreground) 10%, transparent);
   }
 
   .glass-btn {
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-foreground) 5%, transparent);
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid color-mix(in srgb, var(--color-foreground) 10%, transparent);
     transition: all 0.2s ease;
   }
   .glass-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var(--color-foreground) 10%, transparent);
+    border-color: color-mix(in srgb, var(--color-foreground) 20%, transparent);
   }
 
   .glass-input {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
+    background: color-mix(in srgb, var(--color-background) 60%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-foreground) 10%, transparent);
+    color: var(--color-foreground);
   }
   .glass-input:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
-  }
-
-  .purple-glow {
-    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
-  }
-
-  .emerald-glow {
-    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
   }
 
   .sidebar-active {
-    background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0) 100%);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--color-primary) 15%, transparent) 0%, transparent 100%);
     border-left: 3px solid var(--color-primary);
   }
 
   .neon-glow {
-    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--color-primary) 40%, transparent);
   }
 
   .gradient-primary {
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    background: linear-gradient(135deg, var(--color-primary), #6366f1);
   }
 
   .gradient-success {
@@ -145,7 +137,7 @@
   }
 
   .login-gradient-bg {
-    background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.15), transparent),
-                radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.1), transparent);
+    background: radial-gradient(circle at top left, color-mix(in srgb, var(--color-primary) 15%, transparent), transparent),
+                radial-gradient(circle at bottom right, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent);
   }
 }

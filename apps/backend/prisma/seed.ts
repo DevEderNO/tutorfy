@@ -23,6 +23,51 @@ async function main() {
   });
   console.log(`✓ Plano criado/verificado: ${freePlan.name}`);
 
+  // ── Plano Básico ────────────────────────────────────────────────────────────
+  const basicPlan = await prisma.plan.upsert({
+    where: { slug: 'basico' },
+    update: {},
+    create: {
+      name: 'Básico',
+      slug: 'basico',
+      maxStudents: 20,
+      aiEnabled: false,
+      priceMonthly: 2990,
+      priceAnnual: 28700,
+    },
+  });
+  console.log(`✓ Plano criado/verificado: ${basicPlan.name}`);
+
+  // ── Plano Pro ───────────────────────────────────────────────────────────────
+  const proPlan = await prisma.plan.upsert({
+    where: { slug: 'pro' },
+    update: {},
+    create: {
+      name: 'Pro',
+      slug: 'pro',
+      maxStudents: 60,
+      aiEnabled: true,
+      priceMonthly: 5990,
+      priceAnnual: 57500,
+    },
+  });
+  console.log(`✓ Plano criado/verificado: ${proPlan.name}`);
+
+  // ── Plano Premium ───────────────────────────────────────────────────────────
+  const premiumPlan = await prisma.plan.upsert({
+    where: { slug: 'premium' },
+    update: {},
+    create: {
+      name: 'Premium',
+      slug: 'premium',
+      maxStudents: null,
+      aiEnabled: true,
+      priceMonthly: 9990,
+      priceAnnual: 95900,
+    },
+  });
+  console.log(`✓ Plano criado/verificado: ${premiumPlan.name}`);
+
   // ── Vincular tutores existentes sem assinatura ao plano Free ───────────────
   const usersWithoutSubscription = await prisma.user.findMany({
     where: { subscription: null },

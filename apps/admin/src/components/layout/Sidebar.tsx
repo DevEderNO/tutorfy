@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -9,9 +9,9 @@ import {
   GraduationCap,
   Pin,
   PinOff,
-} from 'lucide-react';
-import { useAdminAuth } from '@/lib/auth';
-import { Button } from '@tutorfy/ui';
+} from "lucide-react";
+import { useAdminAuth } from "@/lib/auth";
+import { Button } from "@tutorfy/ui";
 
 interface NavItem {
   to: string;
@@ -21,32 +21,40 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/users', icon: Users, label: 'Usuários' },
-  { to: '/plans', icon: CreditCard, label: 'Planos', superAdminOnly: true },
-  { to: '/financial', icon: DollarSign, label: 'Financeiro', superAdminOnly: true },
-  { to: '/admins', icon: ShieldCheck, label: 'Admins', superAdminOnly: true },
-  { to: '/settings', icon: Settings, label: 'Configurações', superAdminOnly: true },
+  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/users", icon: Users, label: "Usuários" },
+  { to: "/plans", icon: CreditCard, label: "Planos", superAdminOnly: true },
+  {
+    to: "/financial",
+    icon: DollarSign,
+    label: "Financeiro",
+    superAdminOnly: true,
+  },
+  { to: "/admins", icon: ShieldCheck, label: "Admins", superAdminOnly: true },
+  {
+    to: "/settings",
+    icon: Settings,
+    label: "Configurações",
+    superAdminOnly: true,
+  },
 ];
 
 interface SidebarProps {
   pinned: boolean;
   expanded: boolean;
   onTogglePin: () => void;
-  onMouseEnter?: () => void;
-  onMouseLeave?: () => void;
 }
 
-export function Sidebar({ pinned, expanded, onTogglePin, onMouseEnter, onMouseLeave }: SidebarProps) {
+export function Sidebar({ pinned, expanded, onTogglePin }: SidebarProps) {
   const { isSuperAdmin } = useAdminAuth();
-  const visibleItems = navItems.filter((item) => !item.superAdminOnly || isSuperAdmin);
+  const visibleItems = navItems.filter(
+    (item) => !item.superAdminOnly || isSuperAdmin,
+  );
 
   return (
     <aside
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
       className={`fixed left-0 top-0 z-40 h-screen glass-sidebar flex flex-col overflow-hidden transition-[width] duration-300 ease-in-out ${
-        expanded ? 'w-64' : 'w-16'
+        expanded ? "w-64" : "w-16"
       }`}
     >
       {/* Logo */}
@@ -72,12 +80,12 @@ export function Sidebar({ pinned, expanded, onTogglePin, onMouseEnter, onMouseLe
           <NavLink
             key={item.to}
             to={item.to}
-            end={item.to === '/'}
+            end={item.to === "/"}
             className={({ isActive }) =>
               `flex items-center py-3 text-sm transition-all rounded-lg ${
                 isActive
-                  ? 'sidebar-active text-primary font-semibold'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium'
+                  ? "sidebar-active text-primary font-semibold"
+                  : "text-slate-400 hover:text-white hover:bg-white/5 font-medium"
               }`
             }
           >
@@ -94,15 +102,23 @@ export function Sidebar({ pinned, expanded, onTogglePin, onMouseEnter, onMouseLe
         <Button
           variant="ghost"
           onClick={onTogglePin}
-          title={pinned ? 'Recolher sidebar' : 'Fixar sidebar'}
+          title={pinned ? "Recolher sidebar" : "Fixar sidebar"}
           className="flex items-center w-full h-auto py-4 rounded-none text-slate-500 hover:text-primary hover:bg-transparent"
         >
           <div className="w-16 flex justify-center shrink-0">
-            {pinned ? <PinOff className="h-5 w-5" /> : <Pin className="h-5 w-5" />}
+            {pinned ? (
+              <PinOff className="h-5 w-5" />
+            ) : (
+              <Pin className="h-5 w-5" />
+            )}
           </div>
-          <span className="whitespace-nowrap text-sm font-medium pr-4">
-            {pinned ? 'Recolher' : 'Fixar sidebar'}
-          </span>
+          {pinned ? (
+            <span className="whitespace-nowrap text-sm font-medium pr-4">
+              Recolher
+            </span>
+          ) : (
+            <></>
+          )}
         </Button>
       </div>
     </aside>
