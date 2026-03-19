@@ -1,56 +1,88 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Users, User, LogOut } from 'lucide-react';
+import { Home, Users, GraduationCap, Pin, PinOff, CalendarDays, Sparkles, BookMarked } from 'lucide-react';
 import { usePortalAuth } from '@/lib/auth';
-import { Button } from '@tutorfy/ui';
 
-export function Sidebar() {
-  const { account, isGuardian, logout } = usePortalAuth();
+interface SidebarProps {
+  pinned: boolean;
+  expanded: boolean;
+  onTogglePin: () => void;
+}
+
+export function Sidebar({ pinned, expanded, onTogglePin }: SidebarProps) {
+  const { isGuardian } = usePortalAuth();
 
   const navItems = [
     { to: '/', icon: Home, label: 'Início', end: true },
-    ...(isGuardian ? [{ to: '/students', icon: Users, label: 'Alunos vinculados', end: false }] : []),
-    { to: '/profile', icon: User, label: 'Meu perfil', end: false },
+    ...(isGuardian
+      ? [{ to: '/students', icon: Users, label: 'Alunos vinculados', end: false }]
+      : [
+          { to: '/classes', icon: CalendarDays, label: 'Aulas', end: false },
+          { to: '/evolution', icon: Sparkles, label: 'Evolução', end: false },
+          { to: '/materials', icon: BookMarked, label: 'Materiais', end: false },
+        ]
+    ),
   ];
 
   return (
-    <aside className="w-60 shrink-0 flex flex-col bg-card border-r border-border min-h-screen">
-      <div className="p-5 border-b border-border">
-        <p className="text-xs text-muted-foreground">Portal do Aluno</p>
-        <p className="font-semibold text-foreground truncate">{account?.name}</p>
-        <p className="text-xs text-muted-foreground capitalize">
-          {account?.accountType === 'GUARDIAN' ? 'Responsável' : 'Aluno'}
-        </p>
+    <aside
+      className={`fixed left-0 top-0 z-40 h-screen glass-sidebar flex flex-col overflow-hidden transition-[width] duration-300 ease-in-out ${
+        expanded ? 'w-64' : 'w-16'
+      }`}
+    >
+      {/* Logo */}
+      <div className="flex items-center h-[72px] border-b border-primary/10">
+        <div className="w-16 flex justify-center shrink-0">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary neon-glow">
+            <GraduationCap className="h-5 w-5 text-white" />
+          </div>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <h1 className="text-lg font-bold text-foreground tracking-tight whitespace-nowrap">
+            Tutorfy
+          </h1>
+          <p className="text-[11px] text-primary/70 font-medium whitespace-nowrap">
+            Portal do Aluno
+          </p>
+        </div>
       </div>
 
-      <nav className="flex-1 p-3 space-y-1">
-        {navItems.map(({ to, icon: Icon, label, end }) => (
+      {/* Navigation */}
+      <nav className="flex-1 py-4 space-y-1">
+        {navItems.map((item) => (
           <NavLink
-            key={to}
-            to={to}
-            end={end}
+            key={item.to}
+            to={item.to}
+            end={item.end}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+              `flex items-center py-3 text-sm transition-all rounded-lg ${
                 isActive
-                  ? 'bg-primary/15 text-primary font-medium'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  ? 'sidebar-active text-primary font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium'
               }`
             }
           >
-            <Icon className="h-4 w-4 shrink-0" />
-            {label}
+            <div className="w-16 flex justify-center shrink-0">
+              <item.icon className="h-5 w-5" />
+            </div>
+            <span className="whitespace-nowrap pr-4">{item.label}</span>
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-3 border-t border-border">
-        <Button
-          variant="ghost"
-          onClick={logout}
-          className="w-full justify-start gap-3 px-3 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+      {/* Pin / Unpin */}
+      <div className="border-t border-primary/10">
+        <button
+          onClick={onTogglePin}
+          title={pinned ? 'Recolher sidebar' : 'Fixar sidebar'}
+          className="flex items-center w-full py-4 text-slate-500 hover:text-primary transition-colors"
         >
-          <LogOut className="h-4 w-4 shrink-0" />
-          Sair
-        </Button>
+          <div className="w-16 flex justify-center shrink-0">
+            {pinned ? <PinOff className="h-5 w-5" /> : <Pin className="h-5 w-5" />}
+          </div>
+          <span className="whitespace-nowrap text-sm font-medium pr-4">
+            {pinned ? 'Recolher' : 'Fixar sidebar'}
+          </span>
+        </button>
       </div>
     </aside>
   );

@@ -6,6 +6,9 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
 import { HomePage } from '@/features/home/HomePage';
+import { ClassesPage } from '@/features/classes/ClassesPage';
+import { EvolutionPage } from '@/features/evolution/EvolutionPage';
+import { MaterialsPage } from '@/features/materials/MaterialsPage';
 import { StudentsListPage } from '@/features/students/StudentsListPage';
 import { StudentDetailPage } from '@/features/students/StudentDetailPage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
@@ -42,6 +45,9 @@ export function App() {
               }
             >
               <Route path="/" element={<HomePage />} />
+              <Route path="/classes" element={<ClassesPage />} />
+              <Route path="/evolution" element={<EvolutionPage />} />
+              <Route path="/materials" element={<MaterialsPage />} />
               <Route
                 path="/students"
                 element={
