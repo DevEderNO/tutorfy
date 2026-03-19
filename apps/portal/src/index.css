@@ -6,7 +6,7 @@
   --color-foreground: #f8fafc;
   --color-card: #1e293b;
   --color-card-foreground: #f8fafc;
-  --color-primary: #8b5cf6;
+  --color-primary: #3b82f6;
   --color-primary-foreground: #ffffff;
   --color-secondary: #334155;
   --color-secondary-foreground: #f8fafc;
@@ -17,7 +17,7 @@
   --color-destructive: #ef4444;
   --color-border: #334155;
   --color-input: #334155;
-  --color-ring: #8b5cf6;
+  --color-ring: #3b82f6;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-info: #3b82f6;
@@ -31,16 +31,16 @@
   * {
     border-color: var(--color-border);
     scrollbar-width: thin;
-    scrollbar-color: rgba(139, 92, 246, 0.25) transparent;
+    scrollbar-color: color-mix(in srgb, var(--color-primary) 25%, transparent) transparent;
   }
 
   *::-webkit-scrollbar { width: 6px; height: 6px; }
   *::-webkit-scrollbar-track { background: transparent; }
   *::-webkit-scrollbar-thumb {
-    background: rgba(139, 92, 246, 0.25);
+    background: color-mix(in srgb, var(--color-primary) 25%, transparent);
     border-radius: 9999px;
   }
-  *::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.5); }
+  *::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--color-primary) 50%, transparent); }
   *::-webkit-scrollbar-corner { background: transparent; }
 
   body {
@@ -55,5 +55,12 @@
     background: rgba(30, 41, 59, 0.6);
     border: 1px solid rgba(51, 65, 85, 0.5);
     backdrop-filter: blur(12px);
+  }
+
+  .glass-panel {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(60, 131, 246, 0.2);
   }
 }
