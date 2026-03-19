@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePageHeader } from '@/lib/page-header';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import {
@@ -48,6 +49,7 @@ const FILTER_DEFS: FilterGroupDef[] = [
 type SortKey = 'user' | 'plan' | 'period' | 'value' | 'startedAt';
 
 export function FinancialPage() {
+  usePageHeader({ title: 'Financeiro', subtitle: 'Assinaturas e receita da plataforma' });
   const [page, setPage] = useState(1);
   const [filterValues, setFilterValues] = useState<Record<string, string[]>>({ status: [], period: [] });
   const [sortState, setSortState] = useState<SortState<SortKey>>({ column: null, direction: null });
@@ -92,11 +94,6 @@ export function FinancialPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Financeiro</h1>
-        <p className="text-sm text-muted-foreground mt-1">Assinaturas e receita da plataforma</p>
-      </div>
-
       <TableToolbar>
         <TableFilterGroup
           filters={FILTER_DEFS}

@@ -1,6 +1,9 @@
-import { LogOut, Shield } from 'lucide-react';
+import { LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/lib/auth';
+import { usePageHeaderState } from '@/lib/page-header';
 import { Badge, Button } from '@tutorfy/ui';
+import { ArrowLeft } from 'lucide-react';
 
 interface HeaderProps {
   sidebarExpanded: boolean;
@@ -8,6 +11,8 @@ interface HeaderProps {
 
 export function Header({ sidebarExpanded }: HeaderProps) {
   const { admin, logout, isSuperAdmin } = useAdminAuth();
+  const navigate = useNavigate();
+  const { title, subtitle, backTo } = usePageHeaderState();
 
   return (
     <header
@@ -15,12 +20,29 @@ export function Header({ sidebarExpanded }: HeaderProps) {
         sidebarExpanded ? 'left-64' : 'left-16'
       }`}
     >
-      <div className="flex items-center gap-2">
-        <Shield className="h-4 w-4 text-primary" />
-        <span className="text-sm text-muted-foreground">Portal Administrativo</span>
+      <div className="flex items-center gap-3 min-w-0">
+        {backTo && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(backTo)}
+            aria-label="Voltar"
+            className="shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        )}
+        {title ? (
+          <div className="min-w-0">
+            <p className="text-base font-bold text-foreground leading-tight truncate">{title}</p>
+            {subtitle && (
+              <p className="text-xs text-muted-foreground leading-tight truncate">{subtitle}</p>
+            )}
+          </div>
+        ) : null}
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 shrink-0">
         {admin && (
           <div className="flex items-center gap-3">
             <div className="text-right">

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePageHeader } from '@/lib/page-header';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
@@ -30,6 +31,7 @@ const ACTIVE_OPTIONS = [
 ];
 
 export function UsersListPage() {
+  usePageHeader({ title: 'Usuários', subtitle: 'Tutores cadastrados na plataforma' });
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -70,11 +72,6 @@ export function UsersListPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Usuários</h1>
-        <p className="text-sm text-muted-foreground mt-1">Tutores cadastrados na plataforma</p>
-      </div>
-
       <TableToolbar>
         <TableSearch
           placeholder="Buscar por nome ou email…"

@@ -1,12 +1,9 @@
 import { useState } from 'react';
+import { usePageHeader } from '@/lib/page-header';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Users, Bot, TrendingUp, Infinity } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Badge } from '@tutorfy/ui';
-import { Button } from '@tutorfy/ui';
-import { Modal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalClose } from '@tutorfy/ui';
-import { Input, InputField } from '@tutorfy/ui';
-import { Checkbox } from '@tutorfy/ui';
+import { Badge, Button, Checkbox, Input, InputField, Modal, ModalBody, ModalClose, ModalContent, ModalFooter, ModalHeader, ModalTitle } from '@tutorfy/ui';
 import { toast } from 'sonner';
 
 interface Plan {
@@ -20,7 +17,29 @@ interface PlanFormData {
 }
 const emptyForm: PlanFormData = { name: '', slug: '', maxStudents: '', aiEnabled: false, priceMonthly: '0', priceAnnual: '0' };
 
+const PLAN_ACCENT: Record<string, string> = {
+  free:    'from-chart-4/80 to-chart-4/20',
+  basic:   'from-chart-2/80 to-chart-2/20',
+  pro:     'from-primary/80  to-primary/20',
+  premium: 'from-chart-3/80 to-chart-3/20',
+};
+
+const PLAN_GLOW: Record<string, string> = {
+  free:    'bg-chart-4/5',
+  basic:   'bg-chart-2/5',
+  pro:     'bg-primary/5',
+  premium: 'bg-chart-3/5',
+};
+
+function planAccent(slug: string) {
+  return PLAN_ACCENT[slug] ?? 'from-muted-foreground/40 to-muted-foreground/10';
+}
+function planGlow(slug: string) {
+  return PLAN_GLOW[slug] ?? '';
+}
+
 export function PlansPage() {
+  usePageHeader({ title: 'Planos', subtitle: 'Gerencie os planos da plataforma' });
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Plan | null>(null);
@@ -78,45 +97,111 @@ export function PlansPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Planos</h1>
-          <p className="text-sm text-muted-foreground mt-1">Gerencie os planos da plataforma</p>
-        </div>
+      <div className="flex justify-end">
         <Button variant="primary" size="sm" onClick={() => { setEditing(null); setForm(emptyForm); setOpen(true); }}>
-          <Plus className="h-4 w-4 mr-1" /> Novo plano
+          <Plus className="h-4 w-4" /> Novo plano
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(3)].map((_, i) => <div key={i} className="glass rounded-xl h-40 animate-pulse" />)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="glass rounded-xl overflow-hidden animate-pulse">
+              <div className="h-1 bg-muted" />
+              <div className="p-5 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1.5">
+                    <div className="h-4 w-20 rounded bg-muted" />
+                    <div className="h-3 w-14 rounded bg-muted" />
+                  </div>
+                  <div className="h-5 w-12 rounded-full bg-muted" />
+                </div>
+                <div className="space-y-1">
+                  <div className="h-7 w-28 rounded bg-muted" />
+                  <div className="h-3 w-20 rounded bg-muted" />
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-6 w-24 rounded-full bg-muted" />
+                  <div className="h-6 w-20 rounded-full bg-muted" />
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t border-border/40">
+                  <div className="h-3 w-24 rounded bg-muted" />
+                  <div className="flex gap-1">
+                    <div className="h-7 w-7 rounded bg-muted" />
+                    <div className="h-7 w-7 rounded bg-muted" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {plans?.map((plan) => (
-            <div key={plan.id} className="glass rounded-xl p-5 space-y-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="font-semibold text-foreground">{plan.name}</h2>
-                  <p className="text-xs text-muted-foreground font-mono">{plan.slug}</p>
+            <div
+              key={plan.id}
+              className={`relative glass rounded-xl overflow-hidden flex flex-col ${!plan.isActive ? 'opacity-60' : ''}`}
+            >
+              {/* accent strip */}
+              <div className={`h-1 w-full bg-gradient-to-r ${planAccent(plan.slug)}`} />
+
+              {/* subtle glow behind content */}
+              <div className={`absolute inset-0 ${planGlow(plan.slug)} pointer-events-none`} />
+
+              <div className="relative flex flex-col flex-1 p-5 gap-4">
+                {/* Header */}
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h2 className="text-base font-bold text-foreground leading-tight">{plan.name}</h2>
+                    <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{plan.slug}</p>
+                  </div>
+                  <Badge variant={plan.isActive ? 'success' : 'destructive'} size="sm" className="shrink-0">
+                    {plan.isActive ? 'Ativo' : 'Inativo'}
+                  </Badge>
                 </div>
-                <Badge variant={plan.isActive ? 'success' : 'destructive'} size="sm">{plan.isActive ? 'Ativo' : 'Inativo'}</Badge>
-              </div>
-              <div className="text-sm space-y-1">
-                <p className="text-muted-foreground">Mensal: <span className="text-foreground font-medium">{fmt(plan.priceMonthly)}</span></p>
-                <p className="text-muted-foreground">Anual: <span className="text-foreground font-medium">{fmt(plan.priceAnnual)}</span></p>
-                <p className="text-muted-foreground">Alunos: <span className="text-foreground font-medium">{plan.maxStudents ?? 'Ilimitado'}</span></p>
-                <p className="text-muted-foreground">IA: <span className="text-foreground font-medium">{plan.aiEnabled ? 'Sim' : 'Não'}</span></p>
-                <p className="text-muted-foreground">Assinantes: <span className="text-foreground font-medium">{plan._count.subscriptions}</span></p>
-              </div>
-              <div className="flex gap-2 pt-1">
-                <Button variant="ghost" size="icon-sm" onClick={() => openEdit(plan)} aria-label="Editar plano"><Pencil className="h-3.5 w-3.5" /></Button>
-                {plan.slug !== 'free' && plan.isActive && (
-                  <Button variant="ghost" size="icon-sm" onClick={() => deactivateMutation.mutate(plan.id)} aria-label="Desativar plano">
-                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                  </Button>
-                )}
+
+                {/* Price hero */}
+                <div className="space-y-0.5">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-bold text-foreground">{fmt(plan.priceMonthly)}</span>
+                    <span className="text-xs text-muted-foreground">/ mês</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {fmt(plan.priceAnnual)} <span className="opacity-60">/ ano</span>
+                  </p>
+                </div>
+
+                {/* Feature chips */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-xs text-muted-foreground">
+                    <Users className="h-3 w-3" />
+                    {plan.maxStudents != null ? `${plan.maxStudents} alunos` : (
+                      <><Infinity className="h-3 w-3" /> ilimitado</>
+                    )}
+                  </span>
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs ${plan.aiEnabled ? 'bg-chart-1/10 text-chart-1' : 'bg-muted/60 text-muted-foreground'}`}>
+                    <Bot className="h-3 w-3" />
+                    IA {plan.aiEnabled ? 'ativa' : 'inativa'}
+                  </span>
+                </div>
+
+                {/* Footer */}
+                <div className="mt-auto flex items-center justify-between pt-3 border-t border-border/40">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    <strong className="text-foreground">{plan._count.subscriptions}</strong> assinantes
+                  </span>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon-sm" onClick={() => openEdit(plan)} aria-label="Editar plano">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    {plan.slug !== 'free' && plan.isActive && (
+                      <Button variant="ghost" size="icon-sm" onClick={() => deactivateMutation.mutate(plan.id)} aria-label="Desativar plano">
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           ))}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePageHeader } from '@/lib/page-header';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
@@ -36,6 +37,7 @@ const STATUS_OPTIONS = [
 const PAGE_SIZE = 10;
 
 export function AdminsPage() {
+  usePageHeader({ title: 'Admins', subtitle: 'Contas de acesso ao painel administrativo' });
   const qc = useQueryClient();
   const { admin: currentAdmin } = useAdminAuth();
   const [open, setOpen] = useState(false);
@@ -112,11 +114,7 @@ export function AdminsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Admins</h1>
-          <p className="text-sm text-muted-foreground mt-1">Contas de acesso ao painel administrativo</p>
-        </div>
+      <div className="flex justify-end">
         <Button variant="primary" size="sm" onClick={() => setOpen(true)}>
           <Plus className="h-4 w-4 mr-1" /> Novo admin
         </Button>
