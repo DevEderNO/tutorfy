@@ -13,10 +13,16 @@ export const portalRegisterSchema = z.object({
   accountType: z.enum(['STUDENT', 'GUARDIAN']),
 });
 
+export const portalTokenLoginSchema = z.object({
+  token: z.string().min(1, 'Token de convite é obrigatório'),
+  accountType: z.enum(['STUDENT', 'GUARDIAN']),
+});
+
 export const portalLinkStudentSchema = z.object({
   token: z.string().min(1, 'Token de convite é obrigatório'),
 });
 
 export type PortalLoginInput = z.infer<typeof portalLoginSchema>;
 export type PortalRegisterInput = z.infer<typeof portalRegisterSchema>;
+export type PortalTokenLoginInput = z.infer<typeof portalTokenLoginSchema>;
 export type PortalLinkStudentInput = z.infer<typeof portalLinkStudentSchema>;

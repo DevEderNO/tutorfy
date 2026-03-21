@@ -3,6 +3,7 @@ import { PortalAuthService } from './portal-auth.service.js';
 import {
   portalLoginSchema,
   portalRegisterSchema,
+  portalTokenLoginSchema,
   portalLinkStudentSchema,
 } from './portal-auth.schema.js';
 import { getPortalAccountId } from '../../lib/auth.js';
@@ -49,6 +50,24 @@ export class PortalAuthController {
         accountType: account.accountType,
       });
       return reply.status(201).send({ data: { token, account } });
+    } catch (error: any) {
+      return reply.status(error.statusCode || 500).send({ message: error.message });
+    }
+  }
+
+  async loginWithToken(request: FastifyRequest, reply: FastifyReply) {
+    const parsed = portalTokenLoginSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({ message: 'Dados inválidos', errors: parsed.error.flatten().fieldErrors });
+    }
+    try {
+      const account = await service.loginWithToken(parsed.data);
+      const token = await reply.jwtSign({
+        portalAccountId: account.id,
+        type: 'portal',
+        accountType: account.accountType,
+      });
+      return reply.send({ data: { token, account } });
     } catch (error: any) {
       return reply.status(error.statusCode || 500).send({ message: error.message });
     }

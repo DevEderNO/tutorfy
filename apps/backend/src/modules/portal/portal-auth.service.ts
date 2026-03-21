@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../lib/prisma.js';
-import type { PortalLoginInput, PortalRegisterInput, PortalLinkStudentInput } from './portal-auth.schema.js';
+import type { PortalLoginInput, PortalRegisterInput, PortalTokenLoginInput, PortalLinkStudentInput } from './portal-auth.schema.js';
 
 export class PortalAuthService {
   async login(data: PortalLoginInput) {
@@ -114,6 +114,45 @@ export class PortalAuthService {
       email: account.email,
       accountType: account.accountType,
     };
+  }
+
+  async loginWithToken(data: PortalTokenLoginInput) {
+    const shareToken = await prisma.studentShareToken.findUnique({
+      where: { token: data.token },
+      include: { student: { select: { id: true, name: true } } },
+    });
+
+    if (!shareToken) {
+      throw { statusCode: 400, message: 'Link de convite inválido ou expirado' };
+    }
+
+    // Busca conta existente via vínculo
+    const existingLink = await prisma.studentPortalLink.findUnique({
+      where: { studentId: shareToken.studentId },
+      include: { portalAccount: true },
+    });
+
+    if (existingLink) {
+      const account = existingLink.portalAccount;
+      await prisma.portalAccount.update({ where: { id: account.id }, data: { lastLoginAt: new Date() } });
+      return { id: account.id, name: account.name, email: account.email, accountType: account.accountType };
+    }
+
+    // Cria conta sem email/senha e vincula ao aluno
+    const account = await prisma.$transaction(async (tx) => {
+      const newAccount = await tx.portalAccount.create({
+        data: {
+          name: shareToken.student.name,
+          accountType: 'STUDENT',
+        },
+      });
+      await tx.studentPortalLink.create({
+        data: { portalAccountId: newAccount.id, studentId: shareToken.studentId },
+      });
+      return newAccount;
+    });
+
+    return { id: account.id, name: account.name, email: account.email, accountType: account.accountType };
   }
 
   async linkStudent(portalAccountId: string, data: PortalLinkStudentInput) {

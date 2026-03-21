@@ -295,7 +295,7 @@ enum AdminRole {
 
 model PortalAccount {
   id          String            @id @default(uuid())
-  email       String            @unique
+  email       String?           @unique
   password    String?
   name        String
   accountType PortalAccountType @map("account_type")

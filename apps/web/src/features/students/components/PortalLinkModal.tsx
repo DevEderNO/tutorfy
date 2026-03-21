@@ -35,7 +35,7 @@ export function PortalLinkModal({ studentId, studentName, studentEmail, responsi
     const params = new URLSearchParams({ token: data.token, type: accountType });
     const name = accountType === 'STUDENT' ? studentName : (responsibleName || studentName);
     params.set('name', name);
-    const email = accountType === 'STUDENT' ? studentEmail : undefined;
+    const email = accountType === 'GUARDIAN' ? studentEmail : undefined;
     if (email) params.set('email', email);
     return `${PORTAL_URL}/register?${params.toString()}`;
   })();

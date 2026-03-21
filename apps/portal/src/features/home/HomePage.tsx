@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
@@ -7,9 +8,9 @@ import {
   CalendarClock,
   TrendingUp,
   ChevronRight,
-  ArrowRight,
   CalendarDays,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { usePortalAuth } from '@/lib/auth';
@@ -52,14 +53,10 @@ function formatNextClassLabel(dateIso: string) {
   return format(d, "EEE, dd MMM", { locale: ptBR });
 }
 
-export function HomePage() {
-  const { account, isGuardian } = usePortalAuth();
-  const navigate = useNavigate();
-  const firstName = account?.name.split(' ')[0];
-  const today = format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR });
+// ─── Wrapper ──────────────────────────────────────────────────────────────────
 
-  // Students
-  const { data: students, isLoading: loadingStudents } = useQuery({
+export function HomePage() {
+  const { data: students, isLoading } = useQuery({
     queryKey: ['portal', 'students'],
     queryFn: async () => {
       const res = await api.get<{ data: Student[] }>('/portal/students');
@@ -67,27 +64,55 @@ export function HomePage() {
     },
   });
 
-  const primaryStudent = students?.[0];
+  if (isLoading || !students) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto space-y-8">
+        <div className="h-12 w-64 glass-panel rounded-xl animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="glass-panel rounded-2xl h-32 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-  // Upcoming classes (student view — first student)
+  return <HomePageInner students={students} />;
+}
+
+// ─── Inner ────────────────────────────────────────────────────────────────────
+
+function HomePageInner({ students }: { students: Student[] }) {
+  const { account, isGuardian } = usePortalAuth();
+  const navigate = useNavigate();
+  const firstName = account?.name.split(' ')[0];
+  const today = format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR });
+
+  const [selectedId, setSelectedId] = useState<string>(students[0]?.id ?? '');
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const selectedStudent = students.find((s) => s.id === selectedId) ?? students[0];
+  const hasMultiple = isGuardian && students.length > 1;
+
+  // Upcoming classes
   const { data: upcomingData } = useQuery({
-    queryKey: ['portal', 'classes', primaryStudent?.id, 'upcoming'],
-    enabled: !!primaryStudent,
+    queryKey: ['portal', 'classes', selectedId, 'upcoming'],
+    enabled: !!selectedId,
     queryFn: async () => {
       const res = await api.get<{ data: ClassSession[]; meta: { total: number } }>(
-        `/portal/students/${primaryStudent!.id}/classes?filter=upcoming&page=1&limit=3`,
+        `/portal/students/${selectedId}/classes?filter=upcoming&page=1&limit=3`,
       );
       return res.data;
     },
   });
 
-  // Total completed classes
+  // Total completed
   const { data: historyData } = useQuery({
-    queryKey: ['portal', 'classes', primaryStudent?.id, 'history'],
-    enabled: !!primaryStudent,
+    queryKey: ['portal', 'classes', selectedId, 'history'],
+    enabled: !!selectedId,
     queryFn: async () => {
       const res = await api.get<{ data: ClassSession[]; meta: { total: number } }>(
-        `/portal/students/${primaryStudent!.id}/classes?filter=history&page=1&limit=1`,
+        `/portal/students/${selectedId}/classes?filter=history&page=1&limit=1`,
       );
       return res.data;
     },
@@ -95,11 +120,11 @@ export function HomePage() {
 
   // Recent evolution
   const { data: evolutionData } = useQuery({
-    queryKey: ['portal', 'evolution', primaryStudent?.id],
-    enabled: !!primaryStudent,
+    queryKey: ['portal', 'evolution', selectedId],
+    enabled: !!selectedId,
     queryFn: async () => {
       const res = await api.get<{ data: EvolutionEntry[]; meta: { total: number } }>(
-        `/portal/students/${primaryStudent!.id}/evolution?page=1&limit=2`,
+        `/portal/students/${selectedId}/evolution?page=1&limit=2`,
       );
       return res.data;
     },
@@ -128,235 +153,252 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ── Stats Row ── */}
-      {!isGuardian && (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Aulas realizadas */}
-          <div className="glass-panel rounded-2xl p-6 glow-accent">
-            <div className="flex items-start justify-between mb-4">
-              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
-                <BookOpen className="h-5 w-5" />
-              </div>
-              <span className="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-500">
-                concluídas
-              </span>
-            </div>
-            <p className="text-slate-400 text-sm font-medium">Aulas realizadas</p>
-            <h3 className="text-3xl font-bold mt-1">{totalCompleted}</h3>
-          </div>
-
-          {/* Próxima aula */}
-          <div className="glass-panel rounded-2xl p-6 glow-accent">
-            <div className="flex items-start justify-between mb-4">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <CalendarClock className="h-5 w-5" />
-              </div>
-            </div>
-            <p className="text-slate-400 text-sm font-medium">Próxima aula</p>
-            {nextClass ? (
-              <>
-                <h3 className="text-3xl font-bold mt-1">{formatNextClassLabel(nextClass.date)}</h3>
-                <p className="text-slate-500 text-xs mt-1">
-                  {formatTime(nextClass.startTime)} – {formatTime(nextClass.endTime)}
-                </p>
-              </>
-            ) : (
-              <h3 className="text-xl font-bold mt-1 text-slate-500">Nenhuma</h3>
-            )}
-          </div>
-
-          {/* Evolução */}
-          <div className="glass-panel rounded-2xl p-6 glow-accent">
-            <div className="flex items-start justify-between mb-4">
-              <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
-                <TrendingUp className="h-5 w-5" />
-              </div>
-            </div>
-            <p className="text-slate-400 text-sm font-medium">Entradas de evolução</p>
-            <h3 className="text-3xl font-bold mt-1">{totalEvolution}</h3>
-            <p className="text-slate-500 text-xs mt-1">total</p>
-          </div>
-        </section>
-      )}
-
-      {/* ── Two-column: Classes + Evolution (student view) ── */}
-      {!isGuardian && (
-        <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
-
-          {/* Próximas aulas */}
-          <section className="lg:col-span-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <CalendarDays className="h-5 w-5 text-primary" />
-                Próximas aulas
-                {upcomingClasses.length > 0 && (
-                  <Badge variant="primary" size="sm">{upcomingClasses.length}</Badge>
-                )}
-              </h2>
-              {primaryStudent && (
-                <button
-                  onClick={() => navigate(`/students/${primaryStudent.id}`)}
-                  className="text-primary text-sm font-medium hover:underline"
-                >
-                  Ver todas
-                </button>
+      {/* ── Seletor de aluno (responsável com múltiplos alunos) ── */}
+      {hasMultiple && (
+        <section className="relative">
+          <button
+            onClick={() => setPickerOpen((v) => !v)}
+            className="glass-panel rounded-2xl px-5 py-3 flex items-center gap-4 hover:border-primary/40 transition-all w-full md:w-auto"
+          >
+            <div className="h-10 w-10 rounded-full bg-slate-800 border-2 border-primary/30 overflow-hidden flex items-center justify-center shrink-0">
+              {selectedStudent?.avatarUrl ? (
+                <img src={selectedStudent.avatarUrl} alt={selectedStudent.name} className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-primary font-bold text-lg">
+                  {selectedStudent?.name.charAt(0).toUpperCase()}
+                </span>
               )}
             </div>
-
-            {upcomingClasses.length === 0 ? (
-              <div className="glass-panel rounded-2xl p-8 text-center">
-                <CalendarClock className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">Nenhuma aula agendada</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {upcomingClasses.map((cls, idx) => {
-                  const d = parseISO(cls.date);
-                  const dayAbbr = format(d, 'EEE', { locale: ptBR }).replace('.', '');
-                  const dayNum = format(d, 'dd');
-                  const month = format(d, 'MMM', { locale: ptBR }).replace('.', '');
-                  const isFirst = idx === 0;
-                  return (
-                    <div
-                      key={cls.id}
-                      className="glass-panel rounded-2xl p-5 relative overflow-hidden flex items-center gap-6 group hover:border-primary/40 transition-all cursor-pointer"
-                      onClick={() => primaryStudent && navigate(`/students/${primaryStudent.id}`)}
-                    >
-                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${isFirst ? 'bg-primary' : 'bg-primary/40'}`} />
-                      <div className="text-center min-w-[60px]">
-                        <p className={`text-xs font-bold uppercase ${isFirst ? 'text-primary' : 'text-slate-400'}`}>
-                          {dayAbbr}
-                        </p>
-                        <p className="text-xl font-bold">{dayNum}</p>
-                        <p className="text-xs text-slate-500 capitalize">{month}</p>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/20">
-                            Agendada
-                          </span>
-                          <span className="text-slate-500 text-xs">
-                            {formatTime(cls.startTime)} – {formatTime(cls.endTime)}
-                          </span>
-                        </div>
-                        <p className="font-bold text-base truncate">{cls.content || 'Aula sem conteúdo definido'}</p>
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-slate-600 group-hover:text-primary transition-colors shrink-0" />
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-
-          {/* Evolução recente */}
-          <section className="lg:col-span-4 space-y-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              Evolução recente
-            </h2>
-
-            {evolutionEntries.length === 0 ? (
-              <div className="glass-panel rounded-2xl p-8 text-center">
-                <TrendingUp className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">Nenhuma entrada registrada</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {evolutionEntries.map((entry, idx) => (
-                  <div
-                    key={entry.id}
-                    className={`glass-panel rounded-2xl p-5 border-l-4 ${idx === 0 ? 'border-l-emerald-500' : 'border-l-primary'}`}
-                  >
-                    <div className="flex justify-between items-start mb-3 gap-2 flex-wrap">
-                      <p className="text-xs font-medium text-slate-500">
-                        {format(parseISO(entry.createdAt), "dd MMM yyyy", { locale: ptBR })}
-                      </p>
-                      {entry.categories.length > 0 && (
-                        <div className="flex gap-1 flex-wrap">
-                          {entry.categories.slice(0, 2).map(({ category }) => (
-                            <span
-                              key={category.id}
-                              className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300"
-                            >
-                              {category.name}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-sm text-slate-300 leading-relaxed italic line-clamp-3">
-                      "{entry.description}"
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-      )}
-
-      {/* ── Alunos vinculados (guardian + student com múltiplos) ── */}
-      {(isGuardian || (students && students.length > 0)) && (
-        <section className="space-y-4 pb-8">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary" />
-            {isGuardian ? 'Alunos vinculados' : 'Meu aluno'}
-          </h2>
-
-          {loadingStudents ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[...Array(2)].map((_, i) => (
-                <div key={i} className="glass-panel rounded-2xl h-28 animate-pulse" />
-              ))}
+            <div className="text-left flex-1">
+              <p className="text-xs text-slate-500 font-medium">Visualizando</p>
+              <p className="font-bold text-white">{selectedStudent?.name}</p>
             </div>
-          ) : !students?.length ? (
-            <div className="glass-panel rounded-2xl p-8 text-center">
-              <p className="text-sm text-slate-500">Nenhum aluno vinculado</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {students.map((student) => (
-                <div
-                  key={student.id}
-                  className="glass-panel rounded-2xl p-6 flex items-center gap-5 hover:border-primary/50 transition-all group cursor-pointer"
-                  onClick={() => navigate(`/students/${student.id}`)}
+            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${pickerOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {pickerOpen && (
+            <div className="absolute top-full mt-2 left-0 z-20 glass-panel rounded-2xl p-2 shadow-xl border border-primary/10 min-w-[260px]">
+              {students.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => { setSelectedId(s.id); setPickerOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
+                    s.id === selectedId ? 'bg-primary/20 text-white' : 'hover:bg-white/5 text-slate-300'
+                  }`}
                 >
-                  <div className="relative shrink-0">
-                    <div className="h-16 w-16 rounded-full bg-slate-800 border-2 border-slate-700 overflow-hidden flex items-center justify-center">
-                      {student.avatarUrl ? (
-                        <img src={student.avatarUrl} alt={student.name} className="h-full w-full object-cover" />
-                      ) : (
-                        <span className="text-primary font-bold text-2xl">
-                          {student.name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    {student.active && (
-                      <div className="absolute bottom-0 right-0 h-4 w-4 bg-emerald-500 rounded-full border-2 border-background" />
+                  <div className="h-9 w-9 rounded-full bg-slate-800 overflow-hidden flex items-center justify-center shrink-0">
+                    {s.avatarUrl ? (
+                      <img src={s.avatarUrl} alt={s.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-primary font-bold">{s.name.charAt(0).toUpperCase()}</span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-bold text-lg truncate">{student.name}</h4>
-                      <Badge variant={student.active ? 'success' : 'default'} size="sm">
-                        {student.active ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-slate-400 truncate">
-                      {[student.grade, student.school].filter(Boolean).join(' • ') || 'Sem informações'}
-                    </p>
+                    <p className="font-semibold truncate">{s.name}</p>
+                    <p className="text-xs text-slate-500 truncate">{s.grade || s.school || '—'}</p>
                   </div>
-                  <button
-                    aria-label={`Ver detalhes de ${student.name}`}
-                    className="h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-all shadow-lg shadow-black/20 shrink-0"
+                  {s.id === selectedId && (
+                    <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ── Stats Row ── */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="glass-panel rounded-2xl p-6 glow-accent">
+          <div className="flex items-start justify-between mb-4">
+            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-500">
+              concluídas
+            </span>
+          </div>
+          <p className="text-slate-400 text-sm font-medium">Aulas realizadas</p>
+          <h3 className="text-3xl font-bold mt-1">{totalCompleted}</h3>
+        </div>
+
+        <div className="glass-panel rounded-2xl p-6 glow-accent">
+          <div className="flex items-start justify-between mb-4">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <CalendarClock className="h-5 w-5" />
+            </div>
+          </div>
+          <p className="text-slate-400 text-sm font-medium">Próxima aula</p>
+          {nextClass ? (
+            <>
+              <h3 className="text-3xl font-bold mt-1">{formatNextClassLabel(nextClass.date)}</h3>
+              <p className="text-slate-500 text-xs mt-1">
+                {formatTime(nextClass.startTime)} – {formatTime(nextClass.endTime)}
+              </p>
+            </>
+          ) : (
+            <h3 className="text-xl font-bold mt-1 text-slate-500">Nenhuma</h3>
+          )}
+        </div>
+
+        <div className="glass-panel rounded-2xl p-6 glow-accent">
+          <div className="flex items-start justify-between mb-4">
+            <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
+              <TrendingUp className="h-5 w-5" />
+            </div>
+          </div>
+          <p className="text-slate-400 text-sm font-medium">Entradas de evolução</p>
+          <h3 className="text-3xl font-bold mt-1">{totalEvolution}</h3>
+          <p className="text-slate-500 text-xs mt-1">total</p>
+        </div>
+      </section>
+
+      {/* ── Two-column: Classes + Evolution ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
+
+        {/* Próximas aulas */}
+        <section className="lg:col-span-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-primary" />
+              Próximas aulas
+              {upcomingClasses.length > 0 && (
+                <Badge variant="primary" size="sm">{upcomingClasses.length}</Badge>
+              )}
+            </h2>
+            <button
+              onClick={() => navigate('/classes')}
+              className="text-primary text-sm font-medium hover:underline"
+            >
+              Ver todas
+            </button>
+          </div>
+
+          {upcomingClasses.length === 0 ? (
+            <div className="glass-panel rounded-2xl p-8 text-center">
+              <CalendarClock className="h-8 w-8 text-slate-600 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">Nenhuma aula agendada</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {upcomingClasses.map((cls, idx) => {
+                const d = parseISO(cls.date);
+                const dayAbbr = format(d, 'EEE', { locale: ptBR }).replace('.', '');
+                const dayNum = format(d, 'dd');
+                const month = format(d, 'MMM', { locale: ptBR }).replace('.', '');
+                const isFirst = idx === 0;
+                return (
+                  <div
+                    key={cls.id}
+                    className="glass-panel rounded-2xl p-5 relative overflow-hidden flex items-center gap-6 group hover:border-primary/40 transition-all cursor-pointer"
+                    onClick={() => navigate('/classes')}
                   >
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${isFirst ? 'bg-primary' : 'bg-primary/40'}`} />
+                    <div className="text-center min-w-[60px]">
+                      <p className={`text-xs font-bold uppercase ${isFirst ? 'text-primary' : 'text-slate-400'}`}>
+                        {dayAbbr}
+                      </p>
+                      <p className="text-xl font-bold">{dayNum}</p>
+                      <p className="text-xs text-slate-500 capitalize">{month}</p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/20">
+                          Agendada
+                        </span>
+                        <span className="text-slate-500 text-xs">
+                          {formatTime(cls.startTime)} – {formatTime(cls.endTime)}
+                        </span>
+                      </div>
+                      <p className="font-bold text-base truncate">{cls.content || 'Aula sem conteúdo definido'}</p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-slate-600 group-hover:text-primary transition-colors shrink-0" />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Evolução recente */}
+        <section className="lg:col-span-4 space-y-4">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Evolução recente
+          </h2>
+
+          {evolutionEntries.length === 0 ? (
+            <div className="glass-panel rounded-2xl p-8 text-center">
+              <TrendingUp className="h-8 w-8 text-slate-600 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">Nenhuma entrada registrada</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {evolutionEntries.map((entry, idx) => (
+                <div
+                  key={entry.id}
+                  className={`glass-panel rounded-2xl p-5 border-l-4 ${idx === 0 ? 'border-l-emerald-500' : 'border-l-primary'}`}
+                >
+                  <div className="flex justify-between items-start mb-3 gap-2 flex-wrap">
+                    <p className="text-xs font-medium text-slate-500">
+                      {format(parseISO(entry.createdAt), "dd MMM yyyy", { locale: ptBR })}
+                    </p>
+                    {entry.categories.length > 0 && (
+                      <div className="flex gap-1 flex-wrap">
+                        {entry.categories.slice(0, 2).map(({ category }) => (
+                          <span
+                            key={category.id}
+                            className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300"
+                          >
+                            {category.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed italic line-clamp-3">
+                    "{entry.description}"
+                  </p>
                 </div>
               ))}
             </div>
           )}
+        </section>
+      </div>
+
+      {/* ── Outros alunos vinculados (guardian com 1 aluno) ── */}
+      {isGuardian && !hasMultiple && students.length > 0 && (
+        <section className="space-y-4 pb-8">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary" />
+            Aluno vinculado
+          </h2>
+          <div
+            className="glass-panel rounded-2xl p-6 flex items-center gap-5 hover:border-primary/50 transition-all group cursor-pointer w-full md:w-auto md:max-w-sm"
+            onClick={() => navigate('/students')}
+          >
+            <div className="h-14 w-14 rounded-full bg-slate-800 border-2 border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+              {selectedStudent?.avatarUrl ? (
+                <img src={selectedStudent.avatarUrl} alt={selectedStudent.name} className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-primary font-bold text-xl">
+                  {selectedStudent?.name.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h4 className="font-bold text-lg truncate">{selectedStudent?.name}</h4>
+                <Badge variant={selectedStudent?.active ? 'success' : 'default'} size="sm">
+                  {selectedStudent?.active ? 'Ativo' : 'Inativo'}
+                </Badge>
+              </div>
+              <p className="text-sm text-slate-400 truncate">
+                {[selectedStudent?.grade, selectedStudent?.school].filter(Boolean).join(' • ') || 'Sem informações'}
+              </p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-slate-600 group-hover:text-primary transition-colors shrink-0" />
+          </div>
         </section>
       )}
     </div>

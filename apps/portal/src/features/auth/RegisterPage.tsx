@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { GraduationCap, User, Mail, Lock, Eye, EyeOff, Check, ArrowRight } from 'lucide-react';
+import { GraduationCap, User, Mail, Lock, Eye, EyeOff, Check, ArrowRight, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { usePortalAuth } from '@/lib/auth';
 import { Button, Input, InputField } from '@tutorfy/ui';
@@ -11,47 +11,10 @@ export function RegisterPage() {
   const [searchParams] = useSearchParams();
   const { setSession } = usePortalAuth();
 
-  const token = searchParams.get('token') ?? '';
-
-  const [form, setForm] = useState({
-    name: searchParams.get('name') || '',
-    email: searchParams.get('email') || '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token) {
-      toast.error('Link de convite inválido ou expirado');
-      return;
-    }
-    if (form.password !== form.confirmPassword) {
-      toast.error('As senhas não coincidem');
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const res = await api.post<{ data: { token: string; account: { id: string; name: string; email: string; accountType: 'STUDENT' | 'GUARDIAN' } } }>(
-        '/portal/auth/register',
-        { name: form.name, email: form.email, password: form.password, token },
-      );
-      setSession(res.data.data.token, res.data.data.account);
-      navigate('/');
-      toast.success('Conta criada com sucesso!');
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Object && 'response' in err
-          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-          : undefined;
-      toast.error(msg ?? 'Erro ao criar conta');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const token        = searchParams.get('token') ?? '';
+  const accountType  = (searchParams.get('type') ?? 'STUDENT') as 'STUDENT' | 'GUARDIAN';
+  const prefillName  = searchParams.get('name') || '';
+  const prefillEmail = searchParams.get('email') || '';
 
   if (!token) {
     return (
@@ -72,17 +35,138 @@ export function RegisterPage() {
     );
   }
 
+  if (accountType === 'STUDENT') {
+    return <StudentTokenLogin token={token} />;
+  }
+
+  return (
+    <GuardianRegisterForm
+      token={token}
+      prefillName={prefillName}
+      prefillEmail={prefillEmail}
+    />
+  );
+}
+
+// ─── Login automático para alunos ────────────────────────────────────────────
+
+function StudentTokenLogin({ token }: { token: string }) {
+  const navigate = useNavigate();
+  const { setSession } = usePortalAuth();
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    api
+      .post<{ data: { token: string; account: { id: string; name: string; email: string | null; accountType: 'STUDENT' | 'GUARDIAN' } } }>(
+        '/portal/auth/token-login',
+        { token, accountType: 'STUDENT' },
+      )
+      .then((res) => {
+        setSession(res.data.data.token, res.data.data.account);
+        navigate('/');
+      })
+      .catch((err: unknown) => {
+        const msg =
+          err instanceof Object && 'response' in err
+            ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+            : undefined;
+        setError(msg ?? 'Erro ao acessar o portal');
+      });
+  }, [token]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-[#070d1f]">
+        <div className="glass-panel rounded-2xl p-8 text-center max-w-sm w-full space-y-4">
+          <div className="h-14 w-14 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto">
+            <Lock className="h-7 w-7 text-destructive" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-white mb-1">Erro ao entrar</h2>
+            <p className="text-sm text-slate-400">{error}</p>
+          </div>
+          <Link to="/login" className="text-primary text-sm hover:underline block font-medium">
+            Ir para login
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#070d1f]">
+      <div className="glass-panel rounded-2xl p-8 text-center max-w-sm w-full space-y-4">
+        <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+          <Loader2 className="h-7 w-7 text-primary animate-spin" />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-white mb-1">Entrando no portal...</h2>
+          <p className="text-sm text-slate-400">Aguarde um momento.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Formulário de cadastro para responsáveis ─────────────────────────────────
+
+function GuardianRegisterForm({
+  token,
+  prefillName,
+  prefillEmail,
+}: {
+  token: string;
+  prefillName: string;
+  prefillEmail: string;
+}) {
+  const navigate = useNavigate();
+  const { setSession } = usePortalAuth();
+
+  const [form, setForm] = useState({
+    name: prefillName,
+    email: prefillEmail,
+    password: '',
+    confirmPassword: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form.password !== form.confirmPassword) {
+      toast.error('As senhas não coincidem');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await api.post<{ data: { token: string; account: { id: string; name: string; email: string | null; accountType: 'STUDENT' | 'GUARDIAN' } } }>(
+        '/portal/auth/register',
+        { name: form.name, email: form.email, password: form.password, token, accountType: 'GUARDIAN' },
+      );
+      setSession(res.data.data.token, res.data.data.account);
+      navigate('/');
+      toast.success('Conta criada com sucesso!');
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Object && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      toast.error(msg ?? 'Erro ao criar conta');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col lg:flex-row overflow-x-hidden">
 
       {/* ── Lado Esquerdo ─────────────────────────────────────────── */}
       <section className="relative lg:w-[40%] bg-slate-950 flex flex-col justify-between p-10 lg:p-12 overflow-hidden border-r border-primary/10 min-h-[300px] lg:min-h-screen">
-        {/* Glows decorativos */}
         <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-primary/15 blur-[80px] pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-primary/10 blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 space-y-12">
-          {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary neon-glow">
               <GraduationCap className="h-5 w-5 text-white" />
@@ -90,20 +174,18 @@ export function RegisterPage() {
             <span className="text-2xl font-bold text-white tracking-tight">Tutorfy</span>
           </div>
 
-          {/* Texto de boas-vindas */}
           <div className="space-y-4">
             <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-white">
-              Bem-vindo ao{' '}
-              <span className="text-primary">Portal do Aluno</span>
+              Acesso do{' '}
+              <span className="text-primary">Responsável</span>
             </h1>
             <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
-              Crie sua conta usando o link enviado pelo seu tutor.
+              Crie sua conta para acompanhar a evolução do seu filho.
             </p>
           </div>
 
-          {/* Benefícios */}
           <ul className="space-y-5">
-            {['Acompanhe suas aulas', 'Veja seu progresso', 'Acesse materiais do tutor'].map((benefit) => (
+            {['Acompanhe as aulas', 'Veja o progresso', 'Acesse materiais do tutor'].map((benefit) => (
               <li key={benefit} className="flex items-center gap-4">
                 <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
                   <Check className="h-4 w-4 text-primary" strokeWidth={2.5} />
@@ -123,13 +205,11 @@ export function RegisterPage() {
 
       {/* ── Lado Direito ──────────────────────────────────────────── */}
       <main className="relative lg:w-[60%] flex items-center justify-center p-6 lg:p-12 min-h-screen bg-background overflow-hidden">
-        {/* Glow central */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-primary/5 blur-[100px] pointer-events-none" />
 
         <div className="w-full max-w-lg relative z-10">
           <div className="glass-panel rounded-[2rem] p-8 lg:p-12 shadow-2xl">
 
-            {/* Badge */}
             <div className="flex justify-center mb-8">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10">
                 <span className="relative flex h-2 w-2">
@@ -140,13 +220,11 @@ export function RegisterPage() {
               </div>
             </div>
 
-            {/* Cabeçalho */}
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-white mb-2">Criar conta</h2>
               <p className="text-slate-400">Preencha os dados para começar</p>
             </div>
 
-            {/* Formulário */}
             <form onSubmit={handleSubmit} className="space-y-5">
               <InputField label="Nome completo" htmlFor="name">
                 <Input
@@ -156,6 +234,7 @@ export function RegisterPage() {
                   placeholder="Como deseja ser chamado?"
                   leadingIcon={<User />}
                   size="lg"
+                  disabled={!!prefillName}
                   required
                 />
               </InputField>
@@ -169,6 +248,7 @@ export function RegisterPage() {
                   placeholder="seuemail@exemplo.com"
                   leadingIcon={<Mail />}
                   size="lg"
+                  disabled={!!prefillEmail}
                   required
                 />
               </InputField>
@@ -234,7 +314,6 @@ export function RegisterPage() {
               </Button>
             </form>
 
-            {/* Rodapé do card */}
             <p className="mt-8 text-center text-sm text-slate-400">
               Já tem conta?{' '}
               <Link to={`/login?token=${token}`} className="text-primary font-bold hover:text-primary/80 transition-colors">

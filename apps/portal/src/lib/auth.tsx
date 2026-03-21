@@ -4,7 +4,7 @@ import { api } from './api';
 interface PortalAccount {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   accountType: 'STUDENT' | 'GUARDIAN';
 }
 
