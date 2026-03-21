@@ -31,8 +31,10 @@ interface EvolutionEntry {
   categories: { category: { id: string; name: string; color: string } }[];
 }
 
-function formatTime(iso: string) {
-  return format(parseISO(iso), 'HH:mm');
+function formatTime(time: string) {
+  if (/^\d{2}:\d{2}/.test(time)) return time.slice(0, 5);
+  const d = parseISO(time);
+  return isNaN(d.getTime()) ? time : format(d, 'HH:mm');
 }
 
 function formatNextClassLabel(dateIso: string) {
@@ -84,7 +86,7 @@ export function HomePage() {
 
   if (studentsLoading) {
     return (
-      <div className="p-8 max-w-7xl mx-auto space-y-8">
+      <div className="space-y-8">
         <div className="h-12 w-64 glass-panel rounded-xl animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[...Array(3)].map((_, i) => (
@@ -102,7 +104,7 @@ export function HomePage() {
   const evolutionEntries = evolutionData?.data ?? [];
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="space-y-8">
 
       {/* ── Hero ── */}
       <section className="flex flex-col md:flex-row md:items-end justify-between gap-4">

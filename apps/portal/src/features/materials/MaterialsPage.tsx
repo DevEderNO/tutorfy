@@ -2,7 +2,7 @@ import { BookMarked } from 'lucide-react';
 
 export function MaterialsPage() {
   return (
-    <div className="p-8 max-w-4xl mx-auto flex flex-col items-center justify-center py-24">
+    <div className="flex flex-col items-center justify-center py-16">
       <div className="glass-panel rounded-2xl p-12 text-center space-y-5 max-w-md w-full">
         <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto neon-glow">
           <BookMarked className="h-10 w-10 text-primary" />

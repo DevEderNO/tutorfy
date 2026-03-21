@@ -6,9 +6,10 @@ import { useState, useRef, useEffect } from 'react';
 
 interface HeaderProps {
   title: string;
+  subtitle?: string;
 }
 
-export function Header({ title }: HeaderProps) {
+export function Header({ title, subtitle }: HeaderProps) {
   const { account, logout } = usePortalAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -35,7 +36,10 @@ export function Header({ title }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-40 glass border-b border-primary/10 px-8 py-4 flex items-center justify-between backdrop-blur-md">
-      <h2 className="text-xl font-bold tracking-tight text-white">{title}</h2>
+      <div>
+        <h2 className="text-xl font-bold tracking-tight text-white leading-tight">{title}</h2>
+        {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+      </div>
 
       <div className="flex items-center gap-3">
 

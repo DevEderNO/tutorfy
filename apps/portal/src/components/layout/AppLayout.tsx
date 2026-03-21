@@ -4,19 +4,19 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { Footer } from './Footer';
 
-const ROUTE_TITLES: Record<string, string> = {
-  '/': 'Início',
-  '/classes': 'Aulas',
-  '/evolution': 'Evolução',
-  '/materials': 'Materiais',
-  '/students': 'Alunos vinculados',
-  '/profile': 'Meu perfil',
+const ROUTE_TITLES: Record<string, { title: string; subtitle?: string }> = {
+  '/': { title: 'Início' },
+  '/classes': { title: 'Aulas' },
+  '/evolution': { title: 'Evolução' },
+  '/materials': { title: 'Materiais' },
+  '/students': { title: 'Alunos vinculados', subtitle: 'Acompanhe o progresso de todos os alunos sob sua responsabilidade' },
+  '/profile': { title: 'Meu perfil' },
 };
 
-function getTitle(pathname: string): string {
+function getRouteInfo(pathname: string): { title: string; subtitle?: string } {
   if (ROUTE_TITLES[pathname]) return ROUTE_TITLES[pathname];
-  if (pathname.startsWith('/students/')) return 'Detalhe do aluno';
-  return 'Portal do Aluno';
+  if (pathname.startsWith('/students/')) return { title: 'Detalhe do aluno' };
+  return { title: 'Portal do Aluno' };
 }
 
 function loadPinned(): boolean {
@@ -30,6 +30,7 @@ function loadPinned(): boolean {
 export function AppLayout() {
   const [pinned, setPinned] = useState(loadPinned);
   const location = useLocation();
+  const { title, subtitle } = getRouteInfo(location.pathname);
 
   const togglePin = () => {
     setPinned((prev) => {
@@ -53,9 +54,11 @@ export function AppLayout() {
           expanded ? 'ml-64' : 'ml-16'
         }`}
       >
-        <Header title={getTitle(location.pathname)} />
+        <Header title={title} subtitle={subtitle} />
         <main className="flex-1 overflow-y-auto">
-          <Outlet />
+          <div className="max-w-7xl mx-auto px-6 py-8">
+            <Outlet />
+          </div>
         </main>
         <Footer />
       </div>

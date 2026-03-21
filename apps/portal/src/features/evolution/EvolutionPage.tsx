@@ -39,7 +39,7 @@ export function EvolutionPage() {
   });
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6">
 
       {data && (
         <p className="text-xs text-slate-500">{data.meta.total} entrada{data.meta.total !== 1 ? 's' : ''} registrada{data.meta.total !== 1 ? 's' : ''}</p>

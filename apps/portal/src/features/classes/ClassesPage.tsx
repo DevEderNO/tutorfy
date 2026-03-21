@@ -31,8 +31,11 @@ const STATUS_VARIANT: Record<string, 'default' | 'success' | 'destructive' | 'wa
   MISSED: 'warning',
 };
 
-function formatTime(iso: string) {
-  return format(parseISO(iso), 'HH:mm');
+function formatTime(time: string) {
+  // time may be "HH:mm" or a full ISO string
+  if (/^\d{2}:\d{2}/.test(time)) return time.slice(0, 5);
+  const d = parseISO(time);
+  return isNaN(d.getTime()) ? time : format(d, 'HH:mm');
 }
 
 export function ClassesPage() {
@@ -52,7 +55,7 @@ export function ClassesPage() {
   });
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6">
 
       {/* Filtros */}
       <div className="flex items-center gap-3 flex-wrap">
