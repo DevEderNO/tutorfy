@@ -181,11 +181,11 @@ export function StudentFormPage() {
         billingType:      student.billingType as BillingType,
         monthlyFee:       student.monthlyFee,
         hourlyRate:       student.hourlyRate,
-        birthDate:        "2010-01-01",
-        shift:            "morning",
-        cpf:              "",
-        email:            "",
-        dueDate:          "10",
+        birthDate:        student.birthDate ? student.birthDate.slice(0, 10) : undefined,
+        shift:            student.shift || "morning",
+        cpf:              student.cpf || "",
+        email:            student.email || "",
+        dueDate:          student.dueDate || "10",
         schedulePreferences: student.schedulePreferences || [],
       });
     }
@@ -217,6 +217,11 @@ export function StudentFormPage() {
       billingType:         data.billingType,
       monthlyFee:          data.monthlyFee,
       hourlyRate:          data.hourlyRate ?? undefined,
+      cpf:                 data.cpf || undefined,
+      email:               data.email || undefined,
+      birthDate:           data.birthDate || undefined,
+      shift:               data.shift || undefined,
+      dueDate:             data.dueDate || undefined,
       schedulePreferences: data.schedulePreferences,
     };
 

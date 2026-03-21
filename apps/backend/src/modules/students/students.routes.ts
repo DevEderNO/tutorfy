@@ -9,6 +9,7 @@ export async function studentsRoutes(app: FastifyInstance) {
 
   app.get('/', controller.list.bind(controller));
   app.get('/:id', controller.getById.bind(controller));
+  app.get('/:id/portal-link', controller.getPortalLink.bind(controller));
   app.post('/', controller.create.bind(controller));
   app.put('/:id', controller.update.bind(controller));
   app.delete('/:id', controller.delete.bind(controller));

@@ -9,7 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { Button } from '@tutorfy/ui';
+import { Button } from "@tutorfy/ui";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -171,19 +171,25 @@ export function EvolutionTab({ studentId }: EvolutionTabProps) {
                     <div className="flex-1 min-w-0">
                       {/* Date */}
                       <p className="text-xs text-slate-500 font-medium mb-2">
-                        {format(new Date(entry.createdAt), "dd 'de' MMMM 'de' yyyy • HH:mm", {
-                          locale: ptBR,
-                        })}
+                        {format(
+                          new Date(entry.createdAt),
+                          "dd 'de' MMMM 'de' yyyy • HH:mm",
+                          {
+                            locale: ptBR,
+                          },
+                        )}
                       </p>
 
                       {/* Description */}
-                      <div className="prose prose-sm prose-invert max-w-none text-slate-200 leading-relaxed
+                      <div
+                        className="prose prose-sm prose-invert max-w-none text-slate-200 leading-relaxed
                         [&_h1]:text-base [&_h1]:font-bold [&_h1]:text-white [&_h1]:mb-3 [&_h1]:mt-0
                         [&_h2]:text-sm [&_h2]:font-bold [&_h2]:text-slate-100 [&_h2]:mb-2 [&_h2]:mt-4
                         [&_p]:text-sm [&_p]:text-slate-200 [&_p]:leading-relaxed [&_p]:mb-2
                         [&_ul]:my-2 [&_ul]:pl-5 [&_li]:text-sm [&_li]:text-slate-200 [&_li]:mb-1
                         [&_strong]:text-white [&_strong]:font-semibold
-                        [&_hr]:border-white/10 [&_hr]:my-3">
+                        [&_hr]:border-white/10 [&_hr]:my-3"
+                      >
                         <Markdown>{entry.description}</Markdown>
                       </div>
 
@@ -210,7 +216,7 @@ export function EvolutionTab({ studentId }: EvolutionTabProps) {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <div className="flex items-center gap-2 group-hover:opacity-100 transition-opacity shrink-0">
                       <Button
                         variant="ghost"
                         size="icon-sm"

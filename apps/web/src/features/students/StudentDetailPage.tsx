@@ -1,13 +1,14 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useStudent } from "./hooks/useStudents";
 import { useDeleteClass } from "../classes/hooks/useClasses";
-import { ChevronRight, User, Phone, Pencil, CreditCard, TrendingUp, Receipt, CalendarDays, Filter, Download, Clock, MoreHorizontal, ChevronLeft, Trash2 } from "lucide-react";
+import { ChevronRight, User, Phone, Pencil, CreditCard, TrendingUp, Receipt, CalendarDays, Filter, Download, Clock, MoreHorizontal, ChevronLeft, Trash2, Share2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { Header } from "@/components/layout/Header";
 import { EvolutionTab } from "./components/EvolutionTab";
+import { PortalLinkModal } from "./components/PortalLinkModal";
 import { Button } from '@tutorfy/ui';
 import { Tabs, TabsList, TabsTrigger } from '@tutorfy/ui';
 import {
@@ -41,6 +42,7 @@ export function StudentDetailPage() {
   const deleteClass = useDeleteClass();
   const [activeTab, setActiveTab] = useState<"evolution" | "classes" | "billing">("evolution");
   const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
+  const [portalLinkOpen, setPortalLinkOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -117,10 +119,14 @@ export function StudentDetailPage() {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <div className="flex flex-col gap-3 w-full lg:w-auto lg:min-w-[180px]">
               <Button variant="secondary" onClick={() => navigate(`/students/${id}/edit`)}>
                 <Pencil className="h-4 w-4" />
                 Editar Perfil
+              </Button>
+              <Button variant="secondary" onClick={() => setPortalLinkOpen(true)}>
+                <Share2 className="h-4 w-4" />
+                Portal do Aluno
               </Button>
               <Button variant="primary">
                 <CreditCard className="h-4 w-4" />
@@ -343,6 +349,16 @@ export function StudentDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Portal Link Modal */}
+        {id && (
+          <PortalLinkModal
+            studentId={id}
+            studentName={student.name}
+            open={portalLinkOpen}
+            onClose={() => setPortalLinkOpen(false)}
+          />
+        )}
 
         {/* Confirmation Modals */}
         <ConfirmModal

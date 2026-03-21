@@ -18,6 +18,11 @@ export const createStudentSchema = z.object({
   billingType: billingTypeEnum.default('MONTHLY'),
   monthlyFee: z.number().min(0, 'Valor da mensalidade não pode ser negativo').optional().default(0),
   hourlyRate: z.number().positive('Valor por hora deve ser positivo').optional().nullable(),
+  cpf: z.string().optional().nullable(),
+  email: z.string().email('E-mail inválido').optional().nullable().or(z.literal('')),
+  birthDate: z.string().optional().nullable(),
+  shift: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
   schedulePreferences: z.array(schedulePreferenceSchema).optional(),
   // Avaliação Inicial
   currentLevel: z.string().max(500).optional().nullable(),
@@ -50,6 +55,11 @@ export const updateStudentSchema = z.object({
   monthlyFee: z.number().min(0).optional(),
   hourlyRate: z.number().positive().optional().nullable(),
   active: z.boolean().optional(),
+  cpf: z.string().optional().nullable(),
+  email: z.string().email().optional().nullable().or(z.literal('')),
+  birthDate: z.string().optional().nullable(),
+  shift: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
   schedulePreferences: z.array(schedulePreferenceSchema).optional(),
   // Avaliação Inicial
   currentLevel: z.string().max(500).optional().nullable(),

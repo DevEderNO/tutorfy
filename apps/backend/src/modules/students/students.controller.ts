@@ -67,4 +67,14 @@ export class StudentsController {
       return reply.status(error.statusCode || 500).send({ message: error.message });
     }
   }
+
+  async getPortalLink(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const userId = getUserId(request);
+    try {
+      const shareToken = await service.getShareToken(request.params.id, userId);
+      return reply.send({ data: { token: shareToken.token, studentId: shareToken.studentId } });
+    } catch (error: any) {
+      return reply.status(error.statusCode || 500).send({ message: error.message });
+    }
+  }
 }

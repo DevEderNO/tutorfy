@@ -37,4 +37,9 @@ export class StudentsService {
     await this.getById(id, userId);
     return repository.delete(id, userId);
   }
+
+  async getShareToken(id: string, userId: string) {
+    await this.getById(id, userId);
+    return repository.getOrCreateShareToken(id);
+  }
 }

@@ -131,4 +131,12 @@ export class StudentsRepository {
       where: { userId, active: true },
     });
   }
+
+  async getOrCreateShareToken(studentId: string) {
+    return prisma.studentShareToken.upsert({
+      where: { studentId },
+      update: {},
+      create: { studentId },
+    });
+  }
 }
