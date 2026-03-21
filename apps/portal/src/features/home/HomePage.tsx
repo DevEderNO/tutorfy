@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { format, isToday, isTomorrow, parseISO } from 'date-fns';
@@ -10,21 +9,11 @@ import {
   ChevronRight,
   CalendarDays,
   Sparkles,
-  ChevronDown,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { usePortalAuth } from '@/lib/auth';
+import { useSelectedStudent } from '@/lib/selected-student';
 import { Badge } from '@tutorfy/ui';
-
-interface Student {
-  id: string;
-  name: string;
-  avatarUrl: string | null;
-  grade: string | null;
-  school: string | null;
-  currentLevel: string | null;
-  active: boolean;
-}
 
 interface ClassSession {
   id: string;
@@ -53,48 +42,13 @@ function formatNextClassLabel(dateIso: string) {
   return format(d, "EEE, dd MMM", { locale: ptBR });
 }
 
-// ─── Wrapper ──────────────────────────────────────────────────────────────────
-
 export function HomePage() {
-  const { data: students, isLoading } = useQuery({
-    queryKey: ['portal', 'students'],
-    queryFn: async () => {
-      const res = await api.get<{ data: Student[] }>('/portal/students');
-      return res.data.data;
-    },
-  });
-
-  if (isLoading || !students) {
-    return (
-      <div className="p-8 max-w-7xl mx-auto space-y-8">
-        <div className="h-12 w-64 glass-panel rounded-xl animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="glass-panel rounded-2xl h-32 animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return <HomePageInner students={students} />;
-}
-
-// ─── Inner ────────────────────────────────────────────────────────────────────
-
-function HomePageInner({ students }: { students: Student[] }) {
   const { account, isGuardian } = usePortalAuth();
   const navigate = useNavigate();
+  const { selectedId, selectedStudent, isLoading: studentsLoading } = useSelectedStudent();
   const firstName = account?.name.split(' ')[0];
   const today = format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR });
 
-  const [selectedId, setSelectedId] = useState<string>(students[0]?.id ?? '');
-  const [pickerOpen, setPickerOpen] = useState(false);
-
-  const selectedStudent = students.find((s) => s.id === selectedId) ?? students[0];
-  const hasMultiple = isGuardian && students.length > 1;
-
-  // Upcoming classes
   const { data: upcomingData } = useQuery({
     queryKey: ['portal', 'classes', selectedId, 'upcoming'],
     enabled: !!selectedId,
@@ -106,7 +60,6 @@ function HomePageInner({ students }: { students: Student[] }) {
     },
   });
 
-  // Total completed
   const { data: historyData } = useQuery({
     queryKey: ['portal', 'classes', selectedId, 'history'],
     enabled: !!selectedId,
@@ -118,7 +71,6 @@ function HomePageInner({ students }: { students: Student[] }) {
     },
   });
 
-  // Recent evolution
   const { data: evolutionData } = useQuery({
     queryKey: ['portal', 'evolution', selectedId],
     enabled: !!selectedId,
@@ -129,6 +81,19 @@ function HomePageInner({ students }: { students: Student[] }) {
       return res.data;
     },
   });
+
+  if (studentsLoading) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto space-y-8">
+        <div className="h-12 w-64 glass-panel rounded-xl animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="glass-panel rounded-2xl h-32 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const upcomingClasses = upcomingData?.data ?? [];
   const nextClass = upcomingClasses[0];
@@ -152,60 +117,6 @@ function HomePageInner({ students }: { students: Student[] }) {
           <span className="capitalize">{today}</span>
         </div>
       </section>
-
-      {/* ── Seletor de aluno (responsável com múltiplos alunos) ── */}
-      {hasMultiple && (
-        <section className="relative">
-          <button
-            onClick={() => setPickerOpen((v) => !v)}
-            className="glass-panel rounded-2xl px-5 py-3 flex items-center gap-4 hover:border-primary/40 transition-all w-full md:w-auto"
-          >
-            <div className="h-10 w-10 rounded-full bg-slate-800 border-2 border-primary/30 overflow-hidden flex items-center justify-center shrink-0">
-              {selectedStudent?.avatarUrl ? (
-                <img src={selectedStudent.avatarUrl} alt={selectedStudent.name} className="h-full w-full object-cover" />
-              ) : (
-                <span className="text-primary font-bold text-lg">
-                  {selectedStudent?.name.charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
-            <div className="text-left flex-1">
-              <p className="text-xs text-slate-500 font-medium">Visualizando</p>
-              <p className="font-bold text-white">{selectedStudent?.name}</p>
-            </div>
-            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${pickerOpen ? 'rotate-180' : ''}`} />
-          </button>
-
-          {pickerOpen && (
-            <div className="absolute top-full mt-2 left-0 z-20 glass-panel rounded-2xl p-2 shadow-xl border border-primary/10 min-w-[260px]">
-              {students.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => { setSelectedId(s.id); setPickerOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
-                    s.id === selectedId ? 'bg-primary/20 text-white' : 'hover:bg-white/5 text-slate-300'
-                  }`}
-                >
-                  <div className="h-9 w-9 rounded-full bg-slate-800 overflow-hidden flex items-center justify-center shrink-0">
-                    {s.avatarUrl ? (
-                      <img src={s.avatarUrl} alt={s.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-primary font-bold">{s.name.charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate">{s.name}</p>
-                    <p className="text-xs text-slate-500 truncate">{s.grade || s.school || '—'}</p>
-                  </div>
-                  {s.id === selectedId && (
-                    <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
 
       {/* ── Stats Row ── */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -366,38 +277,34 @@ function HomePageInner({ students }: { students: Student[] }) {
         </section>
       </div>
 
-      {/* ── Outros alunos vinculados (guardian com 1 aluno) ── */}
-      {isGuardian && !hasMultiple && students.length > 0 && (
+      {/* ── Aluno vinculado (guardian com 1 aluno) ── */}
+      {isGuardian && selectedStudent && (
         <section className="space-y-4 pb-8">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-primary" />
             Aluno vinculado
           </h2>
-          <div
-            className="glass-panel rounded-2xl p-6 flex items-center gap-5 hover:border-primary/50 transition-all group cursor-pointer w-full md:w-auto md:max-w-sm"
-            onClick={() => navigate('/students')}
-          >
+          <div className="glass-panel rounded-2xl p-6 flex items-center gap-5 w-full md:w-auto md:max-w-sm">
             <div className="h-14 w-14 rounded-full bg-slate-800 border-2 border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
-              {selectedStudent?.avatarUrl ? (
+              {selectedStudent.avatarUrl ? (
                 <img src={selectedStudent.avatarUrl} alt={selectedStudent.name} className="h-full w-full object-cover" />
               ) : (
                 <span className="text-primary font-bold text-xl">
-                  {selectedStudent?.name.charAt(0).toUpperCase()}
+                  {selectedStudent.name.charAt(0).toUpperCase()}
                 </span>
               )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h4 className="font-bold text-lg truncate">{selectedStudent?.name}</h4>
-                <Badge variant={selectedStudent?.active ? 'success' : 'default'} size="sm">
-                  {selectedStudent?.active ? 'Ativo' : 'Inativo'}
+                <h4 className="font-bold text-lg truncate">{selectedStudent.name}</h4>
+                <Badge variant={selectedStudent.active ? 'success' : 'default'} size="sm">
+                  {selectedStudent.active ? 'Ativo' : 'Inativo'}
                 </Badge>
               </div>
               <p className="text-sm text-slate-400 truncate">
-                {[selectedStudent?.grade, selectedStudent?.school].filter(Boolean).join(' • ') || 'Sem informações'}
+                {[selectedStudent.grade, selectedStudent.school].filter(Boolean).join(' • ') || 'Sem informações'}
               </p>
             </div>
-            <ChevronRight className="h-5 w-5 text-slate-600 group-hover:text-primary transition-colors shrink-0" />
           </div>
         </section>
       )}

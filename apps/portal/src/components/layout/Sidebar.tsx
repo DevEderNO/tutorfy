@@ -13,14 +13,10 @@ export function Sidebar({ pinned, expanded, onTogglePin }: SidebarProps) {
 
   const navItems = [
     { to: '/', icon: Home, label: 'Início', end: true },
-    ...(isGuardian
-      ? [{ to: '/students', icon: Users, label: 'Alunos vinculados', end: false }]
-      : [
-          { to: '/classes', icon: CalendarDays, label: 'Aulas', end: false },
-          { to: '/evolution', icon: Sparkles, label: 'Evolução', end: false },
-          { to: '/materials', icon: BookMarked, label: 'Materiais', end: false },
-        ]
-    ),
+    ...(isGuardian ? [{ to: '/students', icon: Users, label: 'Alunos vinculados', end: false }] : []),
+    { to: '/classes', icon: CalendarDays, label: 'Aulas', end: false },
+    { to: '/evolution', icon: Sparkles, label: 'Evolução', end: false },
+    { to: '/materials', icon: BookMarked, label: 'Materiais', end: false },
   ];
 
   return (

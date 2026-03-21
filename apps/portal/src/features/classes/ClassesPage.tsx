@@ -1,17 +1,11 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarDays, ChevronRight, Users } from 'lucide-react';
+import { CalendarDays, ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
-import { usePortalAuth } from '@/lib/auth';
+import { useSelectedStudent } from '@/lib/selected-student';
 import { Badge, Button, Pagination } from '@tutorfy/ui';
-
-interface Student {
-  id: string;
-  name: string;
-}
 
 interface ClassSession {
   id: string;
@@ -42,50 +36,20 @@ function formatTime(iso: string) {
 }
 
 export function ClassesPage() {
-  const { isGuardian } = usePortalAuth();
-  const navigate = useNavigate();
   const [filter, setFilter] = useState<'upcoming' | 'history' | 'all'>('upcoming');
   const [page, setPage] = useState(1);
-
-  const { data: students } = useQuery({
-    queryKey: ['portal', 'students'],
-    queryFn: async () => {
-      const res = await api.get<{ data: Student[] }>('/portal/students');
-      return res.data.data;
-    },
-  });
-
-  const primaryStudent = students?.[0];
+  const { selectedId } = useSelectedStudent();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['portal', 'classes', primaryStudent?.id, filter, page],
-    enabled: !!primaryStudent,
+    queryKey: ['portal', 'classes', selectedId, filter, page],
+    enabled: !!selectedId,
     queryFn: async () => {
       const res = await api.get<{ data: ClassSession[]; meta: { total: number; totalPages: number } }>(
-        `/portal/students/${primaryStudent!.id}/classes?filter=${filter}&page=${page}&limit=10`,
+        `/portal/students/${selectedId}/classes?filter=${filter}&page=${page}&limit=10`,
       );
       return res.data;
     },
   });
-
-  if (isGuardian) {
-    return (
-      <div className="p-8 max-w-2xl mx-auto flex flex-col items-center justify-center gap-6 py-24">
-        <div className="glass-panel rounded-2xl p-10 text-center space-y-4">
-          <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-            <Users className="h-8 w-8 text-primary" />
-          </div>
-          <h2 className="text-xl font-bold text-white">Selecione um aluno</h2>
-          <p className="text-slate-400 text-sm">
-            Acesse o perfil de um aluno vinculado para ver o histórico de aulas.
-          </p>
-          <Button variant="primary" onClick={() => navigate('/students')}>
-            Ver alunos vinculados
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
