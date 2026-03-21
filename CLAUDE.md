@@ -58,6 +58,7 @@ O Tutorfy é uma aplicação web de gestão e interação para aulas/tutorias. O
 - **Integração de UI:** O Tailwind CSS deve ser a primeira opção de estilização. Evitar CSS customizado a menos que estritamente necessário (ex: animações complexas que não caibam no utilitário).
 - **Tratamento de Erros:** O backend utiliza um Error Handler global no Fastify. Erros de regra de negócio devem lançar objetos contendo `{ statusCode, message }`.
 - **Sem over-engineering:** Não adicionar abstrações, utilitários ou helpers para operações únicas. A solução mais simples que resolve o problema atual é sempre preferida.
+- **Sub-components:** Sempre que possível, dividir componentes em wrapper + sub-component para separar responsabilidades. Padrão obrigatório em formulários com dados assíncronos: o wrapper faz o fetch e exibe o spinner; o sub-component (`FormInner`) recebe os dados como props e inicializa `useForm` com `defaultValues` corretos desde a montagem — eliminando a necessidade de `useEffect` + `reset()` e evitando bugs de estado em componentes controlados (ex: Radix Select).
 - **Commits apenas quando solicitado:** Nunca criar commits sem que o usuário peça explicitamente.
 - **Secrets:** Nunca hardcoded — variáveis em `.env` (gitignored). `.env.example` documenta as necessárias.
 
