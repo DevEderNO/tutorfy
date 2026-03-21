@@ -3,6 +3,12 @@ import type { CreateStudentInput, UpdateStudentInput, ListStudentsQuery } from '
 import { Prisma } from '@prisma/client';
 
 export class StudentsRepository {
+  private guardianInclude = {
+    guardians: {
+      include: { guardian: true },
+    },
+  };
+
   async findAll(userId: string, params: ListStudentsQuery) {
     const { page, limit, search, active, billingType, sortBy, sortDir } = params;
 
@@ -25,7 +31,7 @@ export class StudentsRepository {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { [sortBy]: sortDir },
-        include: { schedulePreferences: true },
+        include: { schedulePreferences: true, ...this.guardianInclude },
       }),
       prisma.student.count({ where }),
     ]);
@@ -36,7 +42,7 @@ export class StudentsRepository {
   async findById(id: string, userId: string) {
     return prisma.student.findFirst({
       where: { id, userId },
-      include: { schedulePreferences: true },
+      include: { schedulePreferences: true, ...this.guardianInclude },
     });
   }
 
@@ -70,12 +76,13 @@ export class StudentsRepository {
             },
           },
         },
+        ...this.guardianInclude,
       },
     });
   }
 
   async create(userId: string, data: CreateStudentInput) {
-    const { schedulePreferences, ...studentData } = data;
+    const { schedulePreferences, guardianIds, ...studentData } = data;
 
     return prisma.student.create({
       data: {
@@ -84,30 +91,35 @@ export class StudentsRepository {
         schedulePreferences: schedulePreferences && schedulePreferences.length > 0 ? {
           create: schedulePreferences
         } : undefined,
+        guardians: guardianIds && guardianIds.length > 0 ? {
+          create: guardianIds.map((guardianId) => ({ guardianId })),
+        } : undefined,
         shareToken: {
           create: {},
         },
       },
-      include: { schedulePreferences: true },
+      include: { schedulePreferences: true, ...this.guardianInclude },
     });
   }
 
   async update(id: string, userId: string, data: UpdateStudentInput) {
-    const { schedulePreferences, ...studentData } = data;
+    const { schedulePreferences, guardianIds, ...studentData } = data;
 
     return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       if (schedulePreferences) {
-        // Delete all existing and recreate
-        await tx.studentSchedulePreference.deleteMany({
-          where: { studentId: id },
-        });
-
+        await tx.studentSchedulePreference.deleteMany({ where: { studentId: id } });
         if (schedulePreferences.length > 0) {
           await tx.studentSchedulePreference.createMany({
-            data: schedulePreferences.map((pref) => ({
-              ...pref,
-              studentId: id,
-            })),
+            data: schedulePreferences.map((pref) => ({ ...pref, studentId: id })),
+          });
+        }
+      }
+
+      if (guardianIds !== undefined) {
+        await tx.guardianStudent.deleteMany({ where: { studentId: id } });
+        if (guardianIds.length > 0) {
+          await tx.guardianStudent.createMany({
+            data: guardianIds.map((guardianId) => ({ guardianId, studentId: id })),
           });
         }
       }
@@ -115,7 +127,7 @@ export class StudentsRepository {
       return tx.student.update({
         where: { id },
         data: studentData,
-        include: { schedulePreferences: true },
+        include: { schedulePreferences: true, ...this.guardianInclude },
       });
     });
   }

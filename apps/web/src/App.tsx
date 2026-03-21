@@ -14,6 +14,8 @@ import { StudentDetailPage } from "@/features/students/StudentDetailPage";
 import { SchedulePage } from "@/features/schedule/SchedulePage";
 import { FinancialPage } from "@/features/financial/FinancialPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
+import { GuardiansListPage } from "@/features/guardians/GuardiansListPage";
+import { GuardianFormPage } from "@/features/guardians/GuardianFormPage";
 import { StudentPortalPage } from "@/features/portal/StudentPortalPage";
 import { ComponentsLayout } from "@/features/components/ComponentsLayout";
 import { AtomsPage } from "@/features/components/AtomsPage";
@@ -80,6 +82,9 @@ export default function App() {
                   element={<StudentFormPage />}
                 />
                 <Route path="/students/:id" element={<StudentDetailPage />} />
+                <Route path="/guardians" element={<GuardiansListPage />} />
+                <Route path="/guardians/new" element={<GuardianFormPage />} />
+                <Route path="/guardians/:id/edit" element={<GuardianFormPage />} />
                 <Route path="/schedule" element={<SchedulePage />} />
                 <Route path="/financial" element={<FinancialPage />} />
                 <Route path="/settings" element={<SettingsPage />} />

@@ -20,9 +20,11 @@ import {
   Plus,
   Trash2,
   AlertCircle,
-  Mail,
-  Phone,
+  X,
+  UserRound,
+  ChevronDown,
 } from "lucide-react";
+import { useGuardians } from "@/features/guardians/hooks/useGuardians";
 import type { BillingType } from "@tutorfy/types";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -46,26 +48,17 @@ const schedulePreferenceSchema = z.object({
 
 const studentSchema = z
   .object({
-    name:             z.string().min(2, "Nome deve ter ao menos 2 caracteres"),
-    avatarUrl:        z.string().optional().nullable(),
-    grade:            z.string().min(1, "Série é obrigatória"),
-    school:           z.string().min(1, "Escola é obrigatória"),
-    responsibleName:  z.string().min(2, "Nome do responsável é obrigatório"),
-    responsiblePhone: z.string().refine(
-      (v) => v.replace(/\D/g, "").length >= 10,
-      "Telefone inválido (mínimo 10 dígitos)",
-    ),
+    name:        z.string().min(2, "Nome deve ter ao menos 2 caracteres"),
+    avatarUrl:   z.string().optional().nullable(),
+    grade:       z.string().min(1, "Série é obrigatória"),
+    school:      z.string().min(1, "Escola é obrigatória"),
+    guardianIds: z.array(z.string()).optional().default([]),
     billingType: z.enum(["MONTHLY", "HOURLY"] as const).default("MONTHLY"),
     monthlyFee:  z.coerce.number().min(0).optional().default(0),
     hourlyRate:  z.coerce.number().positive("Valor deve ser positivo").optional().or(z.literal(0)).nullable(),
     birthDate:   z.string().optional(),
     shift:       z.string().optional(),
-    cpf: z.string().optional().refine(
-      (v) => !v || v.replace(/\D/g, "").length === 0 || v.replace(/\D/g, "").length === 11,
-      "CPF inválido",
-    ),
-    email:               z.string().email("E-mail inválido").optional().or(z.literal("")),
-    dueDate:             z.string().optional(),
+    dueDate:     z.string().optional(),
     schedulePreferences: z.array(schedulePreferenceSchema).optional().default([]),
   })
   .refine(
@@ -178,27 +171,26 @@ function StudentFormInner({
     handleSubmit,
     control,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
     defaultValues: student ? {
-      name:             student.name,
-      avatarUrl:        student.avatarUrl,
-      grade:            student.grade,
-      school:           student.school,
-      responsibleName:  student.responsibleName,
-      responsiblePhone: student.responsiblePhone,
-      billingType:      student.billingType as BillingType,
-      monthlyFee:       student.monthlyFee,
-      hourlyRate:       student.hourlyRate,
-      birthDate:        student.birthDate ? student.birthDate.slice(0, 10) : undefined,
-      shift:            student.shift || "morning",
-      cpf:              student.cpf || "",
-      email:            student.email || "",
-      dueDate:          student.dueDate || "10",
+      name:        student.name,
+      avatarUrl:   student.avatarUrl,
+      grade:       student.grade,
+      school:      student.school,
+      guardianIds: (student.guardians ?? []).map((g: { guardian: { id: string } }) => g.guardian.id),
+      billingType: student.billingType as BillingType,
+      monthlyFee:  student.monthlyFee,
+      hourlyRate:  student.hourlyRate,
+      birthDate:   student.birthDate ? student.birthDate.slice(0, 10) : undefined,
+      shift:       student.shift || "morning",
+      dueDate:     student.dueDate || "10",
       schedulePreferences: student.schedulePreferences || [],
     } : {
       grade:               '',
+      guardianIds:         [],
       billingType:         "MONTHLY",
       monthlyFee:          0,
       hourlyRate:          null,
@@ -208,7 +200,14 @@ function StudentFormInner({
     },
   });
 
+  const guardianIds = watch("guardianIds") ?? [];
+
   const { fields, append, remove } = useFieldArray({ control, name: "schedulePreferences" });
+
+  // Guardians picker
+  const [guardianSearch, setGuardianSearch] = useState("");
+  const [guardianPickerOpen, setGuardianPickerOpen] = useState(false);
+  const { data: guardiansData } = useGuardians({ search: guardianSearch, limit: 20 });
 
   const billingType = useWatch({ control, name: "billingType" });
   const avatarUrl   = useWatch({ control, name: "avatarUrl" });
@@ -234,13 +233,10 @@ function StudentFormInner({
       avatarUrl:           data.avatarUrl ?? undefined,
       grade:               data.grade,
       school:              data.school,
-      responsibleName:     data.responsibleName,
-      responsiblePhone:    data.responsiblePhone,
+      guardianIds:         data.guardianIds ?? [],
       billingType:         data.billingType,
       monthlyFee:          data.monthlyFee,
       hourlyRate:          data.hourlyRate ?? undefined,
-      cpf:                 data.cpf || undefined,
-      email:               data.email || undefined,
       birthDate:           data.birthDate || undefined,
       shift:               data.shift || undefined,
       dueDate:             data.dueDate || undefined,
@@ -406,72 +402,118 @@ function StudentFormInner({
 
           {/* ── Seção 3: Responsáveis ── */}
           <section className="glass-panel p-6 sm:p-8 rounded-xl shadow-2xl">
-            <div className="flex items-center gap-3 mb-6">
-              <Family className="h-6 w-6 text-primary" />
-              <h3 className="text-white text-xl font-bold uppercase tracking-wider">
-                Responsáveis
-              </h3>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Family className="h-6 w-6 text-primary" />
+                <h3 className="text-white text-xl font-bold uppercase tracking-wider">Responsáveis</h3>
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setGuardianPickerOpen((v) => !v)}
+              >
+                <Plus />
+                Vincular responsável
+              </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <InputField label="Nome do Responsável" required error={errors.responsibleName?.message} htmlFor="responsibleName">
-                <Input
-                  id="responsibleName"
-                  {...register("responsibleName")}
-                  state={errors.responsibleName ? "error" : "default"}
-                  size="lg"
-                  placeholder="Nome completo"
-                />
-              </InputField>
-
-              <InputField label="CPF" error={errors.cpf?.message}>
-                <Controller
-                  name="cpf"
-                  control={control}
-                  render={({ field }) => (
-                    <Input
-                      value={field.value ?? ""}
-                      onChange={(e) => field.onChange(maskCpf(e.target.value))}
-                      state={errors.cpf ? "error" : "default"}
-                      size="lg"
-                      placeholder="000.000.000-00"
-                      inputMode="numeric"
-                    />
+            {/* Picker dropdown */}
+            {guardianPickerOpen && (
+              <div className="mb-5 glass-panel rounded-xl border border-primary/20 overflow-hidden">
+                <div className="p-3 border-b border-white/5">
+                  <Input
+                    value={guardianSearch}
+                    onChange={(e) => setGuardianSearch(e.target.value)}
+                    placeholder="Buscar responsável..."
+                    size="sm"
+                    autoFocus
+                  />
+                </div>
+                <div className="max-h-48 overflow-y-auto">
+                  {(guardiansData?.data ?? []).length === 0 ? (
+                    <p className="text-xs text-slate-500 text-center py-6">
+                      Nenhum responsável encontrado
+                    </p>
+                  ) : (
+                    (guardiansData?.data ?? []).map((g) => {
+                      const selected = guardianIds.includes(g.id);
+                      return (
+                        <button
+                          key={g.id}
+                          type="button"
+                          disabled={selected}
+                          onClick={() => {
+                            if (!selected) {
+                              setValue("guardianIds", [...guardianIds, g.id], { shouldDirty: true });
+                            }
+                            setGuardianPickerOpen(false);
+                            setGuardianSearch("");
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors border-b border-white/5 last:border-0 ${
+                            selected
+                              ? "text-slate-500 cursor-not-allowed"
+                              : "hover:bg-white/5 text-slate-200"
+                          }`}
+                        >
+                          <UserRound className="h-4 w-4 shrink-0 text-primary/60" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold truncate">{g.name}</p>
+                            {(g.phone || g.relationship) && (
+                              <p className="text-xs text-slate-500 truncate">
+                                {[g.relationship, g.phone].filter(Boolean).join(" · ")}
+                              </p>
+                            )}
+                          </div>
+                          {selected && <span className="text-xs text-primary">Vinculado</span>}
+                        </button>
+                      );
+                    })
                   )}
-                />
-              </InputField>
+                </div>
+              </div>
+            )}
 
-              <InputField label="Telefone / WhatsApp" required error={errors.responsiblePhone?.message}>
-                <Controller
-                  name="responsiblePhone"
-                  control={control}
-                  render={({ field }) => (
-                    <Input
-                      value={field.value ?? ""}
-                      onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                      state={errors.responsiblePhone ? "error" : "default"}
-                      size="lg"
-                      leadingIcon={<Phone />}
-                      placeholder="(00) 00000-0000"
-                      inputMode="tel"
-                      type="tel"
-                    />
-                  )}
-                />
-              </InputField>
-
-              <InputField label="E-mail" error={errors.email?.message} htmlFor="email">
-                <Input
-                  id="email"
-                  {...register("email")}
-                  state={errors.email ? "error" : "default"}
-                  size="lg"
-                  leadingIcon={<Mail />}
-                  placeholder="responsavel@email.com"
-                  type="email"
-                />
-              </InputField>
-            </div>
+            {/* Guardians vinculados */}
+            {guardianIds.length === 0 ? (
+              <div className="text-center py-8 glass-panel bg-slate-900/30 rounded-xl border border-dashed border-white/10">
+                <UserRound className="h-8 w-8 text-slate-600 mx-auto mb-2" />
+                <p className="text-sm text-slate-400">Nenhum responsável vinculado.</p>
+                <p className="text-xs text-slate-600 mt-1">Cadastre responsáveis em <strong className="text-slate-500">Responsáveis</strong> e vincule aqui.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {guardianIds.map((gid) => {
+                  const g = guardiansData?.data.find((x) => x.id === gid)
+                    ?? (student?.guardians ?? []).find((x: { guardian: { id: string; name: string; phone: string | null; email: string | null; relationship: string | null } }) => x.guardian.id === gid)?.guardian;
+                  if (!g) return null;
+                  const guardian = 'name' in g ? g : (g as { guardian: { id: string; name: string; phone: string | null; email: string | null; relationship: string | null } }).guardian;
+                  return (
+                    <div key={gid} className="flex items-center gap-4 p-4 glass-panel rounded-xl bg-slate-900/30">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
+                        {guardian.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">{guardian.name}</p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {[guardian.relationship, guardian.phone, guardian.email].filter(Boolean).join(" · ") || "Sem informações de contato"}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label="Desvincular responsável"
+                        onClick={() => setValue("guardianIds", guardianIds.filter((id) => id !== gid), { shouldDirty: true })}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                      >
+                        <X />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           {/* ── Seção 4: Cobrança ── */}

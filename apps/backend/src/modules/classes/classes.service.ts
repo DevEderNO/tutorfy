@@ -79,8 +79,8 @@ export class ClassesService {
 
     await notificationService.sendClassSummary({
       studentName: student.name,
-      responsibleName: student.responsibleName,
-      responsiblePhone: student.responsiblePhone,
+      responsibleName: student.responsibleName ?? '',
+      responsiblePhone: student.responsiblePhone ?? '',
       responsibleEmail: null, // TODO: add email field to Student model
       date: formattedDate,
       startTime: classSession.startTime,
