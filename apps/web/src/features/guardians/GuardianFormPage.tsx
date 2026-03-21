@@ -8,7 +8,10 @@ import { ArrowLeft, Save, GraduationCap, Plus, X, Search } from 'lucide-react';
 import { useGuardian, useCreateGuardian, useUpdateGuardian, type Guardian } from './hooks/useGuardians';
 import { useStudents } from '@/features/students/hooks/useStudents';
 import { Header } from '@/components/layout/Header';
-import { Button, Input, InputField, Avatar, StatusLabel } from '@tutorfy/ui';
+import {
+  Button, Input, InputField, Avatar, StatusLabel,
+  Modal, ModalContent, ModalHeader, ModalTitle, ModalBody,
+} from '@tutorfy/ui';
 
 interface LinkedStudent {
   id: string;
@@ -53,6 +56,94 @@ export function GuardianFormPage() {
   return <GuardianFormInner id={id} guardian={guardian} isEditing={isEditing} />;
 }
 
+// ─── Student Picker Modal ─────────────────────────────────────────────────────
+
+function StudentPickerModal({
+  open,
+  onClose,
+  onSelect,
+  excludeIds,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSelect: (student: LinkedStudent) => void;
+  excludeIds: Set<string>;
+}) {
+  const [search, setSearch] = useState('');
+  const { data: studentsPage } = useStudents({ search: search || undefined, limit: 20 });
+  const students = (studentsPage?.data ?? []).filter((s) => !excludeIds.has(s.id));
+
+  return (
+    <Modal open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <ModalContent size="sm">
+        <ModalHeader>
+          <ModalTitle>Vincular aluno</ModalTitle>
+        </ModalHeader>
+        <ModalBody className="p-0">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10">
+            <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+            <input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar aluno..."
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+            />
+            {search && (
+              <button type="button" onClick={() => setSearch('')} className="text-muted-foreground hover:text-foreground transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          <div className="max-h-72 overflow-y-auto">
+            {students.length === 0 ? (
+              <p className="px-4 py-6 text-sm text-muted-foreground text-center">
+                {search ? 'Nenhum aluno encontrado.' : 'Todos os alunos já estão vinculados.'}
+              </p>
+            ) : (
+              students.map((student) => (
+                <button
+                  key={student.id}
+                  type="button"
+                  onClick={() => {
+                    onSelect({
+                      id: student.id,
+                      name: student.name,
+                      grade: student.grade ?? null,
+                      school: student.school ?? null,
+                      avatarUrl: student.avatarUrl ?? null,
+                      active: student.active,
+                      relationship: '',
+                    });
+                    onClose();
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-3 hover:bg-white/10 transition-colors text-left border-b border-white/5 last:border-0"
+                >
+                  <Avatar src={student.avatarUrl ?? undefined} name={student.name} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{student.name}</p>
+                    {(student.grade || student.school) && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {[student.grade, student.school].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+                  </div>
+                  <StatusLabel
+                    status={student.active ? 'active' : 'inactive'}
+                    label={student.active ? 'Ativo' : 'Inativo'}
+                    size="sm"
+                  />
+                </button>
+              ))
+            )}
+          </div>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
+  );
+}
+
 // ─── Inner ────────────────────────────────────────────────────────────────────
 
 function GuardianFormInner({
@@ -69,18 +160,9 @@ function GuardianFormInner({
   const updateGuardian = useUpdateGuardian();
 
   const [linkedStudents, setLinkedStudents] = useState<LinkedStudent[]>(
-    guardian?.studentLinks?.map((l) => ({
-      ...l.student,
-      relationship: l.relationship ?? '',
-    })) ?? [],
+    guardian?.studentLinks?.map((l) => ({ ...l.student, relationship: l.relationship ?? '' })) ?? [],
   );
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerSearch, setPickerSearch] = useState('');
-
-  const { data: studentsPage } = useStudents({ search: pickerSearch || undefined, limit: 20 });
-  const allStudents = studentsPage?.data ?? [];
-  const linkedIds = new Set(linkedStudents.map((s) => s.id));
-  const availableStudents = allStudents.filter((s) => !linkedIds.has(s.id));
 
   const {
     register,
@@ -190,70 +272,12 @@ function GuardianFormInner({
             <div className="glass-panel rounded-2xl p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Alunos vinculados</h2>
-                <Button type="button" variant="ghost" size="sm" onClick={() => { setPickerOpen((v) => !v); setPickerSearch(''); }}>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setPickerOpen(true)}>
                   <Plus className="h-4 w-4" />
                   Vincular aluno
                 </Button>
               </div>
 
-              {/* Picker */}
-              {pickerOpen && (
-                <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-                  <div className="flex items-center gap-2 px-3 py-2 border-b border-white/10">
-                    <Search className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <input
-                      autoFocus
-                      value={pickerSearch}
-                      onChange={(e) => setPickerSearch(e.target.value)}
-                      placeholder="Buscar aluno..."
-                      className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                    />
-                  </div>
-                  <div className="max-h-52 overflow-y-auto">
-                    {availableStudents.length === 0 ? (
-                      <p className="px-4 py-3 text-sm text-muted-foreground">
-                        {pickerSearch ? 'Nenhum aluno encontrado.' : 'Todos os alunos já estão vinculados.'}
-                      </p>
-                    ) : (
-                      availableStudents.map((student) => (
-                        <button
-                          key={student.id}
-                          type="button"
-                          onClick={() => {
-                            setLinkedStudents((prev) => [
-                              ...prev,
-                              {
-                                id: student.id,
-                                name: student.name,
-                                grade: student.grade ?? null,
-                                school: student.school ?? null,
-                                avatarUrl: student.avatarUrl ?? null,
-                                active: student.active,
-                                relationship: '',
-                              },
-                            ]);
-                            setPickerOpen(false);
-                            setPickerSearch('');
-                          }}
-                          className="flex w-full items-center gap-3 px-4 py-2.5 hover:bg-white/10 transition-colors text-left"
-                        >
-                          <Avatar src={student.avatarUrl ?? undefined} name={student.name} size="sm" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">{student.name}</p>
-                            {(student.grade || student.school) && (
-                              <p className="text-xs text-muted-foreground truncate">
-                                {[student.grade, student.school].filter(Boolean).join(' · ')}
-                              </p>
-                            )}
-                          </div>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Linked students list */}
               {linkedStudents.length > 0 ? (
                 <div className="space-y-2">
                   {linkedStudents.map((student) => (
@@ -311,6 +335,13 @@ function GuardianFormInner({
           </div>
         </form>
       </div>
+
+      <StudentPickerModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={(student) => setLinkedStudents((prev) => [...prev, student])}
+        excludeIds={new Set(linkedStudents.map((s) => s.id))}
+      />
     </div>
   );
 }

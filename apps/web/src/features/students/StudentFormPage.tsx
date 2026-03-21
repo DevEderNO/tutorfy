@@ -22,9 +22,12 @@ import {
   AlertCircle,
   X,
   UserRound,
-  ChevronDown,
+  Search,
 } from "lucide-react";
-import { useGuardians } from "@/features/guardians/hooks/useGuardians";
+import { useGuardians, type Guardian } from "@/features/guardians/hooks/useGuardians";
+import {
+  Modal, ModalContent, ModalHeader, ModalTitle, ModalBody,
+} from '@tutorfy/ui';
 import type { BillingType } from "@tutorfy/types";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -117,6 +120,79 @@ const WEEK_DAYS = [
   { value: "6", label: "Sábado" },
 ]
 
+// ─── Guardian Picker Modal ────────────────────────────────────────────────────
+
+function GuardianPickerModal({
+  open,
+  onClose,
+  onSelect,
+  excludeIds,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSelect: (guardian: Guardian) => void;
+  excludeIds: string[];
+}) {
+  const [search, setSearch] = useState("");
+  const { data: guardiansData } = useGuardians({ search: search || undefined, limit: 20 });
+  const guardians = (guardiansData?.data ?? []).filter((g) => !excludeIds.includes(g.id));
+
+  return (
+    <Modal open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <ModalContent size="sm">
+        <ModalHeader>
+          <ModalTitle>Vincular responsável</ModalTitle>
+        </ModalHeader>
+        <ModalBody className="p-0">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10">
+            <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+            <input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar responsável..."
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+            />
+            {search && (
+              <button type="button" onClick={() => setSearch("")} className="text-muted-foreground hover:text-foreground transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <div className="max-h-72 overflow-y-auto">
+            {guardians.length === 0 ? (
+              <p className="px-4 py-6 text-sm text-muted-foreground text-center">
+                {search ? "Nenhum responsável encontrado." : "Todos os responsáveis já estão vinculados."}
+              </p>
+            ) : (
+              guardians.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => { onSelect(g); onClose(); }}
+                  className="flex w-full items-center gap-3 px-4 py-3 hover:bg-white/10 transition-colors text-left border-b border-white/5 last:border-0"
+                >
+                  <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0 text-sm">
+                    {g.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{g.name}</p>
+                    {(g.phone || g.email) && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {[g.phone, g.email].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 // ─── Wrapper ──────────────────────────────────────────────────────────────────
@@ -205,9 +281,8 @@ function StudentFormInner({
   const { fields, append, remove } = useFieldArray({ control, name: "schedulePreferences" });
 
   // Guardians picker
-  const [guardianSearch, setGuardianSearch] = useState("");
   const [guardianPickerOpen, setGuardianPickerOpen] = useState(false);
-  const { data: guardiansData } = useGuardians({ search: guardianSearch, limit: 20 });
+  const { data: guardiansData } = useGuardians({ limit: 100 });
 
   const billingType = useWatch({ control, name: "billingType" });
   const avatarUrl   = useWatch({ control, name: "avatarUrl" });
@@ -411,68 +486,12 @@ function StudentFormInner({
                 type="button"
                 variant="secondary"
                 size="sm"
-                onClick={() => setGuardianPickerOpen((v) => !v)}
+                onClick={() => setGuardianPickerOpen(true)}
               >
                 <Plus />
                 Vincular responsável
               </Button>
             </div>
-
-            {/* Picker dropdown */}
-            {guardianPickerOpen && (
-              <div className="mb-5 glass-panel rounded-xl border border-primary/20 overflow-hidden">
-                <div className="p-3 border-b border-white/5">
-                  <Input
-                    value={guardianSearch}
-                    onChange={(e) => setGuardianSearch(e.target.value)}
-                    placeholder="Buscar responsável..."
-                    size="sm"
-                    autoFocus
-                  />
-                </div>
-                <div className="max-h-48 overflow-y-auto">
-                  {(guardiansData?.data ?? []).length === 0 ? (
-                    <p className="text-xs text-slate-500 text-center py-6">
-                      Nenhum responsável encontrado
-                    </p>
-                  ) : (
-                    (guardiansData?.data ?? []).map((g) => {
-                      const selected = guardianIds.includes(g.id);
-                      return (
-                        <button
-                          key={g.id}
-                          type="button"
-                          disabled={selected}
-                          onClick={() => {
-                            if (!selected) {
-                              setValue("guardianIds", [...guardianIds, g.id], { shouldDirty: true });
-                            }
-                            setGuardianPickerOpen(false);
-                            setGuardianSearch("");
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors border-b border-white/5 last:border-0 ${
-                            selected
-                              ? "text-slate-500 cursor-not-allowed"
-                              : "hover:bg-white/5 text-slate-200"
-                          }`}
-                        >
-                          <UserRound className="h-4 w-4 shrink-0 text-primary/60" />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold truncate">{g.name}</p>
-                            {(g.phone || g.relationship) && (
-                              <p className="text-xs text-slate-500 truncate">
-                                {[g.relationship, g.phone].filter(Boolean).join(" · ")}
-                              </p>
-                            )}
-                          </div>
-                          {selected && <span className="text-xs text-primary">Vinculado</span>}
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Guardians vinculados */}
             {guardianIds.length === 0 ? (
@@ -484,10 +503,10 @@ function StudentFormInner({
             ) : (
               <div className="space-y-3">
                 {guardianIds.map((gid) => {
-                  const g = guardiansData?.data.find((x) => x.id === gid)
-                    ?? (student?.guardians ?? []).find((x: { guardian: { id: string; name: string; phone: string | null; email: string | null; relationship: string | null } }) => x.guardian.id === gid)?.guardian;
-                  if (!g) return null;
-                  const guardian = 'name' in g ? g : (g as { guardian: { id: string; name: string; phone: string | null; email: string | null; relationship: string | null } }).guardian;
+                  const found = guardiansData?.data.find((x) => x.id === gid)
+                    ?? (student?.guardians ?? []).find((x: { guardian: { id: string; name: string; phone: string | null; email: string | null } }) => x.guardian.id === gid)?.guardian;
+                  if (!found) return null;
+                  const guardian = 'name' in found ? found : (found as { guardian: Guardian }).guardian;
                   return (
                     <div key={gid} className="flex items-center gap-4 p-4 glass-panel rounded-xl bg-slate-900/30">
                       <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
@@ -496,7 +515,7 @@ function StudentFormInner({
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm truncate">{guardian.name}</p>
                         <p className="text-xs text-slate-500 truncate">
-                          {[guardian.relationship, guardian.phone, guardian.email].filter(Boolean).join(" · ") || "Sem informações de contato"}
+                          {[guardian.phone, guardian.email].filter(Boolean).join(" · ") || "Sem informações de contato"}
                         </p>
                       </div>
                       <Button
@@ -760,6 +779,13 @@ function StudentFormInner({
             </Button>
           </footer>
         </form>
+
+        <GuardianPickerModal
+          open={guardianPickerOpen}
+          onClose={() => setGuardianPickerOpen(false)}
+          onSelect={(g) => setValue("guardianIds", [...guardianIds, g.id], { shouldDirty: true })}
+          excludeIds={guardianIds}
+        />
 
         <UpgradeModal
           isOpen={showUpgradeModal}
