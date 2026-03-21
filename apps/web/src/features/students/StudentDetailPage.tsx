@@ -355,6 +355,8 @@ export function StudentDetailPage() {
           <PortalLinkModal
             studentId={id}
             studentName={student.name}
+            studentEmail={student.email}
+            responsibleName={student.responsibleName}
             open={portalLinkOpen}
             onClose={() => setPortalLinkOpen(false)}
           />

@@ -11,12 +11,17 @@ export function RegisterPage() {
   const [searchParams] = useSearchParams();
   const { setSession } = usePortalAuth();
 
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const token = searchParams.get('token') ?? '';
+
+  const [form, setForm] = useState({
+    name: searchParams.get('name') || '',
+    email: searchParams.get('email') || '',
+    password: '',
+    confirmPassword: '',
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const token = searchParams.get('token') ?? '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

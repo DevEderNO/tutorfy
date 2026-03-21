@@ -126,19 +126,47 @@ const WEEK_DAYS = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+// ─── Wrapper ──────────────────────────────────────────────────────────────────
+
 export function StudentFormPage() {
-  const { id }      = useParams<{ id: string }>();
+  const { id }    = useParams<{ id: string }>();
+  const isEditing = !!id;
+  const { data: student, isLoading } = useStudent(id);
+
+  if (isEditing && isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  // For editing, wait until student is loaded before mounting the form.
+  // This ensures useForm receives correct defaultValues from the start.
+  if (isEditing && !student) return null;
+
+  return <StudentFormInner id={id} student={student} isEditing={isEditing} />;
+}
+
+// ─── Inner form (mounted only after data is ready) ────────────────────────────
+
+function StudentFormInner({
+  id,
+  student,
+  isEditing,
+}: {
+  id: string | undefined;
+  student: any;
+  isEditing: boolean;
+}) {
   const navigate    = useNavigate();
-  const isEditing   = !!id;
   const { canAdd, isAtLimit, max, current } = useCanAddStudent();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  // redirect back if limit reached on new student form
   useEffect(() => {
     if (!isEditing && isAtLimit) setShowUpgradeModal(true);
   }, [isEditing, isAtLimit]);
 
-  const { data: student, isLoading } = useStudent(id);
   const createStudent = useCreateStudent();
   const updateStudent = useUpdateStudent();
 
@@ -148,13 +176,29 @@ export function StudentFormPage() {
   const {
     register,
     handleSubmit,
-    reset,
     control,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
-    defaultValues: {
+    defaultValues: student ? {
+      name:             student.name,
+      avatarUrl:        student.avatarUrl,
+      grade:            student.grade,
+      school:           student.school,
+      responsibleName:  student.responsibleName,
+      responsiblePhone: student.responsiblePhone,
+      billingType:      student.billingType as BillingType,
+      monthlyFee:       student.monthlyFee,
+      hourlyRate:       student.hourlyRate,
+      birthDate:        student.birthDate ? student.birthDate.slice(0, 10) : undefined,
+      shift:            student.shift || "morning",
+      cpf:              student.cpf || "",
+      email:            student.email || "",
+      dueDate:          student.dueDate || "10",
+      schedulePreferences: student.schedulePreferences || [],
+    } : {
+      grade:               '',
       billingType:         "MONTHLY",
       monthlyFee:          0,
       hourlyRate:          null,
@@ -168,28 +212,6 @@ export function StudentFormPage() {
 
   const billingType = useWatch({ control, name: "billingType" });
   const avatarUrl   = useWatch({ control, name: "avatarUrl" });
-
-  useEffect(() => {
-    if (student) {
-      reset({
-        name:             student.name,
-        avatarUrl:        student.avatarUrl,
-        grade:            student.grade,
-        school:           student.school,
-        responsibleName:  student.responsibleName,
-        responsiblePhone: student.responsiblePhone,
-        billingType:      student.billingType as BillingType,
-        monthlyFee:       student.monthlyFee,
-        hourlyRate:       student.hourlyRate,
-        birthDate:        student.birthDate ? student.birthDate.slice(0, 10) : undefined,
-        shift:            student.shift || "morning",
-        cpf:              student.cpf || "",
-        email:            student.email || "",
-        dueDate:          student.dueDate || "10",
-        schedulePreferences: student.schedulePreferences || [],
-      });
-    }
-  }, [student, reset]);
 
   const handleAvatarUpload = (file: File) => {
     setIsUploading(true);
@@ -242,14 +264,6 @@ export function StudentFormPage() {
       // erro já exibido pelo toast
     }
   };
-
-  if (isEditing && isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col min-h-screen">

@@ -7,6 +7,8 @@ import { Button, Modal, ModalContent, ModalHeader, ModalTitle, ModalBody, ModalF
 interface PortalLinkModalProps {
   studentId: string;
   studentName: string;
+  studentEmail?: string;
+  responsibleName?: string;
   open: boolean;
   onClose: () => void;
 }
@@ -15,7 +17,7 @@ type AccountType = 'STUDENT' | 'GUARDIAN';
 
 const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || 'http://localhost:3002';
 
-export function PortalLinkModal({ studentId, studentName, open, onClose }: PortalLinkModalProps) {
+export function PortalLinkModal({ studentId, studentName, studentEmail, responsibleName, open, onClose }: PortalLinkModalProps) {
   const [accountType, setAccountType] = useState<AccountType>('STUDENT');
   const [copied, setCopied] = useState(false);
 
@@ -28,9 +30,15 @@ export function PortalLinkModal({ studentId, studentName, open, onClose }: Porta
     enabled: open,
   });
 
-  const registrationUrl = data
-    ? `${PORTAL_URL}/register?token=${data.token}&type=${accountType}`
-    : '';
+  const registrationUrl = (() => {
+    if (!data) return '';
+    const params = new URLSearchParams({ token: data.token, type: accountType });
+    const name = accountType === 'STUDENT' ? studentName : (responsibleName || studentName);
+    params.set('name', name);
+    const email = accountType === 'STUDENT' ? studentEmail : undefined;
+    if (email) params.set('email', email);
+    return `${PORTAL_URL}/register?${params.toString()}`;
+  })();
 
   const handleCopy = async () => {
     if (!registrationUrl) return;
