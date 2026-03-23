@@ -13,9 +13,9 @@ import {
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/schedule", icon: CalendarDays, label: "Agenda" },
   { to: "/students", icon: Users, label: "Alunos" },
   { to: "/guardians", icon: UserRound, label: "Responsáveis" },
-  { to: "/schedule", icon: CalendarDays, label: "Agenda" },
   { to: "/financial", icon: DollarSign, label: "Financeiro" },
   ...(import.meta.env.DEV ? [{ to: "/components", icon: Layers, label: "Components" }] : []),
 ];
