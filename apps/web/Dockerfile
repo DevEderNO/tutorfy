@@ -30,9 +30,9 @@ COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 # Copiar arquivo de template do nginx
 COPY apps/web/nginx.conf.template /etc/nginx/templates/default.conf.template
 
-# O script entrypoint padrão da imagem do nginx alpino executa envsubst 
+# O script entrypoint padrão da imagem do nginx alpino executa envsubst
 # nos arquivos .template dentro de /etc/nginx/templates/ gerando o default.conf.
-# Então apenas precisamos expor as portas adequadas (Railway sobrescreve EXPOSE limit, 
+# Então apenas precisamos expor as portas adequadas (Railway sobrescreve EXPOSE limit,
 # contanto que o Nginx escute em $PORT).
 
 EXPOSE 80

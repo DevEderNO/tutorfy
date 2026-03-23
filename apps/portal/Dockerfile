@@ -5,26 +5,36 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
 
+# Copiar arquivos do monorepo
 COPY . .
 
+# Instalar dependências
 RUN pnpm install
 
-# Variáveis de build do Vite (embutidas no bundle em build-time)
+# Injetar variáveis de ambiente para o build do Vite
 ARG VITE_API_URL
-ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_API_URL=$VITE_API_URL
 
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+
+# Buildar o frontend (Vite)
 RUN pnpm --filter @tutorfy/portal run build
 
-# Stage 2: Produção com nginx
-FROM nginx:1.27-alpine AS runner
+# Stage 2: Nginx
+FROM nginx:alpine AS runner
 
-# envsubst para substituir variáveis no template nginx
-RUN apk add --no-cache gettext
-
+# Copiar build do React
 COPY --from=builder /app/apps/portal/dist /usr/share/nginx/html
+
+# Copiar arquivo de template do nginx
 COPY apps/portal/nginx.conf.template /etc/nginx/templates/default.conf.template
 
-EXPOSE ${PORT:-80}
+# O script entrypoint padrão da imagem do nginx alpino executa envsubst
+# nos arquivos .template dentro de /etc/nginx/templates/ gerando o default.conf.
+# Então apenas precisamos expor as portas adequadas (Railway sobrescreve EXPOSE limit,
+# contanto que o Nginx escute em $PORT).
 
-# envsubst substitui API_URL e PORT no template antes do nginx iniciar
-CMD ["sh", "-c", "envsubst '${API_URL} ${PORT}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
