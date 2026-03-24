@@ -4,7 +4,7 @@ import {
   useCreateClass,
   useUpdateClass,
   useDeleteClass,
-} from "../classes/hooks/useClasses";
+} from "@/hooks/classes/useClasses";
 import {
   useStudents,
   useStudentsInfinite,
@@ -44,20 +44,20 @@ import {
   ModalTitle,
   ModalBody,
   ModalFooter,
-} from '@tutorfy/ui';
-import { Button } from '@tutorfy/ui';
-import { Textarea } from '@tutorfy/ui';
-import { Select, SelectItem } from '@tutorfy/ui';
-import { SearchSelect } from '@tutorfy/ui';
-import { DatePicker } from '@tutorfy/ui';
-import { TimePicker } from '@tutorfy/ui';
+} from "@tutorfy/ui";
+import { Button } from "@tutorfy/ui";
+import { Textarea } from "@tutorfy/ui";
+import { Select, SelectItem } from "@tutorfy/ui";
+import { SearchSelect } from "@tutorfy/ui";
+import { DatePicker } from "@tutorfy/ui";
+import { TimePicker } from "@tutorfy/ui";
 import { Header } from "@/components/layout/Header";
 import { Search, Sparkles } from "lucide-react";
 import { MicButton } from "@/components/MicButton";
-import { toast } from '@tutorfy/ui';
+import { toast } from "@tutorfy/ui";
 import { useAuth } from "@/lib/auth";
-import { useGenerateLessonPlan } from "@/features/ai/hooks/useLessonPlan";
-import { useGenerateStudentEvolution } from "@/features/ai/hooks/useStudentEvolution";
+import { useGenerateLessonPlan } from "@/hooks/ai/useLessonPlan";
+import { useGenerateStudentEvolution } from "@/hooks/ai/useStudentEvolution";
 
 const statusConfig: Record<
   string,
@@ -386,7 +386,7 @@ export function SchedulePage() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar (Aside) */}
-        <aside className="w-64 glass-panel border-r border-white/10 flex flex-col shrink-0 hidden md:flex z-10 relative">
+        <aside className="w-64 glass-panel border-r border-white/10 flex flex-col shrink-0 md:flex z-10 relative">
           <div className="p-4 border-b border-white/10">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">
               Visualização
@@ -431,7 +431,9 @@ export function SchedulePage() {
                       className={`flex items-center gap-3 text-xs font-medium px-2 py-1.5 rounded-lg cursor-pointer transition-all select-none
                         ${isActive ? "bg-white/10 text-white" : "text-slate-400 hover:text-slate-200 hover:bg-white/5"}`}
                     >
-                      <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${val.dot}`} />
+                      <span
+                        className={`h-2.5 w-2.5 rounded-full shrink-0 ${val.dot}`}
+                      />
                       {val.label}
                       {isActive && (
                         <X className="h-3 w-3 ml-auto text-slate-400" />
@@ -456,7 +458,10 @@ export function SchedulePage() {
                       key={student.id}
                       className="group flex items-center justify-between p-2 rounded-xl glass border-l-4 border-l-red-500/50 hover:border-white/20 transition-all cursor-pointer"
                       onClick={() => {
-                        setNewClass((prev) => ({ ...prev, studentId: student.id }));
+                        setNewClass((prev) => ({
+                          ...prev,
+                          studentId: student.id,
+                        }));
                         setShowNewClass(true);
                       }}
                     >
@@ -464,7 +469,7 @@ export function SchedulePage() {
                         <div className="h-7 w-7 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-slate-300">
                           {getInitials(student.name)}
                         </div>
-                        <span className="text-xs font-semibold text-slate-100 truncate max-w-[120px]">
+                        <span className="text-xs font-semibold text-slate-100 truncate max-w-30">
                           {student.name}
                         </span>
                       </div>
@@ -524,7 +529,7 @@ export function SchedulePage() {
                   onClick={navigatePrevious}
                   aria-label="Mês anterior"
                 >
-                  <ChevronLeft className="sm:!size-5" />
+                  <ChevronLeft className="sm:!size-5!" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -540,7 +545,7 @@ export function SchedulePage() {
                   onClick={navigateNext}
                   aria-label="Próximo"
                 >
-                  <ChevronRight className="sm:!size-5" />
+                  <ChevronRight className="sm:!size-5!" />
                 </Button>
               </div>
             </div>
@@ -993,7 +998,7 @@ export function SchedulePage() {
           </Modal>
 
           <div className="flex-1 overflow-auto p-4 sm:p-6 custom-scrollbar relative z-0">
-            <div className="min-w-[800px] h-full flex flex-col glass rounded-xl overflow-hidden shadow-2xl relative">
+            <div className="min-w-200 h-full flex flex-col glass rounded-xl overflow-hidden shadow-2xl relative">
               <div className="absolute inset-0 bg-black/20 pointer-events-none"></div>
               {/* Days Header */}
               <div className="grid grid-cols-7 border-b border-white/10 bg-white/5 relative z-10 backdrop-blur-sm">
@@ -1057,7 +1062,7 @@ export function SchedulePage() {
                         )}
                       </div>
 
-                      <div className="absolute top-[40px] bottom-2 left-2 right-1 overflow-y-auto custom-scrollbar pr-1 flex flex-col gap-1.5 z-20">
+                      <div className="absolute top-10 bottom-2 left-2 right-1 overflow-y-auto custom-scrollbar pr-1 flex flex-col gap-1.5 z-20">
                         {dayClasses.map((cls) => {
                           const statusColor =
                             statusConfig[cls.status ?? "SCHEDULED"];
@@ -1097,7 +1102,7 @@ export function SchedulePage() {
                               }}
                               className={`relative rounded-lg ${statusColor?.bg} border-l-[3px] ${statusColor?.border} p-2 flex flex-col gap-1 cursor-pointer`}
                             >
-                              <div className="absolute top-0 right-0 bottom-0 left-0 bg-gradient-to-r from-transparent to-white/[0.02] pointer-events-none"></div>
+                              <div className="absolute top-0 right-0 bottom-0 left-0 bg-gradient-to-r from-transparent to-white/2 pointer-events-none"></div>
                               <div className="relative z-10">
                                 <span
                                   className={`text-[10px] font-bold ${statusColor?.text} ${cls.status === "CANCELED" ? "line-through opacity-70" : ""}`}
@@ -1455,7 +1460,7 @@ export function SchedulePage() {
                   <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
                     O que foi feito
                   </label>
-                  <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[80px]">
+                  <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-20">
                     {viewingClass.content || (
                       <span className="text-slate-500 italic">
                         Nenhum conteúdo registrado.
@@ -1468,7 +1473,7 @@ export function SchedulePage() {
                   <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
                     Tarefa para próxima aula
                   </label>
-                  <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[60px]">
+                  <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-15">
                     {viewingClass.homework || (
                       <span className="text-slate-500 italic">
                         Nenhuma tarefa registrada.

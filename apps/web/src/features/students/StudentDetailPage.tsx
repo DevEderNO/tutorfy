@@ -1,7 +1,23 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useStudent } from "./hooks/useStudents";
-import { useDeleteClass } from "../classes/hooks/useClasses";
-import { ChevronRight, User, Phone, Pencil, CreditCard, TrendingUp, Receipt, CalendarDays, Filter, Download, Clock, MoreHorizontal, ChevronLeft, Trash2, Share2 } from "lucide-react";
+import { useDeleteClass } from "@/hooks/classes/useClasses";
+import {
+  ChevronRight,
+  User,
+  Phone,
+  Pencil,
+  CreditCard,
+  TrendingUp,
+  Receipt,
+  CalendarDays,
+  Filter,
+  Download,
+  Clock,
+  MoreHorizontal,
+  ChevronLeft,
+  Trash2,
+  Share2,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
@@ -9,8 +25,8 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { Header } from "@/components/layout/Header";
 import { EvolutionTab } from "./components/EvolutionTab";
 import { PortalLinkModal } from "./components/PortalLinkModal";
-import { Button } from '@tutorfy/ui';
-import { Tabs, TabsList, TabsTrigger } from '@tutorfy/ui';
+import { Button } from "@tutorfy/ui";
+import { Tabs, TabsList, TabsTrigger } from "@tutorfy/ui";
 import {
   Table,
   TableHeader,
@@ -19,13 +35,17 @@ import {
   TableHead,
   TableCell,
   TableEmpty,
-} from '@tutorfy/ui';
+} from "@tutorfy/ui";
 
 const statusColors: Record<string, string> = {
-  SCHEDULED: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  COMPLETED: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  CANCELED: "bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20",
-  MISSED: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+  SCHEDULED:
+    "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+  COMPLETED:
+    "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  CANCELED:
+    "bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20",
+  MISSED:
+    "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
 };
 
 const statusLabels: Record<string, string> = {
@@ -40,7 +60,9 @@ export function StudentDetailPage() {
   const navigate = useNavigate();
   const { data: student, isLoading } = useStudent(id);
   const deleteClass = useDeleteClass();
-  const [activeTab, setActiveTab] = useState<"evolution" | "classes" | "billing">("evolution");
+  const [activeTab, setActiveTab] = useState<
+    "evolution" | "classes" | "billing"
+  >("evolution");
   const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
   const [portalLinkOpen, setPortalLinkOpen] = useState(false);
 
@@ -67,7 +89,10 @@ export function StudentDetailPage() {
 
   const totalClasses = student.classSessions?.length || 0;
   const pendingPayments = student.payments?.filter((p: any) => !p.paid) || [];
-  const pendingAmount = pendingPayments.reduce((acc: number, p: any) => acc + p.amount, 0);
+  const pendingAmount = pendingPayments.reduce(
+    (acc: number, p: any) => acc + p.amount,
+    0,
+  );
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -75,7 +100,11 @@ export function StudentDetailPage() {
         title={`Perfil: ${student.name}`}
         actions={
           <div className="flex items-center gap-3 mr-2">
-            <Link to={`/students/${id}/edit`} className="glass p-2.5 rounded-xl text-primary hover:text-white transition-colors" title="Editar Aluno">
+            <Link
+              to={`/students/${id}/edit`}
+              className="glass p-2.5 rounded-xl text-primary hover:text-white transition-colors"
+              title="Editar Aluno"
+            >
               <Pencil className="h-5 w-5" />
             </Link>
           </div>
@@ -91,7 +120,17 @@ export function StudentDetailPage() {
               <div className="relative">
                 <div className="size-32 rounded-3xl bg-gradient-to-br from-primary to-purple-800 p-1 neon-shadow">
                   <div className="w-full h-full rounded-[1.4rem] bg-background flex items-center justify-center overflow-hidden">
-                    {student.avatarUrl ? <img src={student.avatarUrl} alt={student.name} className="h-full w-full object-cover" /> : <span className="text-primary text-4xl font-black">{getInitials(student.name)}</span>}
+                    {student.avatarUrl ? (
+                      <img
+                        src={student.avatarUrl}
+                        alt={student.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-primary text-4xl font-black">
+                        {getInitials(student.name)}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div
@@ -101,14 +140,19 @@ export function StudentDetailPage() {
                 </div>
               </div>
               <div className="flex flex-col justify-center">
-                <h1 className="text-2xl font-bold text-slate-100 mb-1 tracking-tight">{student.name}</h1>
+                <h1 className="text-2xl font-bold text-slate-100 mb-1 tracking-tight">
+                  {student.name}
+                </h1>
                 <p className="text-slate-400 text-lg mb-2">
-                  {student.grade || "Série não informada"} • {student.school || "Colégio não informado"}
+                  {student.grade || "Série não informada"} •{" "}
+                  {student.school || "Colégio não informado"}
                 </p>
                 <div className="flex flex-wrap gap-4 text-sm items-center justify-center md:justify-start">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-panel text-slate-300">
                     <User className="h-4 w-4 text-primary" />
-                    <span>Responsável: {student.responsibleName || "Não informado"}</span>
+                    <span>
+                      Responsável: {student.responsibleName || "Não informado"}
+                    </span>
                   </div>
                   {student.responsiblePhone && (
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-panel text-slate-300">
@@ -120,11 +164,17 @@ export function StudentDetailPage() {
               </div>
             </div>
             <div className="flex flex-col gap-3 w-full lg:w-auto lg:min-w-[180px]">
-              <Button variant="secondary" onClick={() => navigate(`/students/${id}/edit`)}>
+              <Button
+                variant="secondary"
+                onClick={() => navigate(`/students/${id}/edit`)}
+              >
                 <Pencil className="h-4 w-4" />
                 Editar Perfil
               </Button>
-              <Button variant="secondary" onClick={() => setPortalLinkOpen(true)}>
+              <Button
+                variant="secondary"
+                onClick={() => setPortalLinkOpen(true)}
+              >
                 <Share2 className="h-4 w-4" />
                 Portal do Aluno
               </Button>
@@ -140,29 +190,43 @@ export function StudentDetailPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="glass-panel rounded-xl p-6 border-l-4 border-l-primary hover:translate-y-[-4px] transition-transform">
             <div className="flex justify-between items-start mb-4">
-              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">Aulas Dadas</p>
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+                Aulas Dadas
+              </p>
               <CalendarDays className="h-5 w-5 text-primary" />
             </div>
             <div className="flex items-baseline gap-3">
-              <p className="text-2xl font-bold text-slate-100">{totalClasses}</p>
-              <p className="text-emerald-400 text-xs font-bold">+{totalClasses > 0 ? 1 : 0} este mês</p>
+              <p className="text-2xl font-bold text-slate-100">
+                {totalClasses}
+              </p>
+              <p className="text-emerald-400 text-xs font-bold">
+                +{totalClasses > 0 ? 1 : 0} este mês
+              </p>
             </div>
           </div>
 
           <div className="glass-panel rounded-xl p-6 border-l-4 border-l-purple-500 hover:translate-y-[-4px] transition-transform">
             <div className="flex justify-between items-start mb-4">
-              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">Pendentes</p>
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+                Pendentes
+              </p>
               <Receipt className="h-5 w-5 text-purple-500" />
             </div>
             <div className="flex items-baseline gap-3">
-              <p className="text-2xl font-bold text-purple-400">R$ {pendingAmount.toFixed(2)}</p>
-              <p className="text-slate-500 text-xs">{pendingPayments.length} Atrasados</p>
+              <p className="text-2xl font-bold text-purple-400">
+                R$ {pendingAmount.toFixed(2)}
+              </p>
+              <p className="text-slate-500 text-xs">
+                {pendingPayments.length} Atrasados
+              </p>
             </div>
           </div>
 
           <div className="glass-panel rounded-xl p-6 border-l-4 border-l-emerald-500 hover:translate-y-[-4px] transition-transform">
             <div className="flex justify-between items-start mb-4">
-              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">Presença</p>
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+                Presença
+              </p>
               <TrendingUp className="h-5 w-5 text-emerald-500" />
             </div>
             <div className="flex items-baseline gap-3">
@@ -173,12 +237,18 @@ export function StudentDetailPage() {
 
           <div className="glass-panel rounded-xl p-6 border-l-4 border-l-blue-500 hover:translate-y-[-4px] transition-transform">
             <div className="flex justify-between items-start mb-4">
-              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">Mensalidade</p>
+              <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
+                Mensalidade
+              </p>
               <CreditCard className="h-5 w-5 text-blue-500" />
             </div>
             <div className="flex items-baseline gap-3">
-              <p className="text-2xl font-bold text-slate-100 italic">R$ {student.monthlyFee?.toFixed(2) || "0.00"}</p>
-              <p className="text-slate-500 text-xs underline cursor-pointer hover:text-slate-300">Alterar Plano</p>
+              <p className="text-2xl font-bold text-slate-100 italic">
+                R$ {student.monthlyFee?.toFixed(2) || "0.00"}
+              </p>
+              <p className="text-slate-500 text-xs underline cursor-pointer hover:text-slate-300">
+                Alterar Plano
+              </p>
             </div>
           </div>
         </div>
@@ -187,7 +257,9 @@ export function StudentDetailPage() {
         <div className="glass-panel rounded-xl overflow-hidden flex flex-col min-h-[500px] mb-8 relative z-10">
           <Tabs
             value={activeTab}
-            onValueChange={(v) => setActiveTab(v as "evolution" | "billing" | "classes")}
+            onValueChange={(v) =>
+              setActiveTab(v as "evolution" | "billing" | "classes")
+            }
             variant="underline"
             className="relative z-20"
           >
@@ -237,30 +309,53 @@ export function StudentDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {student.payments && student.payments.length > 0 ? (
-                      student.payments.map((payment: { id: string; month: number; year: number; amount: number; paid: boolean }) => (
-                        <TableRow key={payment.id}>
-                          <TableCell className="font-medium text-slate-100">
-                            Mês {String(payment.month).padStart(2, "0")}/{payment.year}
-                          </TableCell>
-                          <TableCell className="text-slate-400">Dia 10</TableCell>
-                          <TableCell className="font-bold text-slate-100">R$ {payment.amount.toFixed(2)}</TableCell>
-                          <TableCell className="text-center">
-                            <span
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${payment.paid ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}
-                            >
-                              <span className={`size-1.5 rounded-full ${payment.paid ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`} />
-                              {payment.paid ? "Pago" : "Pendente"}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="icon-sm" aria-label="Mais ações relativas à fatura" className="ml-auto">
-                              <MoreHorizontal className="h-5 w-5" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      student.payments.map(
+                        (payment: {
+                          id: string;
+                          month: number;
+                          year: number;
+                          amount: number;
+                          paid: boolean;
+                        }) => (
+                          <TableRow key={payment.id}>
+                            <TableCell className="font-medium text-slate-100">
+                              Mês {String(payment.month).padStart(2, "0")}/
+                              {payment.year}
+                            </TableCell>
+                            <TableCell className="text-slate-400">
+                              Dia 10
+                            </TableCell>
+                            <TableCell className="font-bold text-slate-100">
+                              R$ {payment.amount.toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <span
+                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${payment.paid ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}
+                              >
+                                <span
+                                  className={`size-1.5 rounded-full ${payment.paid ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`}
+                                />
+                                {payment.paid ? "Pago" : "Pendente"}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label="Mais ações relativas à fatura"
+                                className="ml-auto"
+                              >
+                                <MoreHorizontal className="h-5 w-5" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ),
+                      )
                     ) : (
-                      <TableEmpty colSpan={5} message="Nenhum histórico de cobrança registrado." />
+                      <TableEmpty
+                        colSpan={5}
+                        message="Nenhum histórico de cobrança registrado."
+                      />
                     )}
                   </TableBody>
                 </Table>
@@ -292,38 +387,58 @@ export function StudentDetailPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {student.classSessions && student.classSessions.length > 0 ? (
-                      student.classSessions.map((cls: { id: string; date: string; startTime: string; endTime: string; content?: string; status: string }) => (
-                        <TableRow key={cls.id}>
-                          <TableCell className="font-medium text-slate-100">
-                            {format(new Date(cls.date), "dd/MMM/yyyy", { locale: ptBR })}
-                          </TableCell>
-                          <TableCell className="text-slate-400">
-                            <span className="flex items-center gap-1.5">
-                              <Clock className="h-4 w-4 text-primary" /> {cls.startTime} - {cls.endTime}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-slate-300">{cls.content || "-"}</TableCell>
-                          <TableCell className="text-center">
-                            <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[cls.status] || "bg-slate-500/10 text-slate-500 border-slate-500/20"}`}>
-                              {statusLabels[cls.status] || cls.status}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => setDeletingClassId(cls.id)}
-                              aria-label="Remover aula"
-                              className="ml-auto hover:text-red-400 hover:bg-red-400/10"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                    {student.classSessions &&
+                    student.classSessions.length > 0 ? (
+                      student.classSessions.map(
+                        (cls: {
+                          id: string;
+                          date: string;
+                          startTime: string;
+                          endTime: string;
+                          content?: string;
+                          status: string;
+                        }) => (
+                          <TableRow key={cls.id}>
+                            <TableCell className="font-medium text-slate-100">
+                              {format(new Date(cls.date), "dd/MMM/yyyy", {
+                                locale: ptBR,
+                              })}
+                            </TableCell>
+                            <TableCell className="text-slate-400">
+                              <span className="flex items-center gap-1.5">
+                                <Clock className="h-4 w-4 text-primary" />{" "}
+                                {cls.startTime} - {cls.endTime}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-slate-300">
+                              {cls.content || "-"}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <span
+                                className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[cls.status] || "bg-slate-500/10 text-slate-500 border-slate-500/20"}`}
+                              >
+                                {statusLabels[cls.status] || cls.status}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => setDeletingClassId(cls.id)}
+                                aria-label="Remover aula"
+                                className="ml-auto hover:text-red-400 hover:bg-red-400/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ),
+                      )
                     ) : (
-                      <TableEmpty colSpan={5} message="Nenhum log de aulas registrado." />
+                      <TableEmpty
+                        colSpan={5}
+                        message="Nenhum log de aulas registrado."
+                      />
                     )}
                   </TableBody>
                 </Table>
@@ -333,15 +448,35 @@ export function StudentDetailPage() {
             {activeTab === "evolution" && id && <EvolutionTab studentId={id} />}
 
             {/* Simple Dummy Pagination */}
-            {((activeTab === "billing" && student.payments?.length > 0) || (activeTab === "classes" && student.classSessions?.length > 0)) && (
+            {((activeTab === "billing" && student.payments?.length > 0) ||
+              (activeTab === "classes" &&
+                student.classSessions?.length > 0)) && (
               <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/10 bg-white/5 px-6 -mx-6 -mb-6 pb-6">
-                <p className="text-sm text-slate-500">Exibindo registros recentes</p>
+                <p className="text-sm text-slate-500">
+                  Exibindo registros recentes
+                </p>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="icon-sm" disabled aria-label="Página anterior">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled
+                    aria-label="Página anterior"
+                  >
                     <ChevronLeft className="h-5 w-5" />
                   </Button>
-                  <Button variant="secondary" size="icon-sm" aria-label="Página 1" className="bg-primary/20 border-primary/30 text-foreground">1</Button>
-                  <Button variant="ghost" size="icon-sm" aria-label="Próxima página">
+                  <Button
+                    variant="secondary"
+                    size="icon-sm"
+                    aria-label="Página 1"
+                    className="bg-primary/20 border-primary/30 text-foreground"
+                  >
+                    1
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Próxima página"
+                  >
                     <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>

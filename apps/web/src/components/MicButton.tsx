@@ -1,5 +1,5 @@
 import { Mic, MicOff } from "lucide-react";
-import { useSpeechToText } from "@/hooks/useSpeechToText";
+import { useSpeechToText } from "@/hooks/speech-to-text/useSpeechToText";
 
 interface MicButtonProps {
   onAppend: (text: string) => void;

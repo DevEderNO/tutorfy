@@ -1,18 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'sonner';
-import { PortalAuthProvider, usePortalAuth } from '@/lib/auth';
-import { SelectedStudentProvider } from '@/lib/selected-student';
-import { AppLayout } from '@/components/layout/AppLayout';
-import { LoginPage } from '@/features/auth/LoginPage';
-import { RegisterPage } from '@/features/auth/RegisterPage';
-import { HomePage } from '@/features/home/HomePage';
-import { ClassesPage } from '@/features/classes/ClassesPage';
-import { EvolutionPage } from '@/features/evolution/EvolutionPage';
-import { MaterialsPage } from '@/features/materials/MaterialsPage';
-import { StudentsListPage } from '@/features/students/StudentsListPage';
-import { StudentDetailPage } from '@/features/students/StudentDetailPage';
-import { ProfilePage } from '@/features/profile/ProfilePage';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner";
+import { PortalAuthProvider, usePortalAuth } from "@/lib/auth";
+import { SelectedStudentProvider } from "@/lib/selected-student";
+import { AppLayout } from "@/layout/AppLayout";
+import { LoginPage } from "@/features/auth/LoginPage";
+import { RegisterPage } from "@/features/auth/RegisterPage";
+import { HomePage } from "@/features/home/HomePage";
+import { ClassesPage } from "@/features/classes/ClassesPage";
+import { EvolutionPage } from "@/features/evolution/EvolutionPage";
+import { MaterialsPage } from "@/features/materials/MaterialsPage";
+import { StudentsListPage } from "@/features/students/StudentsListPage";
+import { StudentDetailPage } from "@/features/students/StudentDetailPage";
+import { ProfilePage } from "@/features/profile/ProfilePage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 1000 * 30 } },
@@ -20,7 +20,12 @@ const queryClient = new QueryClient({
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = usePortalAuth();
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  if (isLoading)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+        Carregando...
+      </div>
+    );
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
@@ -59,7 +64,10 @@ export function App() {
                   </GuardianRoute>
                 }
               />
-              <Route path="/students/:studentId" element={<StudentDetailPage />} />
+              <Route
+                path="/students/:studentId"
+                element={<StudentDetailPage />}
+              />
               <Route path="/profile" element={<ProfilePage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

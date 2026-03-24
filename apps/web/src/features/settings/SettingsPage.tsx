@@ -1,5 +1,5 @@
 import { useAuth } from "@/lib/auth";
-import { usePlanAiEnabled } from "@/hooks/useSubscription";
+import { usePlanAiEnabled } from "@/hooks/subscription/useSubscription";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { api } from "@/lib/api";
 import {
@@ -25,7 +25,7 @@ import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { Header } from "@/components/layout/Header";
-import { Button } from '@tutorfy/ui';
+import { Button } from "@tutorfy/ui";
 import {
   Table,
   TableHeader,
@@ -33,15 +33,15 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from '@tutorfy/ui';
-import { Input, InputField } from '@tutorfy/ui';
-import { Textarea, TextareaField } from '@tutorfy/ui';
-import { Select, SelectItem } from '@tutorfy/ui';
-import { Switch } from '@tutorfy/ui';
-import { Checkbox } from '@tutorfy/ui';
-import { ImageUpload } from '@tutorfy/ui';
-import { Badge } from '@tutorfy/ui';
-import { StatusLabel } from '@tutorfy/ui';
+} from "@tutorfy/ui";
+import { Input, InputField } from "@tutorfy/ui";
+import { Textarea, TextareaField } from "@tutorfy/ui";
+import { Select, SelectItem } from "@tutorfy/ui";
+import { Switch } from "@tutorfy/ui";
+import { Checkbox } from "@tutorfy/ui";
+import { ImageUpload } from "@tutorfy/ui";
+import { Badge } from "@tutorfy/ui";
+import { StatusLabel } from "@tutorfy/ui";
 
 export function SettingsPage() {
   const { user, updateUser } = useAuth();
@@ -574,14 +574,21 @@ export function SettingsPage() {
           {!planAiEnabled && (
             <div className="px-8 py-4 bg-warning/10 border-b border-warning/20 flex items-center justify-between gap-4">
               <p className="text-sm text-warning">
-                Os recursos de IA não estão disponíveis no seu plano atual. Faça upgrade para desbloquear.
+                Os recursos de IA não estão disponíveis no seu plano atual. Faça
+                upgrade para desbloquear.
               </p>
-              <Button variant="glass" size="sm" onClick={() => setShowAiUpgradeModal(true)}>
+              <Button
+                variant="glass"
+                size="sm"
+                onClick={() => setShowAiUpgradeModal(true)}
+              >
                 Fazer upgrade
               </Button>
             </div>
           )}
-          <div className={`p-8 space-y-6 relative z-10 ${!planAiEnabled ? 'opacity-50 pointer-events-none select-none' : ''}`}>
+          <div
+            className={`p-8 space-y-6 relative z-10 ${!planAiEnabled ? "opacity-50 pointer-events-none select-none" : ""}`}
+          >
             <div>
               <p className="text-sm font-bold text-foreground tracking-tight mb-1">
                 Modo de geração de evolução do aluno

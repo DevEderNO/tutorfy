@@ -1,30 +1,50 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useStudents, useDeleteStudent } from "./hooks/useStudents";
-import { UserPlus, Trash2, Eye, Pencil, PersonStanding, UserCheck, BookOpen, Download } from "lucide-react";
+import {
+  UserPlus,
+  Trash2,
+  Eye,
+  Pencil,
+  PersonStanding,
+  UserCheck,
+  BookOpen,
+  Download,
+} from "lucide-react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { UpgradeModal } from "@/components/UpgradeModal";
-import { useCanAddStudent } from "@/hooks/useSubscription";
+import { useCanAddStudent } from "@/hooks/subscription/useSubscription";
 import { Header } from "@/components/layout/Header";
-import { Button } from '@tutorfy/ui';
-import { Avatar } from '@tutorfy/ui';
-import { Badge } from '@tutorfy/ui';
-import { StatusLabel } from '@tutorfy/ui';
+import { Button } from "@tutorfy/ui";
+import { Avatar } from "@tutorfy/ui";
+import { Badge } from "@tutorfy/ui";
+import { StatusLabel } from "@tutorfy/ui";
 import {
-  Table, TableHeader, TableBody,
-  TableRow, TableHead, TableCell, TableEmpty,
-  TableToolbar, TableSearch,
-} from '@tutorfy/ui';
-import { TableFilter } from '@tutorfy/ui';
-import { Pagination } from '@tutorfy/ui';
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableEmpty,
+  TableToolbar,
+  TableSearch,
+} from "@tutorfy/ui";
+import { TableFilter } from "@tutorfy/ui";
+import { Pagination } from "@tutorfy/ui";
 import type { StudentsListParams } from "@tutorfy/types";
 
 type SortBy = NonNullable<StudentsListParams["sortBy"]>;
 
 const PAGE_SIZE = 10;
 
-function fmtFee(billingType: string, monthlyFee: number, hourlyRate: number | null) {
-  if (billingType === "HOURLY") return `R$ ${(hourlyRate ?? 0).toFixed(2).replace(".", ",")}/h`;
+function fmtFee(
+  billingType: string,
+  monthlyFee: number,
+  hourlyRate: number | null,
+) {
+  if (billingType === "HOURLY")
+    return `R$ ${(hourlyRate ?? 0).toFixed(2).replace(".", ",")}/h`;
   return `R$ ${monthlyFee.toFixed(2).replace(".", ",")}/mês`;
 }
 
@@ -34,35 +54,48 @@ export function StudentsListPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const handleNewStudent = () => {
-    if (!canAdd) { setShowUpgradeModal(true); return; }
+    if (!canAdd) {
+      setShowUpgradeModal(true);
+      return;
+    }
     navigate("/students/new");
   };
 
-  const [page, setPage]         = useState(1);
+  const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch]     = useState("");
-  const [activeFilter, setActiveFilter]   = useState<string[]>([]);
+  const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState<string[]>([]);
   const [billingFilter, setBillingFilter] = useState<string[]>([]);
-  const [sortBy, setSortBy]   = useState<SortBy>("name");
+  const [sortBy, setSortBy] = useState<SortBy>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
-  const [deletingStudent, setDeletingStudent] = useState<{ id: string; name: string } | null>(null);
+  const [deletingStudent, setDeletingStudent] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const deleteStudent = useDeleteStudent();
 
-  const params: StudentsListParams = useMemo(() => ({
-    page,
-    limit: PAGE_SIZE,
-    ...(search      && { search }),
-    ...(activeFilter.length === 1  && { active: activeFilter[0] as "true" | "false" }),
-    ...(billingFilter.length === 1 && { billingType: billingFilter[0] as "MONTHLY" | "HOURLY" }),
-    sortBy,
-    sortDir,
-  }), [page, search, activeFilter, billingFilter, sortBy, sortDir]);
+  const params: StudentsListParams = useMemo(
+    () => ({
+      page,
+      limit: PAGE_SIZE,
+      ...(search && { search }),
+      ...(activeFilter.length === 1 && {
+        active: activeFilter[0] as "true" | "false",
+      }),
+      ...(billingFilter.length === 1 && {
+        billingType: billingFilter[0] as "MONTHLY" | "HOURLY",
+      }),
+      sortBy,
+      sortDir,
+    }),
+    [page, search, activeFilter, billingFilter, sortBy, sortDir],
+  );
 
   const { data: result, isLoading } = useStudents(params);
 
-  const students   = result?.data   ?? [];
-  const total      = result?.total  ?? 0;
+  const students = result?.data ?? [];
+  const total = result?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   function handleSort(col: SortBy) {
@@ -80,15 +113,27 @@ export function StudentsListPage() {
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, 400);
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const handleSearchChange = useCallback((v: string) => { setSearchInput(v); }, []);
-  const handleActiveChange  = useCallback((v: string[]) => { setActiveFilter(v);  setPage(1); }, []);
-  const handleBillingChange = useCallback((v: string[]) => { setBillingFilter(v); setPage(1); }, []);
+  const handleSearchChange = useCallback((v: string) => {
+    setSearchInput(v);
+  }, []);
+  const handleActiveChange = useCallback((v: string[]) => {
+    setActiveFilter(v);
+    setPage(1);
+  }, []);
+  const handleBillingChange = useCallback((v: string[]) => {
+    setBillingFilter(v);
+    setPage(1);
+  }, []);
 
-  const hasFilters = !!searchInput || activeFilter.length > 0 || billingFilter.length > 0;
+  const hasFilters =
+    !!searchInput || activeFilter.length > 0 || billingFilter.length > 0;
 
   function clearFilters() {
     setSearchInput("");
@@ -99,8 +144,10 @@ export function StudentsListPage() {
   }
 
   // Summary counts from current full result (approximation from visible data)
-  const activeCount  = students.filter((s) => s.active).length;
-  const schoolsCount = new Set(students.filter((s) => s.school).map((s) => s.school)).size;
+  const activeCount = students.filter((s) => s.active).length;
+  const schoolsCount = new Set(
+    students.filter((s) => s.school).map((s) => s.school),
+  ).size;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -120,7 +167,6 @@ export function StudentsListPage() {
       />
 
       <div className="mx-auto w-full max-w-7xl p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-
         {/* Summary cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="glass-panel p-5 rounded-2xl flex items-center gap-4 hover:border-primary/30 transition-colors">
@@ -128,8 +174,12 @@ export function StudentsListPage() {
               <PersonStanding className="size-5" />
             </div>
             <div>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Total de alunos</p>
-              <p className="text-2xl font-black text-foreground mt-0.5">{total}</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                Total de alunos
+              </p>
+              <p className="text-2xl font-black text-foreground mt-0.5">
+                {total}
+              </p>
             </div>
           </div>
           <div className="glass-panel p-5 rounded-2xl flex items-center gap-4 hover:border-primary/30 transition-colors">
@@ -137,8 +187,12 @@ export function StudentsListPage() {
               <UserCheck className="size-5" />
             </div>
             <div>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Alunos ativos</p>
-              <p className="text-2xl font-black text-foreground mt-0.5">{activeCount}</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                Alunos ativos
+              </p>
+              <p className="text-2xl font-black text-foreground mt-0.5">
+                {activeCount}
+              </p>
             </div>
           </div>
           <div className="glass-panel p-5 rounded-2xl flex items-center gap-4 hover:border-primary/30 transition-colors">
@@ -146,15 +200,18 @@ export function StudentsListPage() {
               <BookOpen className="size-5" />
             </div>
             <div>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Colégios</p>
-              <p className="text-2xl font-black text-foreground mt-0.5">{schoolsCount}</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                Colégios
+              </p>
+              <p className="text-2xl font-black text-foreground mt-0.5">
+                {schoolsCount}
+              </p>
             </div>
           </div>
         </div>
 
         {/* Table card */}
         <div className="glass-panel rounded-2xl overflow-hidden border border-white/10">
-
           {/* Toolbar */}
           <div className="p-4 border-b border-white/5">
             <TableToolbar>
@@ -166,7 +223,7 @@ export function StudentsListPage() {
               <TableFilter
                 label="Status"
                 options={[
-                  { value: "true",  label: "Ativo",   count: undefined },
+                  { value: "true", label: "Ativo", count: undefined },
                   { value: "false", label: "Inativo", count: undefined },
                 ]}
                 value={activeFilter}
@@ -177,7 +234,7 @@ export function StudentsListPage() {
                 label="Cobrança"
                 options={[
                   { value: "MONTHLY", label: "Mensal" },
-                  { value: "HOURLY",  label: "Por hora" },
+                  { value: "HOURLY", label: "Por hora" },
                 ]}
                 value={billingFilter}
                 onValueChange={handleBillingChange}
@@ -209,7 +266,9 @@ export function StudentsListPage() {
                 >
                   Colégio / Série
                 </TableHead>
-                <TableHead className="hidden lg:table-cell">Responsável</TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Responsável
+                </TableHead>
                 <TableHead
                   sortable
                   sortDirection={sortDirection("monthlyFee")}
@@ -236,8 +295,14 @@ export function StudentsListPage() {
                 <TableEmpty
                   colSpan={6}
                   message="Nenhum aluno encontrado"
-                  description={hasFilters ? "Tente ajustar os filtros de busca." : undefined}
-                  icon={!hasFilters ? <UserPlus className="size-8" /> : undefined}
+                  description={
+                    hasFilters
+                      ? "Tente ajustar os filtros de busca."
+                      : undefined
+                  }
+                  icon={
+                    !hasFilters ? <UserPlus className="size-8" /> : undefined
+                  }
                 />
               ) : (
                 students.map((student) => (
@@ -249,34 +314,54 @@ export function StudentsListPage() {
                           name={student.name}
                           size="md"
                         />
-                        <span className="font-semibold text-foreground">{student.name}</span>
+                        <span className="font-semibold text-foreground">
+                          {student.name}
+                        </span>
                       </div>
                     </TableCell>
 
                     <TableCell>
-                      <p className="text-sm text-muted-foreground">{student.school || "—"}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {student.school || "—"}
+                      </p>
                       {student.grade && (
-                        <Badge variant="outline" size="sm" className="mt-1">{student.grade}</Badge>
+                        <Badge variant="outline" size="sm" className="mt-1">
+                          {student.grade}
+                        </Badge>
                       )}
                     </TableCell>
 
                     <TableCell className="hidden lg:table-cell">
-                      <p className="text-sm font-medium text-foreground">{student.responsibleName || "—"}</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {student.responsibleName || "—"}
+                      </p>
                       {student.responsiblePhone && (
-                        <p className="text-xs text-muted-foreground mt-0.5">{student.responsiblePhone}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {student.responsiblePhone}
+                        </p>
                       )}
                     </TableCell>
 
                     <TableCell className="hidden md:table-cell">
                       <div className="flex flex-col gap-1 items-start">
                         <Badge
-                          variant={student.billingType === "MONTHLY" ? "primary" : "info"}
+                          variant={
+                            student.billingType === "MONTHLY"
+                              ? "primary"
+                              : "info"
+                          }
                           size="sm"
                         >
-                          {student.billingType === "MONTHLY" ? "Mensal" : "Por hora"}
+                          {student.billingType === "MONTHLY"
+                            ? "Mensal"
+                            : "Por hora"}
                         </Badge>
                         <span className="text-xs font-semibold text-foreground tabular-nums">
-                          {fmtFee(student.billingType, student.monthlyFee, student.hourlyRate)}
+                          {fmtFee(
+                            student.billingType,
+                            student.monthlyFee,
+                            student.hourlyRate,
+                          )}
                         </span>
                       </div>
                     </TableCell>
@@ -290,12 +375,22 @@ export function StudentsListPage() {
 
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button size="icon-sm" variant="ghost" aria-label="Ver detalhes" asChild>
+                        <Button
+                          size="icon-sm"
+                          variant="ghost"
+                          aria-label="Ver detalhes"
+                          asChild
+                        >
                           <Link to={`/students/${student.id}`}>
                             <Eye />
                           </Link>
                         </Button>
-                        <Button size="icon-sm" variant="ghost" aria-label="Editar" asChild>
+                        <Button
+                          size="icon-sm"
+                          variant="ghost"
+                          aria-label="Editar"
+                          asChild
+                        >
                           <Link to={`/students/${student.id}/edit`}>
                             <Pencil />
                           </Link>
@@ -304,7 +399,12 @@ export function StudentsListPage() {
                           size="icon-sm"
                           variant="ghost"
                           aria-label="Excluir"
-                          onClick={() => setDeletingStudent({ id: student.id, name: student.name })}
+                          onClick={() =>
+                            setDeletingStudent({
+                              id: student.id,
+                              name: student.name,
+                            })
+                          }
                           className="hover:text-destructive"
                         >
                           <Trash2 />
@@ -321,7 +421,8 @@ export function StudentsListPage() {
           {!isLoading && total > 0 && (
             <div className="px-4 py-3 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3">
               <span className="text-xs text-muted-foreground">
-                {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} de {total} aluno{total !== 1 ? "s" : ""}
+                {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}{" "}
+                de {total} aluno{total !== 1 ? "s" : ""}
               </span>
               <Pagination
                 page={page}
@@ -356,8 +457,10 @@ export function StudentsListPage() {
         description={
           <>
             Deseja realmente excluir o aluno{" "}
-            <span className="font-bold text-white">"{deletingStudent?.name}"</span>?
-            Esta ação removerá permanentemente todos os registros vinculados.
+            <span className="font-bold text-white">
+              "{deletingStudent?.name}"
+            </span>
+            ? Esta ação removerá permanentemente todos os registros vinculados.
           </>
         }
         confirmLabel="Sim, Excluir"

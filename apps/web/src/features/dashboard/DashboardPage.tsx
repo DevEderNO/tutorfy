@@ -4,7 +4,7 @@ import {
   useClasses,
   useUpdateClass,
   useDeleteClass,
-} from "../classes/hooks/useClasses";
+} from "@/hooks/classes/useClasses";
 import {
   format,
   startOfWeek,
@@ -38,13 +38,13 @@ import {
   ModalTitle,
   ModalBody,
   ModalFooter,
-} from '@tutorfy/ui';
-import { Button } from '@tutorfy/ui';
-import { Select, SelectItem } from '@tutorfy/ui';
-import { Tabs, TabsList, TabsTrigger } from '@tutorfy/ui';
-import { Textarea } from '@tutorfy/ui';
-import { DatePicker } from '@tutorfy/ui';
-import { TimePicker } from '@tutorfy/ui';
+} from "@tutorfy/ui";
+import { Button } from "@tutorfy/ui";
+import { Select, SelectItem } from "@tutorfy/ui";
+import { Tabs, TabsList, TabsTrigger } from "@tutorfy/ui";
+import { Textarea } from "@tutorfy/ui";
+import { DatePicker } from "@tutorfy/ui";
+import { TimePicker } from "@tutorfy/ui";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
@@ -434,7 +434,7 @@ export function DashboardPage() {
                   <TabsTrigger
                     key={day.toISOString()}
                     value={day.toISOString()}
-                    className="flex flex-col items-center gap-1 px-3 py-2 min-w-[52px]"
+                    className="flex flex-col items-center gap-1 px-3 py-2 min-w-13"
                   >
                     <span className="text-[11px] font-bold uppercase">
                       {format(day, "EEE", { locale: ptBR }).substring(0, 3)}
@@ -458,7 +458,7 @@ export function DashboardPage() {
           </Tabs>
 
           {/* Classes list */}
-          <div className="max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
+          <div className="max-h-80 overflow-y-auto custom-scrollbar pr-1">
             {isClassesLoading ? (
               <div className="flex justify-center py-8">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -610,7 +610,7 @@ export function DashboardPage() {
               <h3 className="text-3xl font-black text-white leading-tight">
                 Atualização da <br /> Plataforma
               </h3>
-              <p className="text-white/80 text-sm mt-3 max-w-[280px] font-medium leading-relaxed">
+              <p className="text-white/80 text-sm mt-3 max-w-70 font-medium leading-relaxed">
                 Novas ferramentas de análise de desempenho e integração visual
                 via Stitch estão no ar!
               </p>
@@ -620,7 +620,7 @@ export function DashboardPage() {
                 Conhecer agora
               </Button>
             </div>
-            <div className="absolute -right-10 -bottom-10 h-64 w-64 bg-white/10 rounded-full blur-[40px]"></div>
+            <div className="absolute -right-10 -bottom-10 h-64 w-64 bg-white/10 rounded-full blur-2xl"></div>
             <div className="absolute right-4 top-4 opacity-20 scale-150 rotate-12 pointer-events-none">
               <Zap className="h-32 w-32 text-white" />
             </div>
@@ -660,7 +660,7 @@ export function DashboardPage() {
                 <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
                   O que foi feito
                 </label>
-                <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[80px]">
+                <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-20">
                   {viewingClass.content || (
                     <span className="text-slate-500 italic">
                       Nenhum conteúdo registrado.
@@ -673,7 +673,7 @@ export function DashboardPage() {
                 <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider ml-1">
                   Tarefa para próxima aula
                 </label>
-                <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-[60px]">
+                <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap min-h-15">
                   {viewingClass.homework || (
                     <span className="text-slate-500 italic">
                       Nenhuma tarefa registrada.
