@@ -39,7 +39,7 @@ import { Button } from '@tutorfy/ui';
 import { DatePicker } from '@tutorfy/ui';
 import { TimePicker } from '@tutorfy/ui';
 import { ImageUpload } from '@tutorfy/ui';
-import { format as fmtDate } from "date-fns";
+import { format as fmtDate, parse as parseDate } from "date-fns";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -400,7 +400,7 @@ function StudentFormInner({
                     render={({ field }) => (
                       <DatePicker
                         size="lg"
-                        value={field.value ? new Date(field.value + "T12:00:00") : undefined}
+                        value={field.value ? parseDate(field.value, "yyyy-MM-dd", new Date()) : undefined}
                         onChange={(date) => field.onChange(fmtDate(date, "yyyy-MM-dd"))}
                         placeholder="Selecione a data"
                       />
