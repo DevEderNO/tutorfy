@@ -81,12 +81,20 @@ export class StudentsRepository {
     });
   }
 
+  private parseBirthDate(birthDate: string | null | undefined): Date | null | undefined {
+    if (birthDate === undefined) return undefined;
+    if (!birthDate) return null;
+    // "yyyy-MM-dd" → noon UTC to avoid timezone boundary issues
+    return new Date(`${birthDate}T12:00:00.000Z`);
+  }
+
   async create(userId: string, data: CreateStudentInput) {
-    const { schedulePreferences, guardianIds, ...studentData } = data;
+    const { schedulePreferences, guardianIds, birthDate, ...studentData } = data;
 
     return prisma.student.create({
       data: {
         ...studentData,
+        birthDate: this.parseBirthDate(birthDate),
         userId,
         schedulePreferences: schedulePreferences && schedulePreferences.length > 0 ? {
           create: schedulePreferences
@@ -103,7 +111,7 @@ export class StudentsRepository {
   }
 
   async update(id: string, userId: string, data: UpdateStudentInput) {
-    const { schedulePreferences, guardianIds, ...studentData } = data;
+    const { schedulePreferences, guardianIds, birthDate, ...studentData } = data;
 
     return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       if (schedulePreferences) {
@@ -126,7 +134,7 @@ export class StudentsRepository {
 
       return tx.student.update({
         where: { id },
-        data: studentData,
+        data: { ...studentData, ...(birthDate !== undefined ? { birthDate: this.parseBirthDate(birthDate) } : {}) },
         include: { schedulePreferences: true, ...this.guardianInclude },
       });
     });
