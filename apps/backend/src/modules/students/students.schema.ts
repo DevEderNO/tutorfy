@@ -45,6 +45,12 @@ export const createStudentSchema = z.object({
   { message: 'Valor por hora é obrigatório para cobrança por hora', path: ['hourlyRate'] },
 );
 
+export const updateAvatarSchema = z.object({
+  avatarUrl: z.string().nullable(),
+});
+
+export type UpdateAvatarInput = z.infer<typeof updateAvatarSchema>;
+
 export const updateStudentSchema = z.object({
   name: z.string().min(2).optional(),
   avatarUrl: z.string().optional().nullable(),

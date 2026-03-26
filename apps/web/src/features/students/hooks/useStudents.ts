@@ -63,7 +63,18 @@ export function useUpdateStudent() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateStudentDTO }) => {
-      const res = await api.put(`/students/${id}`, data);
+      const res = await api.patch(`/students/${id}`, data);
+      return res.data.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['students'] }),
+  });
+}
+
+export function useUpdateStudentAvatar() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, avatarUrl }: { id: string; avatarUrl: string | null }) => {
+      const res = await api.post(`/students/${id}/avatar`, { avatarUrl });
       return res.data.data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['students'] }),

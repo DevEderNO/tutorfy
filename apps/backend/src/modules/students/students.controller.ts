@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { StudentsService } from './students.service.js';
-import { createStudentSchema, updateStudentSchema, listStudentsQuerySchema } from './students.schema.js';
+import { createStudentSchema, updateStudentSchema, updateAvatarSchema, listStudentsQuerySchema } from './students.schema.js';
 import { getUserId } from '../../lib/auth.js';
 
 const service = new StudentsService();
@@ -52,6 +52,20 @@ export class StudentsController {
     const userId = getUserId(request);
     try {
       const student = await service.update(request.params.id, userId, parsed.data);
+      return reply.send({ data: student });
+    } catch (error: any) {
+      return reply.status(error.statusCode || 500).send({ message: error.message });
+    }
+  }
+
+  async updateAvatar(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const parsed = updateAvatarSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({ message: 'Dados inválidos', errors: parsed.error.flatten().fieldErrors });
+    }
+    const userId = getUserId(request);
+    try {
+      const student = await service.update(request.params.id, userId, { avatarUrl: parsed.data.avatarUrl });
       return reply.send({ data: student });
     } catch (error: any) {
       return reply.status(error.statusCode || 500).send({ message: error.message });

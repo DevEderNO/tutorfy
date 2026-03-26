@@ -68,6 +68,9 @@ const dayVariants = tv({
 // ─── Calendar (internal) ───────────────────────────────────────────────────────
 
 const WEEK_DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+
+type CalendarView = 'days' | 'months' | 'years'
 
 interface CalendarProps {
   value:             Date | undefined
@@ -79,9 +82,13 @@ interface CalendarProps {
 }
 
 function Calendar({ value, onChange, min, max, viewDate, onViewDateChange }: CalendarProps) {
+  const [view, setView] = useState<CalendarView>('days')
+
+  const yearRangeStart = Math.floor(viewDate.getFullYear() / 12) * 12
+
   const days = eachDayOfInterval({
     start: startOfWeek(startOfMonth(viewDate), { weekStartsOn: 0 }),
-    end:   endOfWeek(endOfMonth(viewDate),   { weekStartsOn: 0 }),
+    end:   endOfWeek(endOfMonth(viewDate),     { weekStartsOn: 0 }),
   })
 
   function isDisabled(day: Date) {
@@ -91,30 +98,107 @@ function Calendar({ value, onChange, min, max, viewDate, onViewDateChange }: Cal
     return false
   }
 
+  const navBtnCls = 'flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors'
+  const headerBtnCls = 'text-sm font-semibold text-foreground hover:text-primary transition-colors capitalize'
+
+  /* ── Years view ── */
+  if (view === 'years') {
+    const years = Array.from({ length: 12 }, (_, i) => yearRangeStart + i)
+    return (
+      <div data-slot="calendar" className="w-[280px] p-3 select-none">
+        <div className="flex items-center justify-between mb-3">
+          <button type="button" aria-label="Período anterior" onClick={() => onViewDateChange(new Date(viewDate.getFullYear() - 12, viewDate.getMonth(), 1))} className={navBtnCls}>
+            <ChevronLeft className="size-4" />
+          </button>
+          <span className="text-sm font-semibold text-foreground">
+            {yearRangeStart} – {yearRangeStart + 11}
+          </span>
+          <button type="button" aria-label="Próximo período" onClick={() => onViewDateChange(new Date(viewDate.getFullYear() + 12, viewDate.getMonth(), 1))} className={navBtnCls}>
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-1">
+          {years.map((year) => {
+            const isSelected = value ? value.getFullYear() === year : false
+            const isCurrent  = new Date().getFullYear() === year
+            return (
+              <button
+                key={year}
+                type="button"
+                onClick={() => { onViewDateChange(new Date(year, viewDate.getMonth(), 1)); setView('months') }}
+                className={twMerge(
+                  'flex h-9 items-center justify-center rounded-lg text-sm transition-colors',
+                  isSelected ? 'bg-primary text-primary-foreground font-semibold'
+                    : isCurrent ? 'text-primary font-semibold ring-1 ring-primary/40 hover:bg-white/10'
+                    : 'text-foreground hover:bg-white/10',
+                )}
+              >
+                {year}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Months view ── */
+  if (view === 'months') {
+    return (
+      <div data-slot="calendar" className="w-[280px] p-3 select-none">
+        <div className="flex items-center justify-between mb-3">
+          <button type="button" aria-label="Ano anterior" onClick={() => onViewDateChange(new Date(viewDate.getFullYear() - 1, viewDate.getMonth(), 1))} className={navBtnCls}>
+            <ChevronLeft className="size-4" />
+          </button>
+          <button type="button" onClick={() => setView('years')} className={headerBtnCls}>
+            {viewDate.getFullYear()}
+          </button>
+          <button type="button" aria-label="Próximo ano" onClick={() => onViewDateChange(new Date(viewDate.getFullYear() + 1, viewDate.getMonth(), 1))} className={navBtnCls}>
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-1">
+          {MONTHS_SHORT.map((label, i) => {
+            const isSelected = value
+              ? value.getFullYear() === viewDate.getFullYear() && value.getMonth() === i
+              : false
+            const isCurrent = new Date().getFullYear() === viewDate.getFullYear() && new Date().getMonth() === i
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={() => { onViewDateChange(new Date(viewDate.getFullYear(), i, 1)); setView('days') }}
+                className={twMerge(
+                  'flex h-9 items-center justify-center rounded-lg text-sm transition-colors',
+                  isSelected ? 'bg-primary text-primary-foreground font-semibold'
+                    : isCurrent ? 'text-primary font-semibold ring-1 ring-primary/40 hover:bg-white/10'
+                    : 'text-foreground hover:bg-white/10',
+                )}
+              >
+                {label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Days view ── */
   return (
     <div data-slot="calendar" className="w-[280px] p-3 select-none">
 
       {/* Month navigation */}
       <div className="flex items-center justify-between mb-3">
-        <button
-          type="button"
-          aria-label="Mês anterior"
-          onClick={() => onViewDateChange(subMonths(viewDate, 1))}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors"
-        >
+        <button type="button" aria-label="Mês anterior" onClick={() => onViewDateChange(subMonths(viewDate, 1))} className={navBtnCls}>
           <ChevronLeft className="size-4" />
         </button>
 
-        <span className="text-sm font-semibold text-foreground capitalize">
+        <button type="button" onClick={() => setView('months')} className={headerBtnCls}>
           {format(viewDate, 'MMMM yyyy', { locale: ptBR })}
-        </span>
+        </button>
 
-        <button
-          type="button"
-          aria-label="Próximo mês"
-          onClick={() => onViewDateChange(addMonths(viewDate, 1))}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors"
-        >
+        <button type="button" aria-label="Próximo mês" onClick={() => onViewDateChange(addMonths(viewDate, 1))} className={navBtnCls}>
           <ChevronRight className="size-4" />
         </button>
       </div>
@@ -122,10 +206,7 @@ function Calendar({ value, onChange, min, max, viewDate, onViewDateChange }: Cal
       {/* Week days header */}
       <div className="grid grid-cols-7 mb-1">
         {WEEK_DAYS.map((d) => (
-          <span
-            key={d}
-            className="flex h-8 w-8 items-center justify-center text-[10px] font-medium text-muted-foreground"
-          >
+          <span key={d} className="flex h-8 w-8 items-center justify-center text-[10px] font-medium text-muted-foreground">
             {d}
           </span>
         ))}
@@ -371,9 +452,13 @@ interface RangeCalendarProps {
 }
 
 function RangeCalendar({ from, to, onSelect, min, max, viewDate, onViewDateChange }: RangeCalendarProps) {
+  const [view, setView] = useState<CalendarView>('days')
+
+  const yearRangeStart = Math.floor(viewDate.getFullYear() / 12) * 12
+
   const days = eachDayOfInterval({
     start: startOfWeek(startOfMonth(viewDate), { weekStartsOn: 0 }),
-    end:   endOfWeek(endOfMonth(viewDate),   { weekStartsOn: 0 }),
+    end:   endOfWeek(endOfMonth(viewDate),     { weekStartsOn: 0 }),
   })
 
   function isDisabled(day: Date) {
@@ -388,29 +473,106 @@ function RangeCalendar({ from, to, onSelect, min, max, viewDate, onViewDateChang
     return isAfter(day, from) && isBefore(day, to)
   }
 
+  const navBtnCls = 'flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors'
+  const headerBtnCls = 'text-sm font-semibold text-foreground hover:text-primary transition-colors capitalize'
+
+  /* ── Years view ── */
+  if (view === 'years') {
+    const years = Array.from({ length: 12 }, (_, i) => yearRangeStart + i)
+    return (
+      <div data-slot="range-calendar" className="w-[280px] p-3 select-none">
+        <div className="flex items-center justify-between mb-3">
+          <button type="button" aria-label="Período anterior" onClick={() => onViewDateChange(new Date(viewDate.getFullYear() - 12, viewDate.getMonth(), 1))} className={navBtnCls}>
+            <ChevronLeft className="size-4" />
+          </button>
+          <span className="text-sm font-semibold text-foreground">
+            {yearRangeStart} – {yearRangeStart + 11}
+          </span>
+          <button type="button" aria-label="Próximo período" onClick={() => onViewDateChange(new Date(viewDate.getFullYear() + 12, viewDate.getMonth(), 1))} className={navBtnCls}>
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-1">
+          {Array.from({ length: 12 }, (_, i) => yearRangeStart + i).map((year) => {
+            const isSelected = (from && from.getFullYear() === year) || (to && to.getFullYear() === year)
+            const isCurrent  = new Date().getFullYear() === year
+            return (
+              <button
+                key={year}
+                type="button"
+                onClick={() => { onViewDateChange(new Date(year, viewDate.getMonth(), 1)); setView('months') }}
+                className={twMerge(
+                  'flex h-9 items-center justify-center rounded-lg text-sm transition-colors',
+                  isSelected ? 'bg-primary text-primary-foreground font-semibold'
+                    : isCurrent ? 'text-primary font-semibold ring-1 ring-primary/40 hover:bg-white/10'
+                    : 'text-foreground hover:bg-white/10',
+                )}
+              >
+                {year}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Months view ── */
+  if (view === 'months') {
+    return (
+      <div data-slot="range-calendar" className="w-[280px] p-3 select-none">
+        <div className="flex items-center justify-between mb-3">
+          <button type="button" aria-label="Ano anterior" onClick={() => onViewDateChange(new Date(viewDate.getFullYear() - 1, viewDate.getMonth(), 1))} className={navBtnCls}>
+            <ChevronLeft className="size-4" />
+          </button>
+          <button type="button" onClick={() => setView('years')} className={headerBtnCls}>
+            {viewDate.getFullYear()}
+          </button>
+          <button type="button" aria-label="Próximo ano" onClick={() => onViewDateChange(new Date(viewDate.getFullYear() + 1, viewDate.getMonth(), 1))} className={navBtnCls}>
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-1">
+          {MONTHS_SHORT.map((label, i) => {
+            const isSelected =
+              (from && from.getFullYear() === viewDate.getFullYear() && from.getMonth() === i) ||
+              (to   && to.getFullYear()   === viewDate.getFullYear() && to.getMonth()   === i)
+            const isCurrent = new Date().getFullYear() === viewDate.getFullYear() && new Date().getMonth() === i
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={() => { onViewDateChange(new Date(viewDate.getFullYear(), i, 1)); setView('days') }}
+                className={twMerge(
+                  'flex h-9 items-center justify-center rounded-lg text-sm transition-colors',
+                  isSelected ? 'bg-primary text-primary-foreground font-semibold'
+                    : isCurrent ? 'text-primary font-semibold ring-1 ring-primary/40 hover:bg-white/10'
+                    : 'text-foreground hover:bg-white/10',
+                )}
+              >
+                {label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Days view ── */
   return (
     <div data-slot="range-calendar" className="w-[280px] p-3 select-none">
 
       <div className="flex items-center justify-between mb-3">
-        <button
-          type="button"
-          aria-label="Mês anterior"
-          onClick={() => onViewDateChange(subMonths(viewDate, 1))}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors"
-        >
+        <button type="button" aria-label="Mês anterior" onClick={() => onViewDateChange(subMonths(viewDate, 1))} className={navBtnCls}>
           <ChevronLeft className="size-4" />
         </button>
 
-        <span className="text-sm font-semibold text-foreground capitalize">
+        <button type="button" onClick={() => setView('months')} className={headerBtnCls}>
           {format(viewDate, 'MMMM yyyy', { locale: ptBR })}
-        </span>
+        </button>
 
-        <button
-          type="button"
-          aria-label="Próximo mês"
-          onClick={() => onViewDateChange(addMonths(viewDate, 1))}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors"
-        >
+        <button type="button" aria-label="Próximo mês" onClick={() => onViewDateChange(addMonths(viewDate, 1))} className={navBtnCls}>
           <ChevronRight className="size-4" />
         </button>
       </div>

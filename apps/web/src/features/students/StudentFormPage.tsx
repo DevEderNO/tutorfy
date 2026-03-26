@@ -8,6 +8,7 @@ import {
   useStudent,
   useCreateStudent,
   useUpdateStudent,
+  useUpdateStudentAvatar,
 } from "./hooks/useStudents";
 import {
   User,
@@ -40,13 +41,13 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { useCanAddStudent } from "@/hooks/subscription/useSubscription";
 import { Header } from "@/components/layout/Header";
-import { Input, InputField } from "@tutorfy/ui";
-import { Select, SelectItem } from "@tutorfy/ui";
-import { Button } from "@tutorfy/ui";
-import { DatePicker } from "@tutorfy/ui";
-import { TimePicker } from "@tutorfy/ui";
-import { ImageUpload } from "@tutorfy/ui";
-import { format as fmtDate } from "date-fns";
+import { Input, InputField } from '@tutorfy/ui';
+import { Select, SelectItem } from '@tutorfy/ui';
+import { Button } from '@tutorfy/ui';
+import { DatePicker } from '@tutorfy/ui';
+import { TimePicker } from '@tutorfy/ui';
+import { ImageUpload } from '@tutorfy/ui';
+import { format as fmtDate, parse as parseDate } from "date-fns";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -282,6 +283,7 @@ function StudentFormInner({
 
   const createStudent = useCreateStudent();
   const updateStudent = useUpdateStudent();
+  const updateAvatar  = useUpdateStudentAvatar();
 
   const [isUploading, setIsUploading] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -292,7 +294,7 @@ function StudentFormInner({
     control,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields },
   } = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
     defaultValues: student
@@ -358,39 +360,41 @@ function StudentFormInner({
   };
 
   const onSubmit = async (data: StudentFormData) => {
-    if (!isEditing && !canAdd) {
-      setShowUpgradeModal(true);
-      return;
-    }
+    if (!isEditing && !canAdd) { setShowUpgradeModal(true); return; }
+
+    const avatarChanged = !!dirtyFields.avatarUrl;
+
     const payload = {
-      name: data.name,
-      avatarUrl: data.avatarUrl ?? undefined,
-      grade: data.grade,
-      school: data.school,
-      guardianIds: data.guardianIds ?? [],
-      billingType: data.billingType,
-      monthlyFee: data.monthlyFee,
-      hourlyRate: data.hourlyRate ?? undefined,
-      birthDate: data.birthDate || undefined,
-      shift: data.shift || undefined,
-      dueDate: data.dueDate || undefined,
+      name:                data.name,
+      // Avatar is never sent in the main PUT — handled separately to avoid large payloads
+      ...(isEditing ? {} : { avatarUrl: data.avatarUrl ?? undefined }),
+      grade:               data.grade,
+      school:              data.school,
+      guardianIds:         data.guardianIds ?? [],
+      billingType:         data.billingType,
+      monthlyFee:          data.monthlyFee,
+      hourlyRate:          data.hourlyRate ?? undefined,
+      birthDate:           data.birthDate || undefined,
+      shift:               data.shift || undefined,
+      dueDate:             data.dueDate || undefined,
       schedulePreferences: data.schedulePreferences,
     };
 
-    const promise = isEditing
+    const mainPromise = isEditing
       ? updateStudent.mutateAsync({ id, data: payload })
       : createStudent.mutateAsync(payload);
 
-    toast.promise(promise, {
-      loading: isEditing ? "Salvando alterações..." : "Cadastrando aluno...",
-      success: isEditing
-        ? "Aluno atualizado com sucesso!"
-        : "Aluno cadastrado com sucesso!",
-      error: "Não foi possível salvar. Tente novamente.",
+    toast.promise(mainPromise, {
+      loading: isEditing ? 'Salvando alterações...' : 'Cadastrando aluno...',
+      success: isEditing ? 'Aluno atualizado com sucesso!' : 'Aluno cadastrado com sucesso!',
+      error:   'Não foi possível salvar. Tente novamente.',
     });
 
     try {
-      await promise;
+      await mainPromise;
+      if (isEditing && id && avatarChanged) {
+        await updateAvatar.mutateAsync({ id, avatarUrl: data.avatarUrl ?? null });
+      }
       navigate("/students");
     } catch {
       // erro já exibido pelo toast
@@ -475,14 +479,8 @@ function StudentFormInner({
                     render={({ field }) => (
                       <DatePicker
                         size="lg"
-                        value={
-                          field.value
-                            ? new Date(field.value + "T12:00:00")
-                            : undefined
-                        }
-                        onChange={(date) =>
-                          field.onChange(fmtDate(date, "yyyy-MM-dd"))
-                        }
+                        value={field.value ? parseDate(field.value, "yyyy-MM-dd", new Date()) : undefined}
+                        onChange={(date) => field.onChange(fmtDate(date, "yyyy-MM-dd"))}
                         placeholder="Selecione a data"
                       />
                     )}
