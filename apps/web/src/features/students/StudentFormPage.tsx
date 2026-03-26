@@ -248,7 +248,7 @@ function StudentFormInner({
     control,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields },
   } = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
     defaultValues: student ? {
@@ -305,7 +305,7 @@ function StudentFormInner({
     if (!isEditing && !canAdd) { setShowUpgradeModal(true); return; }
     const payload = {
       name:                data.name,
-      avatarUrl:           data.avatarUrl ?? undefined,
+      avatarUrl:           dirtyFields.avatarUrl ? (data.avatarUrl ?? undefined) : undefined,
       grade:               data.grade,
       school:              data.school,
       guardianIds:         data.guardianIds ?? [],
