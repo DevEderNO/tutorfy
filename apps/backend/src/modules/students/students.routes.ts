@@ -11,7 +11,7 @@ export async function studentsRoutes(app: FastifyInstance) {
   app.get('/:id', controller.getById.bind(controller));
   app.get('/:id/portal-link', controller.getPortalLink.bind(controller));
   app.post('/', controller.create.bind(controller));
-  app.put('/:id', controller.update.bind(controller));
+  app.patch('/:id', controller.update.bind(controller));
   app.post('/:id/avatar', { bodyLimit: 5 * 1024 * 1024 }, controller.updateAvatar.bind(controller));
   app.delete('/:id', controller.delete.bind(controller));
 }
