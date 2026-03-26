@@ -70,6 +70,17 @@ export function useUpdateStudent() {
   });
 }
 
+export function useUpdateStudentAvatar() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, avatarUrl }: { id: string; avatarUrl: string | null }) => {
+      const res = await api.post(`/students/${id}/avatar`, { avatarUrl });
+      return res.data.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['students'] }),
+  });
+}
+
 export function useDeleteStudent() {
   const queryClient = useQueryClient();
   return useMutation({

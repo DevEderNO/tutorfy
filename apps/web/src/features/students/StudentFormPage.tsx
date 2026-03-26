@@ -8,6 +8,7 @@ import {
   useStudent,
   useCreateStudent,
   useUpdateStudent,
+  useUpdateStudentAvatar,
 } from "./hooks/useStudents";
 import {
   User,
@@ -238,6 +239,7 @@ function StudentFormInner({
 
   const createStudent = useCreateStudent();
   const updateStudent = useUpdateStudent();
+  const updateAvatar  = useUpdateStudentAvatar();
 
   const [isUploading,    setIsUploading]    = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -303,9 +305,13 @@ function StudentFormInner({
 
   const onSubmit = async (data: StudentFormData) => {
     if (!isEditing && !canAdd) { setShowUpgradeModal(true); return; }
+
+    const avatarChanged = !!dirtyFields.avatarUrl;
+
     const payload = {
       name:                data.name,
-      avatarUrl:           dirtyFields.avatarUrl ? (data.avatarUrl ?? undefined) : undefined,
+      // Avatar is never sent in the main PUT — handled separately to avoid large payloads
+      ...(isEditing ? {} : { avatarUrl: data.avatarUrl ?? undefined }),
       grade:               data.grade,
       school:              data.school,
       guardianIds:         data.guardianIds ?? [],
@@ -318,18 +324,21 @@ function StudentFormInner({
       schedulePreferences: data.schedulePreferences,
     };
 
-    const promise = isEditing
+    const mainPromise = isEditing
       ? updateStudent.mutateAsync({ id, data: payload })
       : createStudent.mutateAsync(payload);
 
-    toast.promise(promise, {
+    toast.promise(mainPromise, {
       loading: isEditing ? 'Salvando alterações...' : 'Cadastrando aluno...',
       success: isEditing ? 'Aluno atualizado com sucesso!' : 'Aluno cadastrado com sucesso!',
       error:   'Não foi possível salvar. Tente novamente.',
     });
 
     try {
-      await promise;
+      await mainPromise;
+      if (isEditing && id && avatarChanged) {
+        await updateAvatar.mutateAsync({ id, avatarUrl: data.avatarUrl ?? null });
+      }
       navigate("/students");
     } catch {
       // erro já exibido pelo toast
