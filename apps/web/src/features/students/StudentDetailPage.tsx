@@ -113,14 +113,14 @@ export function StudentDetailPage() {
         }
       />
 
-      <div className="flex-1 max-w-[1200px] w-full mx-auto p-8 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex-1 max-w-300 w-full mx-auto p-8 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {/* Main Profile Info Card */}
         <div className="glass-panel rounded-xl p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] rounded-full -mr-20 -mt-20 pointer-events-none"></div>
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
             <div className="flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
               <div className="relative">
-                <div className="size-32 rounded-3xl bg-gradient-to-br from-primary to-purple-800 p-1 neon-shadow">
+                <div className="size-32 rounded-3xl bg-linear-to-br from-primary to-purple-800 p-1 neon-shadow">
                   <div className="w-full h-full rounded-[1.4rem] bg-background flex items-center justify-center overflow-hidden">
                     {student.avatarUrl ? (
                       <img
@@ -165,7 +165,7 @@ export function StudentDetailPage() {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-3 w-full lg:w-auto lg:min-w-[180px]">
+            <div className="flex flex-col gap-3 w-full lg:w-auto lg:min-w-45">
               <Button
                 variant="secondary"
                 onClick={() => navigate(`/students/${id}/edit`)}
@@ -190,7 +190,7 @@ export function StudentDetailPage() {
 
         {/* 4 Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-primary hover:translate-y-[-4px] transition-transform">
+          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-primary hover:translate-y-1 transition-transform">
             <div className="flex justify-between items-start mb-4">
               <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
                 Aulas Dadas
@@ -207,7 +207,7 @@ export function StudentDetailPage() {
             </div>
           </div>
 
-          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-purple-500 hover:translate-y-[-4px] transition-transform">
+          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-purple-500 hover:translate-y-1 transition-transform">
             <div className="flex justify-between items-start mb-4">
               <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
                 Pendentes
@@ -224,7 +224,7 @@ export function StudentDetailPage() {
             </div>
           </div>
 
-          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-emerald-500 hover:translate-y-[-4px] transition-transform">
+          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-emerald-500 hover:translate-y-1 transition-transform">
             <div className="flex justify-between items-start mb-4">
               <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
                 Presença
@@ -237,7 +237,7 @@ export function StudentDetailPage() {
             </div>
           </div>
 
-          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-blue-500 hover:translate-y-[-4px] transition-transform">
+          <div className="glass-panel rounded-xl p-6 border-l-4 border-l-blue-500 hover:translate-y-1 transition-transform">
             <div className="flex justify-between items-start mb-4">
               <p className="text-slate-400 text-sm font-medium uppercase tracking-wider">
                 Mensalidade
@@ -256,7 +256,7 @@ export function StudentDetailPage() {
         </div>
 
         {/* Tabs and Content Section */}
-        <div className="glass-panel rounded-xl overflow-hidden flex flex-col min-h-[500px] mb-8 relative z-10">
+        <div className="glass-panel rounded-xl overflow-hidden flex flex-col min-h-125 mb-8 relative z-10">
           <Tabs
             value={activeTab}
             onValueChange={(v) =>
