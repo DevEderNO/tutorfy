@@ -31,6 +31,7 @@ model User {
   skillCategories     SkillCategory[]
   subscription        Subscription?
   guardians           Guardian[]
+  studentFiles        StudentFile[]
 
   @@map("users")
 }
@@ -105,6 +106,7 @@ model Student {
   guardianLinks GuardianStudentLink[]
   studentLink   StudentPortalLink?
   guardians     GuardianStudent[]
+  files         StudentFile[]
 
   @@index([userId])
   @@map("students")
@@ -119,6 +121,13 @@ model StudentShareToken {
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("student_share_tokens")
+}
+
+enum FileType {
+  TAREFA
+  MATERIAL
+  TRABALHO
+  OUTRO
 }
 
 enum BillingType {
@@ -160,11 +169,32 @@ model ClassSession {
   user    User    @relation(fields: [userId], references: [id])
   student Student @relation(fields: [studentId], references: [id])
   evolutionEntries EvolutionEntry[]
+  files            StudentFile[]
 
   @@index([userId])
   @@index([studentId])
   @@index([date])
   @@map("class_sessions")
+}
+
+model StudentFile {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  studentId      String   @map("student_id")
+  classSessionId String?  @map("class_session_id")
+  type           FileType
+  title          String
+  url            String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user         User          @relation(fields: [userId],         references: [id])
+  student      Student       @relation(fields: [studentId],      references: [id], onDelete: Cascade)
+  classSession ClassSession? @relation(fields: [classSessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([studentId])
+  @@index([classSessionId])
+  @@map("student_files")
 }
 
 model Payment {

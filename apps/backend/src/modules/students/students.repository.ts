@@ -77,6 +77,7 @@ export class StudentsRepository {
           },
         },
         ...this.guardianInclude,
+        files: { orderBy: { createdAt: 'desc' as const } },
       },
     });
   }

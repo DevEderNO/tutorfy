@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   Trash2,
   Share2,
+  Paperclip,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -25,6 +26,7 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { Header } from "@/components/layout/Header";
 import { EvolutionTab } from "./components/EvolutionTab";
 import { PortalLinkModal } from "./components/PortalLinkModal";
+import { StudentFilesTab } from "./components/StudentFilesTab";
 import { Button } from "@tutorfy/ui";
 import { Tabs, TabsList, TabsTrigger } from "@tutorfy/ui";
 import {
@@ -61,7 +63,7 @@ export function StudentDetailPage() {
   const { data: student, isLoading } = useStudent(id);
   const deleteClass = useDeleteClass();
   const [activeTab, setActiveTab] = useState<
-    "evolution" | "classes" | "billing"
+    "evolution" | "classes" | "billing" | "files"
   >("evolution");
   const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
   const [portalLinkOpen, setPortalLinkOpen] = useState(false);
@@ -258,7 +260,7 @@ export function StudentDetailPage() {
           <Tabs
             value={activeTab}
             onValueChange={(v) =>
-              setActiveTab(v as "evolution" | "billing" | "classes")
+              setActiveTab(v as "evolution" | "billing" | "classes" | "files")
             }
             variant="underline"
             className="relative z-20"
@@ -275,6 +277,10 @@ export function StudentDetailPage() {
               <TabsTrigger value="classes" className="py-4 font-bold">
                 <CalendarDays className="h-5 w-5" />
                 Log de Aulas
+              </TabsTrigger>
+              <TabsTrigger value="files" className="py-4 font-bold">
+                <Paperclip className="h-5 w-5" />
+                Arquivos
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -446,6 +452,14 @@ export function StudentDetailPage() {
             )}
 
             {activeTab === "evolution" && id && <EvolutionTab studentId={id} />}
+
+            {activeTab === "files" && id && (
+              <StudentFilesTab
+                studentId={id}
+                files={student.files ?? []}
+                classSessions={student.classSessions ?? []}
+              />
+            )}
 
             {/* Simple Dummy Pagination */}
             {((activeTab === "billing" && student.payments?.length > 0) ||

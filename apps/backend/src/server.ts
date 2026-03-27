@@ -20,6 +20,7 @@ import { adminAccountsRoutes } from './modules/admin/admin-accounts.routes.js';
 import { adminFinancialRoutes } from './modules/admin/admin-financial.routes.js';
 import { adminSettingsRoutes } from './modules/admin/admin-settings.routes.js';
 import { guardiansRoutes } from './modules/guardians/guardians.routes.js';
+import { studentFilesRoutes } from './modules/student-files/student-files.routes.js';
 import { portalAuthRoutes } from './modules/portal/portal-auth.routes.js';
 import { portalStudentsRoutes } from './modules/portal/portal-students.routes.js';
 
@@ -54,6 +55,7 @@ await app.register(adminAccountsRoutes, { prefix: '/admin/admins' });
 await app.register(adminFinancialRoutes, { prefix: '/admin/financial' });
 await app.register(adminSettingsRoutes, { prefix: '/admin/settings' });
 await app.register(guardiansRoutes, { prefix: '/guardians' });
+await app.register(studentFilesRoutes, { prefix: '/students' });
 await app.register(portalAuthRoutes, { prefix: '/portal/auth' });
 await app.register(portalStudentsRoutes, { prefix: '/portal/students' });
 

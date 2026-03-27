@@ -81,6 +81,46 @@ export function useUpdateStudentAvatar() {
   });
 }
 
+export type FileType = 'TAREFA' | 'MATERIAL' | 'TRABALHO' | 'OUTRO';
+
+export interface StudentFile {
+  id:             string;
+  type:           FileType;
+  title:          string;
+  url:            string;
+  classSessionId: string | null;
+  createdAt:      string;
+}
+
+export function useAddStudentFile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      studentId,
+      data,
+    }: {
+      studentId: string;
+      data: { type: FileType; title: string; url: string; classSessionId?: string };
+    }) => {
+      const res = await api.post(`/students/${studentId}/files`, data);
+      return res.data.data as StudentFile;
+    },
+    onSuccess: (_, { studentId }) =>
+      queryClient.invalidateQueries({ queryKey: ['students', studentId] }),
+  });
+}
+
+export function useDeleteStudentFile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ studentId, fileId }: { studentId: string; fileId: string }) => {
+      await api.delete(`/students/${studentId}/files/${fileId}`);
+    },
+    onSuccess: (_, { studentId }) =>
+      queryClient.invalidateQueries({ queryKey: ['students', studentId] }),
+  });
+}
+
 export function useDeleteStudent() {
   const queryClient = useQueryClient();
   return useMutation({

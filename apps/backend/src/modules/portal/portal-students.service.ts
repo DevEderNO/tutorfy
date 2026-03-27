@@ -56,6 +56,10 @@ export class PortalStudentsService {
           select: { dayOfWeek: true, startTime: true, endTime: true },
           orderBy: { dayOfWeek: 'asc' },
         },
+        files: {
+          select: { id: true, type: true, title: true, url: true, classSessionId: true, createdAt: true },
+          orderBy: { createdAt: 'desc' as const },
+        },
       },
     });
 
