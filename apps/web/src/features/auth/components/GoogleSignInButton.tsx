@@ -30,12 +30,11 @@ function GoogleButton({ disabled, onSuccess, onError }: GoogleSignInButtonProps)
         </span>
       </div>
 
-      {/* Google Login iframe — transparent, captures the click */}
-      <div className="absolute inset-0 opacity-0 [&>div]:h-full [&>div>div]:h-full [&_iframe]:!w-full [&_iframe]:!h-full">
+      {/* Google Login iframe — nearly transparent but visible enough for GSI to attach click listener */}
+      <div className="absolute inset-0 opacity-[0.005] [&>div]:h-full [&>div>div]:h-full [&_iframe]:!w-full [&_iframe]:!h-full">
         <GoogleLogin
           onSuccess={handleSuccess}
           onError={onError}
-          width="100%"
           theme="filled_black"
           shape="rectangular"
         />
