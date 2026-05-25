@@ -2,22 +2,17 @@
 
 Este arquivo define o contexto principal, o stack tecnológico, as restrições e as *Skills* necessárias para a manutenção e evolução do projeto **Tutorfy**.
 
-## Memória Persistente (MCP Memory) — Leia PRIMEIRO
+## Memória Persistente — Leia PRIMEIRO
 
-Ao iniciar qualquer sessão, consulte o grafo de conhecimento antes de qualquer outra ação:
-
-```
-mcp__memory__search_nodes("Tutorfy")
-mcp__memory__open_nodes(["Tutorfy", "UI Components Library", "Component Patterns"])
-```
-
-O grafo contém arquitetura completa, componentes UI criados, convenções e padrões. Ao criar novos componentes ou features relevantes, atualize o grafo:
+Ao iniciar qualquer sessão, consulte o auto-memory (arquivos) antes de qualquer outra ação:
 
 ```
-mcp__memory__create_entities([{ name, entityType, observations }])
-mcp__memory__add_observations([{ entityName, contents }])
-mcp__memory__create_relations([{ from, to, relationType }])
+~/.claude/projects/-home-ederzera-Documents-repositories-tutorfy/memory/MEMORY.md
 ```
+
+O índice lista todos os arquivos de memória com contexto de decisões técnicas, padrões, feedback e aprendizados. Ao criar novos componentes, features relevantes ou concluir uma tarefa com aprendizados não-óbvios, atualize os arquivos de memória diretamente via `Write`/`Edit`.
+
+> **Não usar `mcp__memory__*`** — este projeto usa exclusivamente o auto-memory baseado em arquivos.
 
 ## Sobre o Projeto
 
@@ -96,6 +91,10 @@ Guia completo para criar/modificar componentes: `packages/ui/COMPONENT_PROMPT.md
 | `pagination.tsx` | `Pagination`, `PaginationRoot`, `PaginationList`, `PaginationItem`, `PaginationEllipsis` | variant: default/glass · size: sm/md/lg · showEdges (botões primeira/última página) · ellipsis automático |
 | `table.tsx` | `Table`, `TableHeader`, `TableBody`, `TableFooter`, `TableRow`, `TableHead`, `TableCell`, `TableCaption`, `TableEmpty`, `TableToolbar`, `TableSearch`, `TableFilterChip` | variant: default/ghost/outline · size: sm/md/lg (via context) · TableHead: sortable/sortDirection/onSort · TableRow: selected · helpers: sortRows, filterRows, nextSortDirection |
 | `table-filter.tsx` | `TableFilter`, `TableFilterGroup` | Popover com multi/single-select, ícones, contadores, searchable · TableFilterGroup gerencia múltiplos filtros via Record |
+| `dropdown.tsx` | `Dropdown`, `DropdownTrigger`, `DropdownPortal`, `DropdownGroup`, `DropdownRadioGroup`, `DropdownContent`, `DropdownItem`, `DropdownCheckboxItem`, `DropdownRadioItem`, `DropdownLabel`, `DropdownSeparator`, `DropdownSub`, `DropdownSubTrigger`, `DropdownSubContent` | DropdownContent size: sm/md/lg · DropdownItem variant: default/destructive · size: sm/md/lg · suporte a checkbox, radio, label, separador e submenu |
+| `search-select.tsx` | `SearchSelect`, `SearchSelectOption` | size: sm/md/lg · state: default/error/success · clearable · debounceMs · infinite scroll (hasNextPage/onLoadMore/isFetchingNextPage) · navegação por teclado (↑↓ Enter Esc) · opções com ícone e description |
+| `textarea.tsx` | `Textarea`, `TextareaField` | state: default/error/success · size: sm/md/lg · resize: none/y/x/both · rows default=4 · TextareaField: label + helper/error composto |
+| `toast.tsx` | `Toaster`, `toast` | Re-exporta sonner com tema dark glassmorphism · position: bottom-right · variantes visuais: success/error/warning/info/loading |
 
 ### Padrão obrigatório de novo componente
 
@@ -138,16 +137,15 @@ export function Xyz({ className, variant, size, disabled, children, ...props }: 
 - `{...props}` sempre no final
 - Criar em `packages/ui/src/` e exportar em `packages/ui/src/index.ts`
 - Registrar showcase em `apps/web/src/features/components/MoleculesPage.tsx`
-- Atualizar o MCP Memory com a nova entidade
+- Atualizar os arquivos de auto-memory com a nova entidade
 
 ## MCP Servers (`.mcp.json`)
 
 | Server | Uso |
 |---|---|
-| `memory` | Grafo de conhecimento persistente — consultar ao iniciar sessão |
 | `context7` | Documentação atualizada de bibliotecas |
 | `sequential-thinking` | Raciocínio em cadeia para tarefas complexas |
-| `stitch` | Geração de protótipos de UI |
+| `stitch` | Geração de protótipos de UI — obrigatório antes de qualquer tela nova |
 | `Framelink MCP for Figma` | Acesso ao design file `mC2fN4wQTFBSnPuNkJ7ynZ` |
 
 Secrets em `.env` (gitignored): `STITCH_API_KEY`, `FIGMA_API_KEY`, `CONTEXT7_API_KEY`
@@ -160,9 +158,12 @@ apps/
   web/       - React + Vite + Tailwind
     src/
       components/
-        ui/      - Biblioteca de componentes
         layout/  - AppLayout, Sidebar, Header
+        ui/      - Componentes app-específicos a migrar para @tutorfy/ui (ConfirmModal, MicButton, Modal, UpgradeModal)
       features/
         components/  - Showcase dev-only (/components)
-packages/    - Pacotes compartilhados
+packages/
+  ui/        - Biblioteca @tutorfy/ui (packages/ui/src/)
+  config/    - Configurações compartilhadas (tsconfig, eslint, etc.)
+  types/     - Tipos TypeScript compartilhados
 ```
