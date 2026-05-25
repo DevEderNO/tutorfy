@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Trash2, Pencil, Users, Phone, Mail } from 'lucide-react';
 import { useGuardians, useDeleteGuardian } from './hooks/useGuardians';
-import { ConfirmModal } from '@/components/ConfirmModal';
+import { ConfirmModal } from '@tutorfy/ui';
 import { Header } from '@/components/layout/Header';
 import {
   Button, Avatar,

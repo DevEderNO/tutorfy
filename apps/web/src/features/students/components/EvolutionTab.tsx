@@ -20,7 +20,7 @@ import {
 } from "../hooks/useEvolution";
 import { EvolutionFormModal } from "./EvolutionFormModal";
 import { SkillCategoriesManager } from "./SkillCategoriesManager";
-import { ConfirmModal } from "@/components/ConfirmModal";
+import { ConfirmModal } from "@tutorfy/ui";
 
 interface EvolutionTabProps {
   studentId: string;

@@ -23,7 +23,7 @@ import type {
 } from "@tutorfy/types";
 import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
-import { ConfirmModal } from "@/components/ConfirmModal";
+import { ConfirmModal } from "@tutorfy/ui";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@tutorfy/ui";
 import {

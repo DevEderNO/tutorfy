@@ -37,7 +37,7 @@ import {
   ModalBody,
 } from "@tutorfy/ui";
 import type { BillingType } from "@tutorfy/types";
-import { ConfirmModal } from "@/components/ConfirmModal";
+import { ConfirmModal } from "@tutorfy/ui";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { useCanAddStudent } from "@/hooks/subscription/useSubscription";
 import { Header } from "@/components/layout/Header";

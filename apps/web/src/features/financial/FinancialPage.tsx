@@ -16,7 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
-import { ConfirmModal } from "@/components/ConfirmModal";
+import { ConfirmModal } from "@tutorfy/ui";
 import {
   Modal,
   ModalContent,

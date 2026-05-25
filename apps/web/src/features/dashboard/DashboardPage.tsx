@@ -45,7 +45,7 @@ import { Tabs, TabsList, TabsTrigger } from "@tutorfy/ui";
 import { Textarea } from "@tutorfy/ui";
 import { DatePicker } from "@tutorfy/ui";
 import { TimePicker } from "@tutorfy/ui";
-import { ConfirmModal } from "@/components/ConfirmModal";
+import { ConfirmModal } from "@tutorfy/ui";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { getInitials } from "@/lib/utils";

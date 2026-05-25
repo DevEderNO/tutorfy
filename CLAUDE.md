@@ -91,6 +91,7 @@ Guia completo para criar/modificar componentes: `packages/ui/COMPONENT_PROMPT.md
 | `pagination.tsx` | `Pagination`, `PaginationRoot`, `PaginationList`, `PaginationItem`, `PaginationEllipsis` | variant: default/glass · size: sm/md/lg · showEdges (botões primeira/última página) · ellipsis automático |
 | `table.tsx` | `Table`, `TableHeader`, `TableBody`, `TableFooter`, `TableRow`, `TableHead`, `TableCell`, `TableCaption`, `TableEmpty`, `TableToolbar`, `TableSearch`, `TableFilterChip` | variant: default/ghost/outline · size: sm/md/lg (via context) · TableHead: sortable/sortDirection/onSort · TableRow: selected · helpers: sortRows, filterRows, nextSortDirection |
 | `table-filter.tsx` | `TableFilter`, `TableFilterGroup` | Popover com multi/single-select, ícones, contadores, searchable · TableFilterGroup gerencia múltiplos filtros via Record |
+| `confirm-modal.tsx` | `ConfirmModal` | variant: primary/danger/success · isLoading (spinner) · showCancel · icon (LucideIcon) · confirmLabel/cancelLabel |
 | `dropdown.tsx` | `Dropdown`, `DropdownTrigger`, `DropdownPortal`, `DropdownGroup`, `DropdownRadioGroup`, `DropdownContent`, `DropdownItem`, `DropdownCheckboxItem`, `DropdownRadioItem`, `DropdownLabel`, `DropdownSeparator`, `DropdownSub`, `DropdownSubTrigger`, `DropdownSubContent` | DropdownContent size: sm/md/lg · DropdownItem variant: default/destructive · size: sm/md/lg · suporte a checkbox, radio, label, separador e submenu |
 | `search-select.tsx` | `SearchSelect`, `SearchSelectOption` | size: sm/md/lg · state: default/error/success · clearable · debounceMs · infinite scroll (hasNextPage/onLoadMore/isFetchingNextPage) · navegação por teclado (↑↓ Enter Esc) · opções com ícone e description |
 | `textarea.tsx` | `Textarea`, `TextareaField` | state: default/error/success · size: sm/md/lg · resize: none/y/x/both · rows default=4 · TextareaField: label + helper/error composto |
@@ -159,7 +160,8 @@ apps/
     src/
       components/
         layout/  - AppLayout, Sidebar, Header
-        ui/      - Componentes app-específicos a migrar para @tutorfy/ui (ConfirmModal, MicButton, Modal, UpgradeModal)
+        MicButton.tsx  - App-específico (hook de speech-to-text)
+        UpgradeModal.tsx  - App-específico (regras de plano/upgrade)
       features/
         components/  - Showcase dev-only (/components)
 packages/

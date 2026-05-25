@@ -1,4 +1,5 @@
 export * from './avatar';
+export * from './confirm-modal';
 export * from './badge';
 export * from './button';
 export * from './checkbox';

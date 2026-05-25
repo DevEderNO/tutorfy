@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import type { ClassStatus, LessonPlanResult } from "@tutorfy/types";
 import { getInitials } from "@/lib/utils";
-import { ConfirmModal } from "@/components/ConfirmModal";
+import { ConfirmModal } from "@tutorfy/ui";
 import {
   Modal,
   ModalContent,
