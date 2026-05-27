@@ -38,6 +38,7 @@ jobs:
           context: .
           file: apps/backend/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ env.OWNER }}/tutorfy-backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -48,6 +49,7 @@ jobs:
           context: .
           file: apps/web/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ env.OWNER }}/tutorfy-web:latest
           build-args: |
             VITE_API_URL=https://tutorfyapi.devederno.com.br
@@ -61,6 +63,7 @@ jobs:
           context: .
           file: apps/portal/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ env.OWNER }}/tutorfy-portal:latest
           build-args: |
             VITE_API_URL=https://tutorfyapi.devederno.com.br
@@ -74,6 +77,7 @@ jobs:
           context: .
           file: apps/admin/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ env.OWNER }}/tutorfy-admin:latest
           build-args: |
             VITE_API_URL=https://tutorfyapi.devederno.com.br
