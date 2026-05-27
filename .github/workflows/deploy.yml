@@ -103,6 +103,7 @@ jobs:
           script: |
             cd /opt/tutorfy
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            sed -i 's/GHCR_OWNER=.*/GHCR_OWNER=devederno/' .env
             docker compose pull
             docker compose up -d --remove-orphans
             docker image prune -f
