@@ -1,103 +1,103 @@
 # Plano de Implementação — Deploy Oracle Cloud
 
 **Design de referência:** `docs/architecture/oracle-cloud-deployment.md`  
-**Data:** 2026-05-27
+**Data:** 2026-05-27  
+**Status:** ✅ Concluído
 
 ---
 
-## Fase 1 — DNS (fazer primeiro, propaga em até 24h)
+## Fase 1 — DNS ✅
 
-- [ ] Acessar painel do registrador de `devederno.com.br`
-- [ ] Criar registro A: `tutorfyapp` → `137.131.183.49`
-- [ ] Criar registro A: `tutorfyportal` → `137.131.183.49`
-- [ ] Criar registro A: `tutorfyapi` → `137.131.183.49`
+- [x] Acessar painel Cloudflare de `devederno.com.br`
+- [x] Criar registro A: `tutorfyapp` → `137.131.183.49` (Somente DNS)
+- [x] Criar registro A: `tutorfyportal` → `137.131.183.49` (Somente DNS)
+- [x] Criar registro A: `tutorfyapi` → `137.131.183.49` (Somente DNS)
+- [x] Criar registro A: `portainer` → `137.131.183.49` (Somente DNS)
 
-> Verificar propagação: `nslookup tutorfyapi.devederno.com.br`
+> ⚠️ Manter proxy **desativado** (nuvem cinza) — proxy ativo quebra o Let's Encrypt do Traefik.  
+> Domínio registrado na Hostinger com nameservers apontando para Cloudflare.
 
 ---
 
-## Fase 2 — Preparar Servidor (SSH na VM Oracle)
+## Fase 2 — Preparar Servidor ✅
 
 ```bash
-ssh ubuntu@137.131.183.49
+ssh -i /home/ederzera/Documentos/servers/oracle/keys/oracle_server ubuntu@137.131.183.49
 ```
 
-- [ ] **Instalar Docker**
+- [x] **Instalar Docker**
   ```bash
   curl -fsSL https://get.docker.com | sh
   sudo usermod -aG docker $USER
-  # logout e login novamente
+  # logout e login novamente para o grupo ter efeito
   ```
 
-- [ ] **Configurar firewall**
+- [x] **Configurar firewall (UFW)**
   ```bash
-  sudo ufw allow 22/tcp
-  sudo ufw allow 80/tcp
-  sudo ufw allow 443/tcp
-  sudo ufw enable
+  sudo ufw allow 22/tcp && sudo ufw allow 80/tcp && sudo ufw allow 443/tcp && sudo ufw enable
+  # Confirmar com "y" quando perguntado
   ```
 
-- [ ] **Abrir portas na Oracle Cloud (VCN Security List)**
-  - Painel Oracle → Networking → Virtual Cloud Networks → sua VCN → Security Lists → Default
-  - Adicionar Ingress Rule: TCP porta 80, origem 0.0.0.0/0
-  - Adicionar Ingress Rule: TCP porta 443, origem 0.0.0.0/0
+- [x] **Abrir portas na Oracle Cloud (VCN Security List)**
+  - Painel Oracle → Networking → Virtual Cloud Networks → VCN → Security Lists → Default
+  - Ingress Rule: TCP porta 80, origem 0.0.0.0/0
+  - Ingress Rule: TCP porta 443, origem 0.0.0.0/0
+  > ⚠️ Oracle Cloud tem dois firewalls independentes — UFW sozinho não é suficiente.
 
-- [ ] **Criar estrutura de diretórios**
+- [x] **Criar estrutura de diretórios**
   ```bash
   mkdir -p /opt/tutorfy/traefik
   touch /opt/tutorfy/traefik/acme.json
-  chmod 600 /opt/tutorfy/traefik/acme.json
+  chmod 600 /opt/tutorfy/traefik/acme.json   # obrigatório — Traefik rejeita permissões mais abertas
   ```
 
-- [ ] **Criar rede Docker externa**
+- [x] **Criar rede Docker externa**
   ```bash
   docker network create proxy
   ```
 
 ---
 
-## Fase 3 — Criar Arquivos no Repositório
+## Fase 3 — Criar Arquivos no Repositório ✅
 
-- [ ] **Criar `traefik/traefik.yml`** (na raiz do repositório)
-  - Conteúdo: ver `docs/architecture/oracle-cloud-deployment.md` seção "traefik/traefik.yml"
-
-- [ ] **Atualizar `docker-compose.yml`** (substituir o atual que só tem postgres)
-  - Conteúdo: ver `docs/architecture/oracle-cloud-deployment.md` seção "docker-compose.yml"
-
-- [ ] **Criar `.github/workflows/deploy.yml`**
-  - Conteúdo: ver `docs/architecture/oracle-cloud-deployment.md` seção "deploy.yml"
-
-- [ ] **Atualizar `.env.example`** com as novas variáveis necessárias no servidor
+- [x] Criar `traefik/traefik.yml`
+- [x] Atualizar `docker-compose.yml` (6 serviços: traefik, postgres, backend, web, portal, admin, portainer)
+- [x] Criar `.github/workflows/deploy.yml` com build multi-plataforma (amd64 + arm64)
+- [x] Atualizar `.env.example`
 
 ---
 
-## Fase 4 — Configurar Secrets no GitHub
+## Fase 4 — Configurar Secrets no GitHub ✅
 
-Acessar: `github.com/DevEderNO/tutorfy → Settings → Secrets and variables → Actions`
+`github.com/DevEderNO/tutorfy → Settings → Secrets and variables → Actions`
 
-- [ ] `SERVER_HOST` = `137.131.183.49`
-- [ ] `SERVER_USER` = `ubuntu`
-- [ ] `SERVER_SSH_KEY` = conteúdo de `~/.ssh/id_rsa` (chave privada SSH)
-- [ ] `VITE_GOOGLE_CLIENT_ID` = Google Client ID do projeto
+- [x] `SERVER_HOST` = `137.131.183.49`
+- [x] `SERVER_USER` = `ubuntu`
+- [x] `SERVER_SSH_KEY` = conteúdo da chave privada (sem `.pub`)
+  ```bash
+  cat /home/ederzera/Documentos/servers/oracle/keys/oracle_server
+  ```
+- [x] `SERVER_SSH_PASSPHRASE` = passphrase da chave SSH
+- [x] `VITE_GOOGLE_CLIENT_ID` = Google Client ID do projeto
 
 ---
 
-## Fase 5 — Copiar Arquivos para o Servidor
-
-Do computador local (após criar os arquivos na Fase 3):
+## Fase 5 — Copiar Arquivos para o Servidor ✅
 
 ```bash
-# Copiar configuração do Traefik
-scp traefik/traefik.yml ubuntu@137.131.183.49:/opt/tutorfy/traefik/traefik.yml
+# Especificar chave SSH com -i (chave não está em ~/.ssh/)
+scp -i /home/ederzera/Documentos/servers/oracle/keys/oracle_server \
+  docker-compose.yml ubuntu@137.131.183.49:/opt/tutorfy/docker-compose.yml
 
-# Copiar docker-compose.yml
-scp docker-compose.yml ubuntu@137.131.183.49:/opt/tutorfy/docker-compose.yml
-
-# Criar .env no servidor (NÃO copiar do local — criar diretamente)
-ssh ubuntu@137.131.183.49 "nano /opt/tutorfy/.env"
+scp -i /home/ederzera/Documentos/servers/oracle/keys/oracle_server \
+  traefik/traefik.yml ubuntu@137.131.183.49:/opt/tutorfy/traefik/traefik.yml
 ```
 
-Conteúdo do `.env` no servidor:
+Criar `.env` **diretamente no servidor** (nunca copiar do local):
+```bash
+nano /opt/tutorfy/.env
+```
+
 ```env
 POSTGRES_USER=tutorfy
 POSTGRES_PASSWORD=SENHA_FORTE_AQUI
@@ -105,54 +105,48 @@ POSTGRES_DB=tutorfy
 DATABASE_URL=postgresql://tutorfy:SENHA_FORTE_AQUI@postgres:5432/tutorfy
 JWT_SECRET=SECRET_FORTE_AQUI
 GOOGLE_CLIENT_ID=seu_google_client_id
-GHCR_OWNER=DevEderNO
+GHCR_OWNER=devederno
 ```
+
+> ⚠️ `GHCR_OWNER` deve ser **lowercase** (`devederno`) — ghcr.io rejeita letras maiúsculas nas tags.
 
 ---
 
-## Fase 6 — Primeiro Deploy Manual (Validação)
+## Fase 6 — Primeiro Deploy Manual ✅
 
 ```bash
-# No servidor
 cd /opt/tutorfy
-
-# Login no registry (usar Personal Access Token do GitHub com scope read:packages)
-echo SEU_GITHUB_PAT | docker login ghcr.io -u DevEderNO --password-stdin
-
-# Subir tudo
 docker compose pull
 docker compose up -d
-
-# Acompanhar logs
-docker compose logs -f
+docker compose ps  # verificar status
 ```
 
-**Checklist de validação:**
-- [ ] `docker compose ps` — todos os containers com status `Up`
-- [ ] `curl -I https://tutorfyapi.devederno.com.br` — resposta 200 com SSL
-- [ ] Acessar `https://tutorfyapp.devederno.com.br` no browser — app carrega
-- [ ] Acessar `https://tutorfyportal.devederno.com.br` no browser — portal carrega
-- [ ] Certificado SSL válido (cadeado verde no browser)
+**Validação:**
+- [x] `docker compose ps` — todos os 7 containers com status `Up`
+- [x] `curl -I https://tutorfyapi.devederno.com.br` — resposta `HTTP/2 404` (esperado, sem rota raiz)
+- [x] `https://tutorfyapp.devederno.com.br` — app carrega
+- [x] `https://tutorfyportal.devederno.com.br` — portal carrega
+- [x] `https://portainer.devederno.com.br` — Portainer configurado
 
 ---
 
-## Fase 7 — Ativar CI/CD Automático
+## Fase 7 — CI/CD Automático ✅
 
-Após validação manual bem-sucedida:
-
-- [ ] Fazer commit de todos os arquivos criados nas fases anteriores
-- [ ] Push para `master`
-- [ ] Verificar execução do workflow em `github.com/DevEderNO/tutorfy/actions`
-- [ ] Confirmar que o deploy automático funcionou sem erros
+- [x] Push para `master` dispara build + deploy automaticamente
+- [x] Workflow verificado em `github.com/DevEderNO/tutorfy/actions`
 
 ---
 
-## Troubleshooting Comum
+## Troubleshooting
 
-| Problema | Causa provável | Solução |
+| Problema | Causa | Solução |
 |---|---|---|
+| `repository name must be lowercase` | `GHCR_OWNER` com maiúsculas | Corrigir `.env` para `GHCR_OWNER=devederno` |
+| `no matching manifest for linux/arm64/v8` | Build sem multi-plataforma | Adicionar `platforms: linux/amd64,linux/arm64` no workflow |
 | Container não sobe | `.env` ausente ou variável errada | `docker compose logs <serviço>` |
-| SSL não emite | DNS ainda não propagou | Aguardar propagação e reiniciar traefik |
-| Porta 80/443 sem resposta | Oracle Security List não aberta | Verificar regras na VCN |
-| `acme.json` erro de permissão | Permissão incorreta | `chmod 600 /opt/tutorfy/traefik/acme.json` |
+| SSL não emite | DNS não propagou ou proxy Cloudflare ativo | Desativar proxy (nuvem cinza); aguardar propagação |
+| Porta 80/443 sem resposta | Oracle Security List não aberta | Verificar Ingress Rules na VCN |
+| `acme.json` erro de permissão | `chmod` incorreto | `chmod 600 /opt/tutorfy/traefik/acme.json` |
 | Backend não conecta no banco | `DATABASE_URL` com host errado | Host deve ser `postgres` (nome do container) |
+| SSH falha com passphrase | Falta parâmetro no ssh-action | Adicionar `passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}` |
+| Portainer bloqueado | Não configurado em 5 min | `docker compose restart portainer` e acessar imediatamente |
