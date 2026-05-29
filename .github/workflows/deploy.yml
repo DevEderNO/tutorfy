@@ -1,4 +1,4 @@
-name: Build & Deploy
+name: Build & Deploy - Oracle Cloud Infrastructure
 
 on:
   push:
@@ -105,5 +105,6 @@ jobs:
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             sed -i 's/GHCR_OWNER=.*/GHCR_OWNER=devederno/' .env
             docker compose pull
+            docker compose run --rm backend npx prisma migrate deploy
             docker compose up -d --remove-orphans
             docker image prune -f
