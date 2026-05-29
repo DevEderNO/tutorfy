@@ -17,23 +17,23 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Converter owner para lowercase
         run: echo "OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Login no GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v3.4.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3.10.0
 
       - name: Build & Push backend
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6.16.0
         with:
           context: .
           file: apps/backend/Dockerfile
@@ -44,7 +44,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & Push web
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6.16.0
         with:
           context: .
           file: apps/web/Dockerfile
@@ -58,7 +58,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & Push portal
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6.16.0
         with:
           context: .
           file: apps/portal/Dockerfile
@@ -72,7 +72,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & Push admin
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6.16.0
         with:
           context: .
           file: apps/admin/Dockerfile
